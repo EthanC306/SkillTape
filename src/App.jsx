@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import curriculum, { PALETTE, MONO, SANS } from "./data/curriculum";
 import Inline from "./components/Inline";
 import FillBody from "./components/FillBody";
+import Figure from "./components/Figure";
 import ComplexityChart from "./components/ComplexityChart";
 import ReferenceTable from "./components/ReferenceTable";
 
@@ -269,6 +270,8 @@ function LearnView({ topic }) {
                 <Inline text={c.body} />
               )}
             </div>
+            {/* Optional diagram beneath the card text (e.g. arrow diagrams). */}
+            {c.figure && <Figure src={c.figure.src} alt={c.figure.alt} caption={c.figure.caption} />}
           </div>
         ))}
       </div>
@@ -384,6 +387,8 @@ function QuizView({ topic, onFinish, best }) {
             <code>{q.code}</code>
           </pre>
         )}
+        {/* Optional diagram the question refers to (e.g. "which arrow diagram…"). */}
+        {q.figure && <Figure src={q.figure.src} alt={q.figure.alt} caption={q.figure.caption} />}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {q.choices.map((choice, i) => {
             let bg = PALETTE.panel2,
