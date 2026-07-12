@@ -63,6 +63,11 @@ export const COURSES = [
  *   questions — Quiz-mode questions: { prompt, code?, figure?, choices, answer, explanation, tag? }
  *               where `answer` is the 0-based index of the correct choice and the
  *               optional `tag` highlights the matching curve on the Big-O chart.
+ *   flashcards — optional flip-card deck: [{ front, back }]. When present, a
+ *               "Flashcards" mode button appears next to Learn/Quiz and opens the
+ *               deck (front → flip → back → next). `front` is the prompt side
+ *               (e.g. "O(1)"); `back` is the reveal (name + classic examples).
+ *               Both are plain strings — no **bold** markup here.
  *
  * `figure` (optional, on cards or questions) — a diagram to display:
  *   { src, alt, caption }
@@ -114,6 +119,31 @@ const curriculum = [
         heading: "Worst vs average case",
         body:
           "Big-O usually means the **worst case** — the slowest it can ever get. But the same algorithm can behave differently depending on the input. Quicksort is **O(n log n)** most of the time, yet **O(n²)** in its worst case (when it picks bad pivots). So always say *which* case you mean: 'fast on average' and 'safe even in the worst case' are two different promises.",
+      },
+
+    ],
+    // Flip-card deck: front shows the notation, back reveals the name and the
+    // classic example algorithms. Opened via the "Flashcards" mode button.
+    flashcards: [
+      {
+        front: "O(1)",
+        back: "Constant time — random access of an element in an array; inserting at the beginning of a linked list.",
+      },
+      {
+        front: "O(log n)",
+        back: "Logarithmic time — binary search (each step cuts the remaining data in half).",
+      },
+      {
+        front: "O(n)",
+        back: "Linear time — looping through the elements of an array; searching through a linked list.",
+      },
+      {
+        front: "O(n log n)",
+        back: "Quasilinear time (log-linear) — quicksort, mergesort, heapsort.",
+      },
+      {
+        front: "O(n²)",
+        back: "Quadratic time — insertion sort, selection sort, bubble sort.",
       },
     ],
     questions: [
