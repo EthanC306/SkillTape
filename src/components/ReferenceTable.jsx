@@ -1,12 +1,13 @@
 import React from "react";
-import { COMPLEXITY, PALETTE, MONO, SANS } from "../data/curriculum";
+import { COMPLEXITY } from "../data/complexity";
+import { PALETTE, MONO, SANS, RADII } from "../data/theme";
 
 export default function ReferenceTable() {
   const entries = Object.entries(COMPLEXITY);
   const COLS = "14px 104px 1fr";
 
   return (
-    <div style={{ background: PALETTE.panel2, borderRadius: 12, padding: 16 }}>
+    <div style={{ background: PALETTE.panel2, borderRadius: RADII.lg, padding: 16 }}>
       <div style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted, marginBottom: 12, letterSpacing: 1 }}>
         COMMON BIG-O EXPRESSIONS
       </div>

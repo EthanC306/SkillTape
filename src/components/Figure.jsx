@@ -1,5 +1,5 @@
 import React from "react";
-import { PALETTE, MONO } from "../data/curriculum";
+import { PALETTE, MONO, RADII } from "../data/theme";
 
 /**
  * Figure — a captioned diagram shown inside a Learn card or a Quiz question.
@@ -34,7 +34,7 @@ export default function Figure({ src, alt, caption }) {
         style={{
           background: "#f4f5f7",
           border: `1px solid ${PALETTE.line}`,
-          borderRadius: 10,
+          borderRadius: RADII.md,
           padding: 12,
           width: "100%",
           boxSizing: "border-box",

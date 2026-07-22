@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { COMPLEXITY, PALETTE, MONO } from "../data/curriculum";
+import { COMPLEXITY } from "../data/complexity";
+import { PALETTE, MONO, RADII } from "../data/theme";
 
 export default function ComplexityChart({ highlight }) {
   const W = 480,
@@ -28,7 +29,7 @@ export default function ComplexityChart({ highlight }) {
   }, []);
 
   return (
-    <div style={{ background: PALETTE.panel2, borderRadius: 12, padding: 12 }}>
+    <div style={{ background: PALETTE.panel2, borderRadius: RADII.lg, padding: 12 }}>
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
         {[0, 0.25, 0.5, 0.75, 1].map((t, i) => (
           <line
