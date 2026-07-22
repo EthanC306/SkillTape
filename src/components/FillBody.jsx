@@ -1,5 +1,5 @@
 import React from "react";
-import { PALETTE, MONO } from "../data/curriculum";
+import { PALETTE, MONO, RADII } from "../data/theme";
 import { parseBold, normalize } from "../utils/fill";
 
 // Renders a card body with every **bold** term replaced by a fillable input.
@@ -38,7 +38,7 @@ export default function FillBody({ body, cardIndex, inputs, checked, onChange })
                 fontSize: 14,
                 padding: "2px 6px",
                 margin: "0 1px",
-                borderRadius: 5,
+                borderRadius: RADII.sm,
                 border: `1px solid ${border}`,
                 background: PALETTE.panel2,
                 color: ok ? PALETTE.good : PALETTE.text,

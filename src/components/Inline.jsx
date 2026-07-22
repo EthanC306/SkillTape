@@ -1,4 +1,5 @@
 import React from "react";
+import { PALETTE, HEADING } from "../data/theme";
 
 export default function Inline({ text }) {
   const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
@@ -6,7 +7,7 @@ export default function Inline({ text }) {
     <>
       {parts.map((p, i) =>
         p.startsWith("**") && p.endsWith("**") ? (
-          <strong key={i} style={{ fontWeight: 700, color: "#ffffff" }}>
+          <strong key={i} style={{ fontFamily: HEADING, fontWeight: 600, color: PALETTE.text }}>
             {p.slice(2, -2)}
           </strong>
         ) : (
