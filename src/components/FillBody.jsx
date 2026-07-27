@@ -1,11 +1,12 @@
 import React from "react";
 import { PALETTE, MONO, RADII } from "../data/theme";
-import { parseBold, normalize } from "../utils/fill";
+import { parseBold, isCorrect } from "../utils/fill";
 
 // Renders a card body with every **bold** term replaced by a fillable input.
 // Grading is live once `checked` is true: each box recomputes correct/wrong
 // from its current value, so fixing a wrong box flips it to green instantly.
-export default function FillBody({ body, cardIndex, inputs, checked, onChange }) {
+// `accept` is the card's optional map of extra accepted answers — see fill.js.
+export default function FillBody({ body, cardIndex, inputs, checked, accept, onChange }) {
   const tokens = parseBold(body);
   let blankIndex = -1;
 
@@ -20,7 +21,7 @@ export default function FillBody({ body, cardIndex, inputs, checked, onChange })
         const id = `${cardIndex}:${blankIndex}`;
         const answer = tok.value;
         const value = inputs[id] ?? "";
-        const ok = checked && normalize(value) === normalize(answer);
+        const ok = checked && isCorrect(value, answer, accept);
         const wrong = checked && !ok;
 
         const border = ok ? PALETTE.good : wrong ? PALETTE.bad : PALETTE.line;

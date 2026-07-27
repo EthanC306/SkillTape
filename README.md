@@ -1,93 +1,137 @@
-# cs.tutor
+# SkillTape
 
-A lightweight, self-hosted study app for reviewing computer-science coursework
-and quizzing yourself on it. Built with **React** and **Vite**, it presents each
-class's material as a set of note cards you can read, blank out and fill from
-memory, or drill through as multiple-choice quizzes — all in a single-page app
-with your progress saved locally in the browser.
+A self-hosted study app for computer-science coursework. Course material is presented as note cards you can read, blank out and fill from memory, or drill through as quizzes — a single-page React app with progress saved locally.
 
-> The project is nicknamed **Cpp Tracker** but now covers multiple courses.
+> Previously named **Cpp Tracker** / **cs.tutor**. The C++-specific name predates multi-course support; `SkillTape` is the name used going forward (see `docs/PLAN_PLATFORMIZE.md`).
+
+**Design principle:** every item in the question bank traces back to a verbatim excerpt from real course material — zyBooks, lecture slides, lab handouts. Nothing in the author's own courses is model-generated. See `docs/CORRECTIONS.md` §3.1 for how this coexists with the platform's generation features.
 
 ## Courses
 
 The home screen has a bottom tab bar, one tab per class:
 
-| Tab      | Course                              | Focus                              |
-| -------- | ----------------------------------- | ---------------------------------- |
-| `CS2401` | C++ Data Structures & Algorithms    | Big-O, C-strings, containers, …    |
-| `CS3000` | Discrete Structures (Epp, 5e)       | logic, sets, relations, graphs, …  |
+| Tab | Course | Focus |
+| --- | --- | --- |
+| `CS2401` | C++ Data Structures & Algorithms | Big-O, C-strings, containers, linked lists, the Big Three |
+| `CS3000` | Discrete Structures (Epp, 5e) | logic, quantifiers, proof, sets, relations, graphs |
 
 Selecting a tab opens the tutor filtered to that course's topics.
 
 ## Features
 
-- **Learn mode** — topic notes as clean cards. Key terms are emphasized and,
-  in **Fill Mode**, hidden so you can type them from memory and check yourself.
-- **Quiz mode** — multiple-choice questions with immediate feedback and a
-  per-question explanation. A results screen shows your score and best run.
-- **Diagrams** — optional captioned figures on cards and questions (truth
-  tables, arrow diagrams, graphs, etc.).
-- **Big-O visuals** — C++ topics can render a complexity-growth chart and a
-  reference table, with the relevant curve highlighted when you answer.
-- **Progress tracking** — best score and attempt count per topic, persisted
-  locally in the browser between sessions.
+Shipped:
+
+- **Learn mode** — topic notes as cards. Key terms are emphasized and, in **Fill Mode**, hidden so you can type them from memory and check yourself. Grading is lenient by design: case, spacing, hyphens, exponent notation, plurals, and number words all fold away, and a card can declare extra accepted answers via `accept` (see `src/utils/fill.js`).
+- **Quiz mode** — multiple-choice questions with immediate feedback and per-question explanations. A results screen shows your score and best run.
+- **Master Quiz** — draws across all topics in a course rather than one at a time.
+- **Flashcards** — front/back pairs per topic.
+- **Diagrams** — optional captioned figures on cards and questions.
+- **Big-O visuals** — C++ topics can render a complexity-growth chart and reference table, with the relevant curve highlighted when you answer.
+- **Progress tracking** — per topic: best score, run count, and the last 50 runs, persisted to `localStorage`.
+
+Planned — designed but **not built**. Nothing below exists in `src/` yet:
+
+- **Drill mode** — closed-book, timed, navigation hidden, self-graded against an explicit criteria checklist. This is the mode that targets exam conditions; see `docs/CORRECTIONS.md` §4.2. The `body[data-drill-active]` CSS hook in `index.html` is groundwork for it; nothing sets that attribute today.
+- **Mixed-format items** — the polymorphic item shape in `src/data/itemSchema.js` (recall / write / trace / error / cloze / compare / complexity, with MCQ capped). The module is written and exercised by `npm run audit:bank`, but no topic file uses it — every question in the bank is still a legacy MCQ.
+- **Provenance on every item** — `sourceId` + anchor + verbatim excerpt, gated by `verifiedByHuman`. Enforced by the audit script, not yet present in the content.
+- **Per-item attempt log** — grade, elapsed seconds, open vs. closed book. Requires reworking `useProgress.js`, which currently records per-quiz-run, not per-item.
+- **Spaced repetition** — a Leitner 5-box scheduler: correct advances a box, wrong drops to box 1 and increments `lapses`, with intervals of 1/2/4/8/16 days. An item at `lapses >= 3` is flagged a **leech** and pulled from rotation for triage — a leech means the item or the explanation is broken, not that you are, so it gets rewritten rather than ground. Chosen over SM-2 for being simpler and debuggable; see `docs/CS_DRILL_BUILD_SPEC.md` §Phase 5. Scheduling state (`box`, `dueOn`, `lapses`, `leech`) has no home in `src/data/itemSchema.js` yet.
+
+These four ship together or not at all. The scheduler needs per-item history to schedule against, drill mode is what produces closed-book grades worth scheduling on, and neither works while the bank is undifferentiated MCQ.
 
 ## Getting started
 
-Requires [Node.js](https://nodejs.org/) (18+ recommended).
+Requires [Node.js](https://nodejs.org/) 18 or newer.
 
 ```bash
-# Install dependencies
-npm install
-
-# Start the dev server (Vite)
-npm run dev
-
-# Build for production (outputs to dist/)
-npm run build
+npm install       # required after pulling: @vitejs/plugin-react was added
+npm run dev       # Vite dev server, typically http://localhost:5173
+npm run build     # production build → dist/
+npm run preview   # serve the production build locally
+npm run audit:bank  # validate the question bank (see below)
 ```
 
-Then open the URL Vite prints (typically `http://localhost:5173`).
+`npm run audit:bank` currently **fails**, and that is expected: it checks the bank against the
+planned item schema, which the existing MCQ content predates. Every legacy question is reported as
+missing `id`, `format`, and `provenance`. It will pass once the bank is migrated; until then treat
+its output as the migration to-do list, not a regression.
 
 ## Project structure
 
 ```
-├── index.html                # HTML entry point
-├── main.jsx                  # React root; renders <Shell />
+├── index.html                  # HTML entry point; defines pre-mount CSS vars
+├── main.jsx                    # React root; renders <Shell />
+├── vite.config.js              # React plugin, sourcemaps, @ → src alias
+├── scripts/
+│   └── auditBank.js            # question-bank validator (npm run audit:bank)
 ├── src/
-│   ├── Shell.jsx             # Home page + bottom course tab bar
-│   ├── App.jsx               # Per-course tutor: topic list, Learn & Quiz views
+│   ├── Shell.jsx               # Home page + bottom course tab bar
+│   ├── App.jsx                 # Per-course tutor: topic list + view routing
 │   ├── data/
-│   │   └── curriculum.js     # All course content: topics, cards, questions, theme
-│   ├── components/
-│   │   ├── Inline.jsx        # Inline text with **bold** term markup
-│   │   ├── FillBody.jsx      # Fill-in-the-blank rendering for Fill Mode
-│   │   ├── Figure.jsx        # Captioned diagram/image
-│   │   ├── ComplexityChart.jsx  # Big-O growth-rate chart
-│   │   └── ReferenceTable.jsx   # Big-O reference table
+│   │   ├── courses.js          # Course cards (id/title/subtitle)
+│   │   ├── curriculum.js       # Topic array, assembled from topics/
+│   │   ├── complexity.js       # Big-O curve data for the chart
+│   │   ├── itemSchema.js       # Item formats, provenance, validation (unused by content yet)
+│   │   ├── theme.js            # PALETTE, MONO, HEADING, RADII
+│   │   └── topics/
+│   │       └── <course>/<topic>.js   # Per-topic cards + questions
+│   ├── components/             # Views and presentational components together
+│   │   ├── Home.jsx            # Course topic list
+│   │   ├── TopicView.jsx       # Mode switcher for one topic
+│   │   ├── LearnView.jsx       # Note cards, Fill Mode
+│   │   ├── QuizView.jsx        # Single-topic quiz
+│   │   ├── MasterQuizView.jsx  # Cross-topic quiz
+│   │   ├── FlashcardsView.jsx  # Front/back drilling
+│   │   ├── HistoryModal.jsx    # Past runs for a topic
+│   │   ├── Header.jsx          # Wordmark + topic breadcrumb
+│   │   ├── Inline.jsx          # Inline text with **bold** term markup
+│   │   ├── FillBody.jsx        # Fill-in-the-blank rendering
+│   │   ├── Figure.jsx          # Captioned diagram/image
+│   │   ├── ComplexityChart.jsx # Big-O growth-rate chart
+│   │   └── ReferenceTable.jsx  # Big-O reference table
+│   ├── hooks/
+│   │   └── useProgress.js      # Per-topic best score, run count, run history
 │   └── utils/
-│       └── fill.js           # Helpers for the fill-in-the-blank logic
+│       └── fill.js             # Fill Mode blank parsing + lenient grading
 └── public/
-    └── figures/              # Diagram images served at the site root
+    └── figures/                # Diagram images served at the site root
 ```
 
 ## Adding content
 
-All course material lives in [src/data/curriculum.js](src/data/curriculum.js),
-which is documented inline:
+Course material lives in `src/data/topics/<course>/<topic>.js`, imported by `src/data/curriculum.js`.
 
-- Add a class by adding an entry to `COURSES` and giving its topics a matching
-  `course` id (then add a tab in [src/Shell.jsx](src/Shell.jsx)).
-- Add a topic by appending to the `curriculum` array. Each topic has `cards`
-  (Learn notes) and `questions` (quiz items).
-- In card text, wrap key terms in `**double asterisks**` to bold them and turn
-  them into blanks in Fill Mode.
-- Attach an optional `figure` (`{ src, alt, caption }`) to a card or question,
-  with the image file placed under `public/figures/`.
+- **Add a course** — add an entry to `src/data/courses.js`, give its topics a matching `course` id, and add a tab in `src/Shell.jsx`.
+- **Add a topic** — create a topic file, import it in `curriculum.js` **with the `.js` extension** (the audit script runs under bare Node, which won't resolve extensionless paths), and add it to the exported array. Each topic has `cards` (Learn notes) and `questions` (MCQs).
+- **Key terms** — wrap in `**double asterisks**` to bold them in Learn mode and turn them into blanks in Fill Mode.
+- **Accepted answers** — Fill Mode already handles case, spacing, hyphens, exponents, plurals, and number words. For synonyms no rule can derive, add `accept: { "O(n)": ["linear", "linear time"] }` to the card.
+- **Figures** — attach `{ src, alt, caption }` to a card or question, with the image under `public/figures/`.
+
+### Item formats (planned)
+
+The schema below is defined in `src/data/itemSchema.js` and enforced by `npm run audit:bank`, but
+**no topic file uses it yet** — the bank is still 100% MCQ. Migrating it is the next content task.
+Once migrated, every item also needs a `provenance` block naming the source, a stable anchor, and a
+verbatim excerpt; never renumber or delete a source anchor once items reference it.
+
+Target distribution per topic:
+
+| Format | Share | Drills |
+| --- | --- | --- |
+| `recall` | 25% | Cold definition or rule, blank page |
+| `write` | 20% | Produce a function or proof from a spec |
+| `trace` | 15% | Given code, produce output or final state |
+| `error` | 10% | Locate a bug and name the violated rule |
+| `cloze` | 10% | One load-bearing token blanked in a skeleton |
+| `compare` | 10% | Discriminate between two adjacent concepts |
+| `complexity` | 5% | Big-O plus justification |
+| `mcq` | ≤5% | Selection — capped deliberately |
+
+The MCQ cap is the point, not an accident. Recognizing a correct answer among four options is a different skill from producing it under exam conditions, and it inflates confidence without improving recall.
 
 ## Notes
 
-- Original lecture slides and PDFs (the `pages/` folder) are **not** included in
-  this repository — they are copyrighted course materials and are gitignored.
-- Quiz progress is stored per-browser via a local storage bridge; there is no
-  backend or account system.
+- Lecture slides, textbook PDFs, and zyBooks exports (`pages/`, `sources/`) are **not** in this repository — they're copyrighted course materials and are gitignored. Verify with `git ls-files | grep -Ei '\.pdf$|^pages/'` before pushing.
+- There is no backend or account system. Progress is per-browser and clearing site data wipes it. `docs/PLAN_PLATFORMIZE.md` covers the multi-user roadmap; it is planning only, with no implementation yet.
+- `npm run audit:bank` validates structure — anchors, formats, quotas, required fields. It does **not** validate accuracy. Only human sign-off (`verifiedByHuman`) does that.
+- Docs moved under `docs/`: `CORRECTIONS.md` (code review and findings), `CS_DRILL_BUILD_SPEC.md` (the drill-system brief), `SKILLTAPE_INTEGRATION.md` (tutor-skill wiring), `PLAN_PLATFORMIZE.md` (platform roadmap). Several describe the target state — check this README's Features list for what actually runs.

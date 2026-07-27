@@ -77,7 +77,7 @@ export default function LearnView({ topic }) {
             {c.body && (
               <div style={{ fontSize: 15, lineHeight: 1.8, letterSpacing: 0.2, color: PALETTE.text, marginBottom: c.code ? 16 : 0 }}>
                 {fillMode ? (
-                  <FillBody body={c.body} cardIndex={i} inputs={inputs} checked={checked} onChange={updateInput} />
+                  <FillBody body={c.body} cardIndex={i} inputs={inputs} checked={checked} accept={c.accept} onChange={updateInput} />
                 ) : (
                   <Inline text={c.body} />
                 )}
