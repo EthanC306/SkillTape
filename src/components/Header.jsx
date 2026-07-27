@@ -10,7 +10,7 @@ export default function Header({ topic, onHome }) {
         title="Back to topic list"
         style={{ cursor: "pointer", fontFamily: MONO, fontSize: 18, fontWeight: 700, color: PALETTE.accent }}
       >
-        &gt;_ cs.tutor
+        &gt;_ skill.tape
       </span>
       {topic && (
         <span style={{ fontFamily: MONO, fontSize: 13, color: PALETTE.muted }}>

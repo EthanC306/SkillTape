@@ -14,10 +14,17 @@
  *   showChart — when true, the Big-O ComplexityChart + ReferenceTable render in
  *               Learn and Quiz views. These visuals are C++/Big-O specific, so
  *               non-Big-O topics set this to false.
- *   cards     — Learn-mode note cards: { heading, body, figure? }. In `body`, wrap
- *               key terms in **double asterisks** to bold them (and to turn them into
- *               fill-in-the-blank inputs in Fill Mode). The optional `figure` renders
- *               a captioned diagram beneath the card text (see below).
+ *   cards     — Learn-mode note cards: { heading, body, accept?, figure? }. In `body`,
+ *               wrap key terms in **double asterisks** to bold them (and to turn them
+ *               into fill-in-the-blank inputs in Fill Mode). The optional `figure`
+ *               renders a captioned diagram beneath the card text (see below).
+ *               Fill Mode already grades leniently on its own — case, spacing,
+ *               hyphens, exponents, plurals, and number words ("two" = "2") are all
+ *               folded away by src/utils/fill.js. `accept` is the escape hatch for
+ *               synonyms no rule can derive: a map from the bold text to the other
+ *               answers that should also count, e.g.
+ *                   body: "...shifting every element is **O(n)**...",
+ *                   accept: { "O(n)": ["linear", "linear time"] },
  *   questions — Quiz-mode questions: { prompt, code?, figure?, choices, answer, explanation, tag? }
  *               where `answer` is the 0-based index of the correct choice and the
  *               optional `tag` highlights the matching curve on the Big-O chart.
@@ -36,23 +43,26 @@
  */
 
 // Data Structures — C++
-import bigo from "./topics/cpp/bigo";
-import cstrings from "./topics/cpp/cstrings";
-import containers from "./topics/cpp/containers";
-import dynamicAlloc from "./topics/cpp/dynamic-alloc";
-import dynamicArrays from "./topics/cpp/dynamic-arrays";
-import dynamicClasses from "./topics/cpp/dynamic-classes";
+import bigo from "./topics/cpp/bigo.js";
+import cstrings from "./topics/cpp/cstrings.js";
+import containers from "./topics/cpp/containers.js";
+import dynamicAlloc from "./topics/cpp/dynamic-alloc.js";
+import dynamicArrays from "./topics/cpp/dynamic-arrays.js";
+import dynamicClasses from "./topics/cpp/dynamic-classes.js";
+import linkedLists from "./topics/cpp/linked-lists.js";
+import linkedListsAlgorithms from "./topics/cpp/linked-lists-algorithms.js";
+import doublyLinkedLists from "./topics/cpp/doubly-linked-lists.js";
 
 // CS 3000 — Discrete Structures (Epp, 5e)
-import discrete11Variables from "./topics/discrete/1-1-variables";
-import discrete12Sets from "./topics/discrete/1-2-sets";
-import discrete13RelationsFunctions from "./topics/discrete/1-3-relations-functions";
-import discrete14Graphs from "./topics/discrete/1-4-graphs";
-import discrete21LogicalForm from "./topics/discrete/2-1-logical-form";
-import discrete22Conditional from "./topics/discrete/2-2-conditional";
-import discrete23Arguments from "./topics/discrete/2-3-arguments";
-import discrete24Circuits from "./topics/discrete/2-4-circuits";
-import discrete25NumberSystems from "./topics/discrete/2-5-number-systems";
+import discrete11Variables from "./topics/discrete/1-1-variables.js";
+import discrete12Sets from "./topics/discrete/1-2-sets.js";
+import discrete13RelationsFunctions from "./topics/discrete/1-3-relations-functions.js";
+import discrete14Graphs from "./topics/discrete/1-4-graphs.js";
+import discrete21LogicalForm from "./topics/discrete/2-1-logical-form.js";
+import discrete22Conditional from "./topics/discrete/2-2-conditional.js";
+import discrete23Arguments from "./topics/discrete/2-3-arguments.js";
+import discrete24Circuits from "./topics/discrete/2-4-circuits.js";
+import discrete25NumberSystems from "./topics/discrete/2-5-number-systems.js";
 
 const curriculum = [
   bigo,
@@ -61,6 +71,9 @@ const curriculum = [
   dynamicAlloc,
   dynamicArrays,
   dynamicClasses,
+  linkedLists,
+  linkedListsAlgorithms,
+  doublyLinkedLists,
 
   discrete11Variables,
   discrete12Sets,

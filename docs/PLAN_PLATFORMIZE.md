@@ -165,6 +165,64 @@ courses into the database as the first two seeded "courses" (owned by my account
 publicly) rather than deleting them — they're good reference content and a good test case for the
 migration script (topic.js → courses/modules/content_blocks/questions rows).
 
+## 3b. Security checklist — MUST address before any real multi-user launch
+
+Flagging this now so it doesn't get forgotten once the phases above start feeling "done." None of
+Phases 1–6 should be considered launch-ready without explicitly checking off each item below.
+This app has never handled other people's accounts/data before, so treat all of it as new
+territory, not boilerplate.
+
+- **Broken access control / IDOR** — every fetch of a course/module/content_block/question/attempt
+  by id must verify the requesting user owns it (or it's published-public + read-only). Never
+  trust a client-supplied id alone to scope a query. In Supabase specifically: **Row-Level
+  Security (RLS) policies on every table**, not just "check ownership in the frontend" — the
+  frontend check is UX, RLS is the actual boundary. Test by trying to fetch/edit another user's
+  `course_id`/`module_id` directly via the API and confirming it's rejected.
+- **Going to someone else's URL** — audit for open-redirect and unvalidated-navigation bugs (e.g.
+  a `?redirect=` or `next=` query param used after login) — only allow relative/same-origin
+  redirect targets. Also applies to any "share this module" link scheme we add in Phase 5: links
+  should resolve to our own routes, never used to construct arbitrary outbound URLs from user
+  input.
+- **Database access** — DB should never be reachable directly from the client; all access goes
+  through Supabase's client library (respecting RLS) or our own server-side endpoints/edge
+  functions. No raw connection strings or service-role keys in client-shipped code — service-role
+  key (which bypasses RLS) stays server-side only, never in the Vite bundle.
+- **SQL injection + input sanitization** — using Supabase's query builder / parameterized queries
+  throughout avoids classic SQLi by default; the risk is if we ever drop into raw SQL (e.g. a
+  Postgres function or edge function building a query string) — always parameterize, never
+  string-concatenate user input into SQL. Sanitize/validate all user-submitted text (course
+  titles, module content, quiz answers) server-side too, not just in the UI, since API calls can
+  bypass the frontend entirely.
+- **User data safety**
+  - **Encryption at rest** — Supabase Postgres + Storage are encrypted at rest by default; if we
+    ever self-host (the Ollama box, or a rolled-own backend) confirm disk encryption is on there
+    too.
+  - **Password hashing** — if we do our own auth instead of delegating to Supabase Auth /
+    an OAuth provider, passwords must be hashed with **bcrypt** (or argon2) with per-user salt,
+    never stored plaintext or reversibly encrypted. Prefer delegating to Supabase Auth so we don't
+    own password storage at all.
+  - **HTTPS everywhere** — no plaintext HTTP endpoints for the app or any API/edge function,
+    including the Ollama box if it's ever reachable from outside our own server (put it behind a
+    TLS-terminating proxy, don't expose Ollama's raw HTTP API to the internet).
+- **General attacks**
+  - **XSS** — the app renders user-authored content (`Inline.jsx` bold-span parsing, quiz
+    prompts/choices/explanations, module content blocks). Once that content is user-supplied
+    instead of hand-authored by me, it becomes an injection surface — never `dangerouslySetInnerHTML`
+    on raw user text; keep rendering through controlled parsers (extend `Inline.jsx`'s limited
+    markdown-subset parser rather than adding raw HTML rendering) and escape by default.
+  - **CSRF** — matters most for any cookie-session-based server endpoint (edge functions that
+    mutate data on behalf of a logged-in user). Supabase's JWT-bearer-token model is less
+    CSRF-prone than cookie sessions by default, but confirm whenever we add custom endpoints —
+    use SameSite cookies and/or verify the bearer token rather than relying on ambient cookie auth.
+  - **Rate limiting** — needed on auth endpoints (login/signup — brute force protection) and on
+    the LLM quiz-generation endpoint (Phase 4 — both to control cost on the hosted-API path and to
+    prevent abuse of the self-hosted Ollama box). Supabase Auth has some built-in throttling; the
+    generation endpoint will need its own (e.g. per-user per-hour cap) since it's custom.
+
+Treat this list as a gate on Phase 1 (auth) and Phase 3 (authoring UI, once user input starts
+flowing into the DB and rendering back out) specifically, and do a full pass again before Phase 5
+(public sharing) since that's when other users' exposure to each other's content goes up.
+
 ## 4. Open questions to resolve before/at Phase 0 kickoff
 - Supabase vs. alternative — confirm before writing any backend code.
 - Email/password only, or OAuth too, for v1 login?

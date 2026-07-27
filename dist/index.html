@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cpp Tracker</title>
+    <meta
+      name="description"
+      content="Source-grounded study app for CS coursework: learn, fill from memory, and drill."
+    />
+    <title>SkillTape</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -11,11 +15,34 @@
       rel="stylesheet"
     />
     <style>
-      /* Nocturne interaction states that inline styles can't express. */
-      :root { --nocturne-accent: #9184d9; }
-      * { box-sizing: border-box; }
-      body { margin: 0; }
-      :focus { outline: none; }
+      /*
+       * Nocturne interaction states that inline styles can't express.
+       *
+       * TOKEN COUPLING: --nocturne-accent is duplicated in src/data/theme.js
+       * (PALETTE). It has to live here too because :focus-visible and
+       * ::selection apply before React mounts. theme.js is the source of
+       * truth per PLAN_PLATFORMIZE §6 — have PALETTE read
+       * `var(--nocturne-accent)` rather than restating the hex, or these two
+       * will silently drift the first time the palette changes.
+       */
+      :root {
+        --nocturne-accent: #9184d9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      /*
+       * Previously `:focus { outline: none; }`, which strips the outline for
+       * every focus source. Scoping the reset to :focus:not(:focus-visible)
+       * keeps mouse clicks clean while guaranteeing keyboard users always get
+       * a ring, even if a browser ignores the :focus-visible rule below.
+       */
+      :focus:not(:focus-visible) {
+        outline: none;
+      }
       :focus-visible {
         outline: 2px solid var(--nocturne-accent);
         outline-offset: 2px;
@@ -23,11 +50,17 @@
       ::selection {
         background: rgba(145, 132, 217, 0.3);
       }
-      button, [role="button"], a {
+      button,
+      [role="button"],
+      a {
         -webkit-tap-highlight-color: transparent;
       }
+      /* Drill mode hides all navigation chrome; see CORRECTIONS.md §4.2. */
+      body[data-drill-active="true"] .app-chrome {
+        display: none;
+      }
     </style>
-    <script type="module" crossorigin src="/assets/index-taFXjCVq.js"></script>
+    <script type="module" crossorigin src="/assets/index-Cy-FaJTj.js"></script>
   </head>
   <body>
     <div id="root"></div>
