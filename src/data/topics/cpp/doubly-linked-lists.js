@@ -1,7 +1,9 @@
+import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
+
 export default {
   id: "doubly-linked-lists",
   title: "Doubly Linked Lists",
-  subtitle: "CS 2401 — DNode, insert & delete with two pointers",
+  subtitle: "c++ — DNode, insert & delete with two pointers",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js
@@ -154,5 +156,176 @@ export default {
       explanation:
         "Deletion branches on whether the target is the head, the last node (next is nullptr), or somewhere in the middle.",
     },
+  ],
+  items: [
+    makeItem({
+      id: "doubly-linked-lists-01",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What problem do doubly linked lists solve, and how?",
+      expected:
+        "With singular (singly) linked lists, it is inefficient to traverse backward in the list. Doubly linked lists solve this problem by storing two pointers in each node (next, previous). The next pointer points to the next node while previous points to the previous node in the list.",
+      criteria: [
+        "States singly linked lists are inefficient to traverse backward",
+        "States each doubly linked node stores both a next and a previous pointer",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#why-doubly-linked-lists",
+        excerpt:
+          "With singular linked lists discussed earlier, it is inefficient to traverse backward in the list\n- Doubly linked lists solve this problem by storing two pointers in each node (next, previous)\n- The next pointer points to the next node while previous points to the previous node in the list",
+        citation: "Lecture Deck 03.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/doubly-linked-lists.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-02",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Write the DNode constructor, given `data`, `next`, `previous` fields and parameters `newData`, `newNext`, `newPrevious`.",
+      expected:
+        "DNode::DNode(const DataType newData,\nDNode * newNext,\nDNode *newPrevious)\n{\ndata = newData;\nnext = newNext;\nprevious = newPrevious;\n}",
+      criteria: [
+        "Takes newData, newNext, newPrevious as parameters",
+        "Assigns all three fields: data, next, previous",
+      ],
+      timeBudgetSec: 90,
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#dnode-constructor",
+        excerpt:
+          "DNode::DNode(const DataType newData,\nDNode * newNext,\nDNode *newPrevious)\n{\ndata = newData;\nnext = newNext;\nprevious = newPrevious;\n}",
+        citation: "Lecture Deck 03.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/doubly-linked-lists.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-03",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Trace `insertAfter(head, cursor, value)` when the list is empty (head == nullptr):\n```\nif (head == nullptr)//list is empty\n{ head = temp;\ntemp->next = NULL;\ntemp->prev = NULL;\nreturn;\n}\n```\nWhat does the list look like afterward?",
+      expected:
+        "temp becomes head, and both temp->next and temp->prev are set to NULL. The function returns immediately without touching cursor, since there's nothing else in the list. The list now has exactly one node: head, with no next and no previous.",
+      criteria: [
+        "States temp becomes the new head",
+        "States both next and prev are NULL on the new node",
+        "States the function returns early, not falling through to the cursor-relative logic",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#insert-after-cursor-node",
+        excerpt:
+          "if (head == nullptr)//list is empty\n{ head = temp;\ntemp->next = NULL;\ntemp->prev = NULL;\nreturn;\n}",
+        citation: "Lecture Deck 03.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/doubly-linked-lists.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-04",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.ERROR,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "What would go wrong if this line were removed from insertAfter?\n```\ntemp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr) //check if at end of list\n cursor->next->prev = temp;\ncursor->next = temp;\n```",
+      expected:
+        "The nullptr check guards against cursor being the last node in the list — if cursor->next is nullptr (cursor is at the end), there is no next node whose prev pointer needs updating, and `cursor->next->prev = temp;` would dereference a null pointer. Removing the check would cause undefined behavior whenever inserting after the last node.",
+      criteria: [
+        "States the check exists because cursor might be at the end of the list (cursor->next is nullptr)",
+        "States without it, cursor->next->prev would dereference a null pointer",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#insert-after-cursor-node",
+        excerpt:
+          "temp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr) //check if at end of list\ncursor->next->prev = temp;\ncursor->next = temp;",
+        citation: "Lecture Deck 03.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/doubly-linked-lists.md",
+      },
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-05",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What are the three cases deleteNode must handle in a doubly linked list?",
+      expected:
+        "Deletion has three options: (1) deleting the first node, (2) deleting the last node, (3) deleting a node in the middle.",
+      criteria: [
+        "Lists all three cases: first node, last node, middle node",
+        "Doesn't omit or merge any of the three cases",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#delete-node-three-options",
+        excerpt:
+          "Deletion has three options\n1. Deleting the first node\n2. Deleting the last node\n3. Deleting a node in the middle",
+        citation: "Lecture Deck 03.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/doubly-linked-lists.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-06",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.COMPARE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Compare deleting a middle node in a doubly linked list to a singly linked list — why can `DList::deleteNode`'s middle case splice directly without a search loop?",
+      expected:
+        "In the middle case: DNode *after = cursor->getNext(); DNode *before = cursor->getPrevious(); before->setNext(after); after->setPrevious(before);. Because each DNode already stores its previous pointer directly, before is available in O(1) — there's no need to walk from head to find it, unlike a singly linked list's delete, which must loop until previous->getNext() == current.",
+      criteria: [
+        "Quotes/describes the middle-case splice using getNext()/getPrevious()",
+        "Explains previous is already known via cursor->getPrevious(), no search loop needed",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#delete-node-function-doubly",
+        excerpt:
+          "} else { // somewhere in the middle\nDNode *after = cursor->getNext();\nDNode *before = cursor->getPrevious();\nbefore->setNext(after);\nafter->setPrevious(before);\n}",
+        citation: "Lecture Deck 03.3",
+      },
+      extraAtoms: ["#delete-node-function"],
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/doubly-linked-lists.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

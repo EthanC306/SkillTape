@@ -14,10 +14,264 @@ Summary:
 
 
 --------------------------------------------------------------------------------
-A3 pilot migration: dynamic-alloc's real source + 8 new itemSchema items
+A9 unblocked: 8 more cpp topics extracted, verified, and in rotation
 --------------------------------------------------------------------------------
 Date:     2026-08-01
 Commit:   uncommitted
+Files:    sources/cpp/{dynamic-arrays,dynamic-classes,linked-lists,
+          linked-lists-algorithms,doubly-linked-lists,templates,iterators,
+          stacks}.md (new), src/data/topics/cpp/{same 8 topics}.js,
+          src/data/topics/cpp/dynamic-alloc.js (excerpt fix), docs/ROADMAP.md
+Summary:
+  - A9 ("scale extraction") was blocked pending real course material for any
+    topic beyond the dynamic-alloc pilot. The user supplied 12 real lecture
+    PDFs, unblocking it. Worked the A0
+    priority queue: dynamic-arrays (1.7) -> dynamic-classes, linked-lists,
+    linked-lists-algorithms, doubly-linked-lists (1.5 each) -> templates,
+    iterators, stacks (1.0 each). Duplicate PDFs (doubly-linked-lists had 3
+    copies, linked-lists and linked-lists-algorithms had 2 each) were
+    confirmed byte-identical and only one canonical version was ingested per
+    topic.
+  - For each topic: transcribed the PDF into a verbatim, anchored
+    sources/cpp/<topic>.md (frontmatter + `## Heading {#anchor}` sections),
+    then wrote 5-8 makeItem(...) items into the topic's .js file spanning
+    RECALL/WRITE/TRACE/ERROR/CLOZE/COMPARE, each citing sourceId + anchor +
+    a verbatim excerpt. Read every item back against its source excerpt and
+    flipped verifiedByHuman: true only where it held up exactly. 56 new
+    items total, all clean under `npm run audit:bank` (structure, quota,
+    dead-anchor, and excerpt-drift checks) and `npx vite build`.
+  - Pipeline wrinkle worth recording: a context compaction happened mid-task,
+    after the PDFs' plain-text extraction was already used for the first
+    topic but before the rest. The extracted text itself wasn't
+    recoverable post-compaction, but the base64 PDF bytes were still present
+    in the session's transcript JSONL (document content blocks). Rather than
+    re-typing the remaining topics' content from memory (which would violate
+    the verbatim-excerpt rule), decoded the base64 back into real PDF files
+    and re-extracted their text with `pdf-parse` (npm-installed to the
+    scratchpad, not the repo). Every sources/*.md file in this batch is a
+    direct machine transcription of the PDF's own text layer, not a
+    paraphrase from context. Worth remembering for future PDF batches after
+    a compaction.
+  - Also caught and fixed one pre-existing bug while auditing: dynamic-alloc
+    item 08's provenance.excerpt was missing the code-fence backticks around
+    its quoted code, so it silently failed the excerpt-drift check the
+    moment the check ran cleanly across a fresh set of files. Fixed to match
+    sources/cpp/dynamic-alloc.md exactly.
+  - Remaining cpp topics without source material: bigo, cstrings, containers
+    (all examWeight 1.0). Entire discrete course still has none either. No
+    items were fabricated for any of these — ROADMAP.md A9 documents them
+    as still genuinely blocked, pending the next batch of material.
+
+
+--------------------------------------------------------------------------------
+A6 + A7 + A8 done; typed-answer textarea added to A4/A5
+--------------------------------------------------------------------------------
+Date:     2026-08-01
+Commit:   uncommitted
+Files:    src/components/DrillView.jsx, src/components/ExamView.jsx,
+          src/components/ReportView.jsx (new), server/routes/drill.js,
+          src/api/client.js, scripts/auditBank.js, references/ (new),
+          .claude/commands/ (new: audit.md, ingest.md, extract.md, gaps.md),
+          docs/ROADMAP.md
+Summary:
+  - Textarea fix (requested after reviewing A4/A5): DrillView and ExamView's
+    self-graded formats previously asked you to recall an answer silently in
+    your head, then self-report a grade against the revealed key. In tension
+    with this app's own §7 rule 3 ("production over recognition... producing
+    it on a blank page"), and too easy to be dishonest with yourself about.
+    Added a plain textarea before the reveal in both: DrillView shows it
+    inline before "Show answer"; ExamView shows it during the timed
+    answering phase (writing under time pressure, same as a real exam) and
+    carries the text into the post-hoc grading review, displayed next to
+    the answer key as "YOUR ANSWER" / "ANSWER KEY". Not auto-graded (free
+    text has no reliable checker) — it rides along in item_attempts.note,
+    an existing free-text column, no schema change needed. Verified via
+    curl that note round-trips through POST /attempts -> GET /export
+    correctly, then via a Playwright walkthrough that the textarea renders,
+    fills, and both labeled sections appear on reveal.
+  - A6 (reporting): GET /api/drill/report computes closed-book first-try
+    accuracy per topic (earliest graded, non-abandoned, mode:"closed"
+    attempt per item), examWeight-based studyNextScore ranking, a topics x
+    formats verified/total grid, per-format median time, open-vs-closed
+    delta, and leech counts. ReportView.jsx renders it; entry point next to
+    Drill/Exam on Home.jsx. Unlike DrillView/ExamView this doesn't hide nav
+    chrome -- it's a read-only dashboard, not a closed-book context.
+    Real design call from testing against the actual bank: an unattempted
+    topic defaults to mastery 0 (correctly the highest study-next priority
+    in spirit), but that's not actionable when the topic has zero verified
+    items -- added verifiedItemCount so the UI says "migrate this topic
+    first (A3)" instead of linking into an empty Drill queue.
+  - A7 (authoring tooling): .claude/commands/audit.md, ingest.md, extract.md
+    written per ROADMAP.md's contracts (extract.md encodes D2's "read only
+    the supplied source, verbatim excerpt, honest origin, verifiedByHuman
+    always false" rules directly).
+    Wired audit checks 2 (dead anchor) and 3 (excerpt drift) into
+    scripts/auditBank.js -- deliberately NOT in itemSchema.js, which stays
+    dependency-free for the browser bundle; this is Node-only (fs) and
+    itemSchema.js is imported client-side by DrillView etc. Running it
+    against the real bank immediately caught two genuine excerpt-drift
+    errors in existing A3 content: dynamic-alloc-07 and -08's excerpts had
+    been lightly reformatted (markdown bullets and code-fence backticks
+    stripped) rather than kept truly verbatim. Fixed by correcting the two
+    excerpts to match the source exactly, not by loosening the check --
+    also had to fix a bug in the check itself first (anchor lookup wasn't
+    stripping provenance.anchor's leading "#" before the map lookup, so
+    every anchor false-flagged as dead on the first run).
+  - A8 (gap capture + leech handoff): .claude/commands/gaps.md ranks
+    gaps/inbox.jsonl by topic-recurrence (per the roadmap's own note that
+    repeats are the strongest signal, not raw severity), cross-referenced
+    against examWeight. Leech handoff lives in ReportView.jsx: "Copy for
+    tutor" (POST /api/drill/report's leech list already carries prompt,
+    expected, criteria, source excerpt, citation, and full attempt history
+    -- clipboard-writes it formatted) and "Reset scheduling state"
+    (POST /api/drill/leeches/:itemId/reset, deletes the item_review_state
+    row so the item re-enters rotation as if never reviewed). NOT built:
+    "rewrite the item" / "split the fact" -- both need a content editor
+    that doesn't exist yet; correctly flagged in the UI rather than faked.
+
+--------------------------------------------------------------------------------
+A5: exam simulator (examWeight sampling, hard timer, post-hoc grading, report)
+--------------------------------------------------------------------------------
+Date:     2026-08-01
+Commit:   uncommitted
+Files:    server/schema.sql, server/db.js, server/seed.js, server/routes/topics.js,
+          server/routes/drill.js, src/components/ExamView.jsx (new), src/App.jsx,
+          src/components/Home.jsx, src/api/client.js, docs/ROADMAP.md
+Summary:
+  - Closed a gap A0 left open: examWeight had been set on all 12 cpp topic
+    files since 2026-08-01 but never actually reached the database or the
+    API — schema.sql's topics table had no column for it, seed.js never
+    wrote it, topics.js never served it. Added topics.exam_weight (default
+    1.0), with a guarded ALTER TABLE in db.js (ensureColumn helper) so a DB
+    created before today also gets the column on next boot, not just a
+    fresh one. Verified by manually dropping the column and reloading.
+  - GET /api/drill/exam: samples an item set across a course's topics,
+    weighted by examWeight, from every verified/non-retired item (not the
+    FSRS due queue — an exam draws from everything, not just what's due
+    today). Quota per topic proportional to its weight among topics that
+    actually have eligible items, min 1 per eligible topic, shuffled within
+    and across topics. Courses/topics with zero items handled gracefully
+    (empty result, not an error).
+  - GET /api/drill/stats: per-topic closed-book (mode: "closed" only)
+    accuracy from item_attempts, for the report's "vs. drill accuracy"
+    comparison — confirmed exam-mode attempts don't leak into this number.
+  - src/components/ExamView.jsx: four phases — setup (shows what's about to
+    happen before the clock starts), answering (hard-timed countdown, MCQ
+    clicks recorded but never colored, every other format just shows the
+    prompt with no reveal at all — "no feedback until the end" per spec),
+    grading (post-hoc batch: MCQ auto-graded since there was never anything
+    to self-assess, everything else gets DrillView's Show-answer/0-3
+    self-grade UI as a review queue), report (examWeight-weighted overall
+    score, per-topic table, drill-accuracy comparison, JSON export). Every
+    reached item — graded or not — logs via the same POST /api/drill/attempts
+    DrillView uses (mode: "exam"), so an exam review updates the FSRS
+    scheduler exactly like a drill review would; unreached items (timer or
+    "Finish exam" cut it short) log as abandoned instead of vanishing.
+    Reuses A4's drillActive/.app-chrome chrome-hiding instead of adding a
+    parallel mechanism for the same requirement.
+  - Entry point: an Exam button next to Drill on Home.jsx; App.jsx renders
+    ExamView the same way it renders DrillView, in place of the whole
+    Header/Home/TopicView tree, so the escape hatch stays the only way out.
+  - Verified endpoints directly against the running server (curl + SQL)
+    before touching the frontend. A full Playwright walkthrough of a real
+    exam (setup -> answer 3 items -> "Finish exam" -> grade -> report)
+    caught two real bugs pre-emptively: (1) "skipped" item tracking never
+    worked — recordCurrentItem always passed skipped: false, so nothing
+    ever set it true and the unreached tail was silently dropped from both
+    the report's count and the attempt log. Fixed by computing
+    exam.items.slice(answersRef.current.length) instead of relying on a
+    flag nothing set. (2) an all-MCQ sample would hang forever on
+    "scoring..." — submitAllAndFinish was only ever invoked from the
+    interactive self-grading loop, so a sample with zero self-graded items
+    left nothing to trigger it. Fixed by finishing immediately when the
+    self-graded queue is empty. Confirmed via direct SQL after the
+    walkthrough: 3 graded + 5 abandoned attempts landed exactly as the UI
+    reported.
+  - npx vite build and npm run audit:bank both pass, same baseline as
+    before this work.
+  - Not done: A6 reporting (the standing topics x formats / leech-list
+    dashboard) — A5's report is scoped to one exam run, not that.
+
+--------------------------------------------------------------------------------
+A4: attempt log + FSRS scheduler + DrillView + JSON export/import; A3 closed out; D8 done
+--------------------------------------------------------------------------------
+Date:     2026-08-01
+Commit:   committed
+Files:    server/schema.sql, server/fsrs.js (new), server/routes/drill.js
+          (new), server/seed.js, server/routes/topics.js, server/index.js,
+          src/components/DrillView.jsx (new), src/App.jsx, src/components/Home.jsx,
+          src/api/client.js, src/data/itemSchema.js, index.html,
+          src/data/topics/cpp/dynamic-alloc.js, package.json, docs/ROADMAP.md
+Summary:
+  - A3 closed out: read all 8 dynamic-alloc items against
+    sources/cpp/dynamic-alloc.md — every expected/criteria matches the
+    cited excerpt, no claim goes beyond the source. Flipped
+    verifiedByHuman: false -> true on all 8. audit:bank now shows
+    dynamic-alloc at 8 live / 8 in rotation, zero errors.
+  - A4 shipped as one unit, per SKILLTAPE_INTEGRATION.md §6.5's "ships as one
+    unit or none of it works":
+    * schema.sql: three new tables — items (the seeded itemSchema.js bank),
+      item_review_state (per-user FSRS state: difficulty/stability/due_on/
+      reps/lapses/leech — a separate table from items on purpose, since it's
+      per-user state, not content), item_attempts (append-only log:
+      itemId/ts/mode/grade/seconds/tabBlurs/note/abandoned). user_id defaults
+      to 0 rather than allowing NULL — SQLite treats every NULL as distinct
+      in a composite key, which would break the review-state upsert for the
+      anonymous/single-user path progress.js already relies on.
+    * server/fsrs.js: wraps ts-fsrs with default parameter weights (D10, no
+      optimizer this semester), the 0-3 self-grade -> Rating mapping
+      (grade + 1), lapses >= 3 -> leech. Implements D8's diagram-item
+      seeding (lower initial stability on an item's first review only).
+    * FORMATS.DIAGRAM added to itemSchema.js (D8) — no diagram items exist
+      in the bank yet to exercise it, but the format and scheduler support
+      are both in place for the first one.
+    * server/routes/drill.js: GET /api/drill/queue (due/new items for a
+      course, leeches excluded — that's A8 territory, not more of the
+      rotation that already failed them 3 times), POST /api/drill/attempts
+      (grade or abandoned), GET/POST /api/drill/export and /import (D4 —
+      import replays attempts through the real scheduler in timestamp order
+      so due dates land where they would have on this install).
+    * seed.js / topics.js: items now seed and serve alongside cards/
+      questions/flashcards.
+    * src/components/DrillView.jsx: closed-book, one item at a time, live
+      timer, Page Visibility tab-blur counter (never fails the item over
+      one), MCQ auto-graded / everything else self-graded 0-3 after a "Show
+      answer" reveal, "End drill" escape hatch (logs the in-progress item as
+      abandoned instead of discarding it), session summary with Export/
+      Import JSON. Entry point: a Drill button on Home.jsx; App.jsx renders
+      DrillView in place of the whole Header/Home/TopicView tree, not
+      alongside it, so DrillView's own escape hatch is the only way out.
+    * ts-fsrs added as a real dependency (package.json).
+  - Verified backend logic directly against the running server (curl +
+    direct SQL): queue ordering, FSRS scheduling math, leech exclusion from
+    the queue, export, import-with-replay all confirmed working.
+  - Ran a full Playwright browser walkthrough of a real drill session
+    (prompt -> reveal -> grade -> next item -> End drill -> summary) — no
+    project skill existed for this yet, so I adapted the generic pattern by
+    hand (npx playwright + a Chromium already cached at
+    ~/.cache/ms-playwright, plus a previous session's extracted .deb libs
+    for libnspr4/libnss3 via LD_LIBRARY_PATH, since sudo wasn't available to
+    apt-get them). Caught one real bug: index.html's
+    body[data-drill-active="true"] .app-chrome { display: none } rule was
+    losing to Shell.jsx's inline style={{ display: "flex" }} on the nav —
+    inline styles beat stylesheet rules without !important — so the tab bar
+    stayed visible through an entire drill session despite A1 believing it
+    was wired. Fixed with !important and a comment explaining why it's
+    required. This is exactly the gap A1's own note flagged ("wired, not
+    yet clicked-through in a live browser") and is worth remembering next
+    time "confirmed in build output" gets treated as equivalent to an
+    actual render.
+  - npx vite build and npm run audit:bank both pass, same baseline numbers
+    as before this work (no regressions to the legacy migration backlog).
+  - Not done: exam mode (A5), the leech-handoff UI (A8), a new-cards-per-day
+    cap (noted as a later concern if the bank grows past this size), and
+    the daily-practice habit itself — this ships the tool, not the routine.
+
+--------------------------------------------------------------------------------
+A3 pilot migration: dynamic-alloc's real source + 8 new itemSchema items
+--------------------------------------------------------------------------------
+Date:     2026-08-01
+Commit:   committed
 Files:    sources/cpp/dynamic-alloc.md (new, gitignored), sources/README.md
           (new), .gitignore, src/data/topics/cpp/dynamic-alloc.js
 Summary:
@@ -50,7 +304,7 @@ Summary:
 ROADMAP.md: FSRS decision (D10), A0 (exam weighting), A1 (hygiene) done
 --------------------------------------------------------------------------------
 Date:     2026-08-01
-Commit:   uncommitted
+Commit:   committed
 Files:    docs/ROADMAP.md, index.html, src/Shell.jsx, src/data/theme.js,
           src/data/topics/cpp/*.js (all 12), gaps/inbox.jsonl (new)
 Summary:

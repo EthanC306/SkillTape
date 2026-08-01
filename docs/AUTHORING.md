@@ -27,7 +27,7 @@ One topic = one file = one default-exported object. Topic files never import eac
 export default {
   id: "dynamic-classes",              // unique, kebab-case; also the localStorage progress key
   title: "Dynamic Memory with Classes & Structures",
-  subtitle: "CS 2401 — destructors, copy constructors & operator=",
+  subtitle: "c++ — destructors, copy constructors & operator=",
   course: "cpp",                      // must match a COURSES id in courses.js
   showChart: false,                   // Big-O chart + reference table (see §2.1)
   cards: [ /* Learn mode */ ],
@@ -39,7 +39,7 @@ export default {
 ### 2.1 Field notes
 
 - **`id`** — stable forever. It's the primary key of `topics` in the database (`server/schema.sql`) and keys every quiz attempt row, so renaming it silently orphans that topic's history. Pick it once. C++ topics use a plain slug (`linked-lists`); discrete topics use a numbered slug matching the textbook section (`discrete-2-4-circuits`).
-- **`subtitle`** — course code plus a short scope line. C++ style: `"CS 2401 — destructors, copy constructors & operator="`. Discrete style: `"CS3000 — §2.4"`.
+- **`subtitle`** — course code plus a short scope line. C++ style: `"c++ — destructors, copy constructors & operator="`. Discrete style: `"CS3000 — §2.4"`.
 - **`showChart`** — `true` renders the Big-O `ComplexityChart` and `ReferenceTable` in Learn and Quiz. These visuals are Big-O specific. **Only `bigo.js` sets this true.** Everything else sets it `false` explicitly — don't omit the field.
 
 ### 2.2 File header comment
@@ -225,7 +225,7 @@ Rarer, and it touches three files. Check `COURSES` in `src/data/courses.js` firs
 
 1. `src/data/courses.js` — add `{ id, title, subtitle }` to `COURSES`.
 2. Topic files — set `course` to the new `id`.
-3. `src/Shell.jsx` — **the bottom tab bar is hardcoded**, not generated from `COURSES`. Tabs are keyed by their own ids (`"cs2401"`, `"cs3000"`) which are *not* the course ids, and each branch renders `<App key="…" course="…" />`. A new course needs a branch here or it will never be reachable.
+3. `src/Shell.jsx` — **the bottom tab bar is hardcoded**, not generated from `COURSES`. Tabs are keyed by their own ids (`"c++"`, `"cs3000"`) which are *not* the course ids, and each branch renders `<App key="…" course="…" />`. A new course needs a branch here or it will never be reachable.
 4. `scripts/auditBank.js` — add an `ALLOWLIST` entry keyed by the new course id, listing notation the content tripwire would otherwise flag.
 
 ---

@@ -1,6 +1,6 @@
 # cs-drill — Build Spec
 
-**Purpose:** A source-grounded quiz and spaced-repetition system for Ethan's OU CS curriculum. Every question traces back to a verbatim excerpt from his own course materials (zyBooks, Abukamail's slides, lab handouts, WebAssign problems). No facts originate from the model.
+**Purpose:** A source-grounded quiz and spaced-repetition system for Ethan's course curriculum. Every question traces back to a verbatim excerpt from his own course materials (zyBooks, lecture slides, lab handouts, WebAssign problems). No facts originate from the model.
 
 **Audience:** Claude Code. Feed this whole file as the project brief.
 
@@ -63,7 +63,7 @@ cs-drill/
 ├── curriculum.yaml              # topic tree, exam weights, source manifest
 ├── sources/                     # gitignored — raw course material
 │   ├── README.md                # committed: format docs
-│   ├── cs2401/
+│   ├── c++/
 │   │   ├── zybooks-ch03-linked-lists.md
 │   │   ├── slides-week05-big-three.md
 │   │   └── lab03-doubly-linked.md
@@ -101,8 +101,8 @@ Every file in `sources/` is markdown with YAML frontmatter. Anchors are stable h
 
 ```markdown
 ---
-source_id: zybooks-cs2401-ch03
-course: CS2401
+source_id: zybooks-c++-ch03
+course: c++
 title: "Linked Lists"
 kind: zybooks            # zybooks | slides | lab | handout | webassign
 citation: "zyBooks, Data Structures Essentials, Ch. 3"
@@ -131,7 +131,7 @@ order matters: reversing these steps loses the remainder of the list.
 
 ```sql
 CREATE TABLE topics (
-  id            TEXT PRIMARY KEY,     -- 'cs2401.linked-lists.doubly'
+  id            TEXT PRIMARY KEY,     -- 'c++.linked-lists.doubly'
   course        TEXT NOT NULL,
   parent_id     TEXT REFERENCES topics(id),
   title         TEXT NOT NULL,
@@ -231,11 +231,11 @@ Report format: grouped by severity, with file:anchor for each finding.
 Each phase is one branch, one PR, with its own tests. Do not start a phase before the prior one's audit passes clean.
 
 ### Phase 1 — Scaffold
-`package.json`, `schema.sql`, `curriculum.yaml` loader, DB init, `cs-drill --help`. Seed `curriculum.yaml` with the CS2401 and Discrete Structures topic trees.
+`package.json`, `schema.sql`, `curriculum.yaml` loader, DB init, `cs-drill --help`. Seed `curriculum.yaml` with the c++ and Discrete Structures topic trees.
 **Done when:** `npm run init` creates a valid DB and `npm run audit` passes on an empty bank.
 
 ### Phase 2 — Ingest + pilot
-Source parser (frontmatter + anchored sections). Then hand-build 8 atoms and 8 items for one section — `sources/cs2401/lab03-doubly-linked.md` — entirely by hand, no model generation.
+Source parser (frontmatter + anchored sections). Then hand-build 8 atoms and 8 items for one section — `sources/c++/lab03-doubly-linked.md` — entirely by hand, no model generation.
 **Done when:** the pilot section round-trips through validation and one item can be drilled end to end. This phase exists to prove the schema before scaling it.
 
 ### Phase 3 — Atom extractor skill
@@ -243,7 +243,7 @@ Source parser (frontmatter + anchored sections). Then hand-build 8 atoms and 8 i
 **Done when:** run against the pilot section, the extractor's output overlaps ≥70% with the hand-built atoms, and every discrepancy is explainable.
 
 ### Phase 4 — Item writer skill
-`.claude/skills/item-writer/SKILL.md`. Atoms → items, honoring §6 quotas. Must emit `criteria` as a checklist so self-grading isn't vibes. Pulls C++ style from the existing `nasseef-cpp-tutor` conventions: `nullptr`, `using namespace std;`, no `#include <string>`, attached opening brace, `} // main`.
+`.claude/skills/item-writer/SKILL.md`. Atoms → items, honoring §6 quotas. Must emit `criteria` as a checklist so self-grading isn't vibes. conventions: `nullptr`, `using namespace std;`, no `#include <string>`, attached opening brace, `} // main`.
 **Done when:** 40+ items across 3 sections, audit clean, quota distribution within 5% of target.
 
 ### Phase 5 — Drill loop + scheduler
@@ -297,7 +297,7 @@ Deliverables:
 - package.json (Node 20+, ESM, better-sqlite3, commander,
   @inquirer/prompts, zod)
 - db/schema.sql exactly as specified in §5
-- curriculum.yaml with topic trees for CS2401 (pointers, dynamic arrays,
+- curriculum.yaml with topic trees for c++ (pointers, dynamic arrays,
   the Bag class, singly linked lists, doubly linked lists, the Big Three,
   recursion) and Discrete Structures (propositional logic, logical
   equivalence, quantifiers, direct proof, induction), each subtopic

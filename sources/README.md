@@ -14,11 +14,11 @@ One file per source section, at `sources/<course>/<kebab-name>.md`:
 
 ```markdown
 ---
-source_id: cs2401-slides-02.1-dynamic-alloc
+source_id: cpp-slides-02.1-dynamic-alloc
 course: cpp
 title: "Dynamic Allocation"
 kind: slides            # zybooks | slides | lab | handout | webassign
-citation: "Nasseef Abukamail, CS 2401 (Ohio University), Lecture Deck 02.1"
+citation: "Lecture Deck 02.1"
 ingested: 2026-08-01
 ---
 

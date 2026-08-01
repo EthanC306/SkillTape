@@ -99,7 +99,7 @@ export const ITEM_ORIGIN = {
 
 /**
  * @typedef {Object} Provenance
- * @property {string} sourceId   e.g. "zybooks-cs2401-ch03"
+ * @property {string} sourceId   e.g. "zybooks-c++-ch03"
  * @property {string} anchor     e.g. "#s3-5" — must resolve in the source file
  * @property {string} excerpt    VERBATIM source text, >= 1 full sentence
  * @property {string} citation   human-readable, e.g. "Epp 5e, §5.2"

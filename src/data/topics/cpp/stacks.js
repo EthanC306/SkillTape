@@ -1,10 +1,11 @@
-// ─────────────────── CS2401 · 05.1 Stacks ───────────────────
-// Content authored from Nasseef Abukamail's CS 2401 lecture deck 05.1, "Stacks".
+// ─────────────────── c++ · 05.1 Stacks ───────────────────.
 // Text is original; the code snippets are the deck's own.
+import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
+
 export default {
   id: "stacks",
   title: "Stacks",
-  subtitle: "CS 2401 — LIFO, array and linked-list implementations",
+  subtitle: "c++ — LIFO, array and linked-list implementations",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the
@@ -248,5 +249,201 @@ export default {
       explanation:
         "The stack owns heap-allocated nodes, so copying and destroying it has to be defined explicitly rather than left to the default member-by-member behavior.",
     },
+  ],
+  items: [
+    makeItem({
+      id: "stacks-01",
+      topicId: "stacks",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What is a stack, and what are Stack Underflow and Stack Overflow?",
+      expected:
+        "A stack is a data structure of ordered entries such that entries can only be inserted and removed at one end called the top — it's called a Last-In/First-Out (LIFO) data structure. Stack Underflow is the condition resulting from trying to pop (remove) an item from an empty stack. Stack Overflow is the condition resulting from trying to push an item onto a full stack.",
+      criteria: [
+        "States entries are inserted/removed only at the top, and describes LIFO",
+        "Defines Underflow as popping from an empty stack",
+        "Defines Overflow as pushing onto a full stack",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#what-a-stack-is",
+        excerpt:
+          "A stack is a data structure of ordered entries such that, entries can only be inserted and removed at one end called the top.\n- The stack is called \"Last-In/First-Out\" data structure (LIFO).\n- The stack uses two main operation\n- push to place an item on top of the stack.\n- pop operation is used to remove an item from the top of the stack.\n- Stack Underflow: the condition resulting from trying to pop (remove) an item from an empty stack.\n- Stack Overflow: the condition resulting form trying to push an item onto (add an item to) a full stack.",
+        citation: "Lecture Deck 05.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/stacks.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-02",
+      topicId: "stacks",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "In the array implementation, what does the top variable represent, and what value does it hold when the stack is empty?",
+      expected:
+        "The variable top is the index of the array that refers to the top of the stack. Pushing an element means incrementing top and storing it at the top position in the array. Popping an element means returning the element stored at the top position and decrementing top. When the stack is empty, top is set to -1.",
+      criteria: [
+        "States top is the array index of the current top element",
+        "States top is -1 when the stack is empty",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#array-implementation-concept",
+        excerpt:
+          "The variable top is the index of the array that refers to the top of the stack.\n- Pushing an element on top of the stack means incrementing top and storing it at the top position in the array.\n- Popping an element means returning the element stored at the top position and decrementing top.\n- When the stack is empty top is set to -1.",
+        citation: "Lecture Deck 05.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/stacks.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-03",
+      topicId: "stacks",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "Write the array-based push function, given `Item data[CAPACITY]; int top;`.",
+      expected:
+        "template <typename Item>\nvoid Stack<Item>::push(const Item& entry){\nassert(top < CAPACITY - 1);\ntop++;\ndata[top] = entry;\n}",
+      criteria: [
+        "Uses assert to check top < CAPACITY - 1 before pushing (guards against overflow)",
+        "Increments top before storing entry at data[top]",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#array-stack-push",
+        excerpt:
+          "template <typename Item>\nvoid Stack<Item>::push(const Item& entry){\nassert(top < CAPACITY - 1);\ntop++;\ndata[top] = entry;\n}",
+        citation: "Lecture Deck 05.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/stacks.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-04",
+      topicId: "stacks",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What does assert do, and where does it come from?",
+      expected:
+        "We can use the \"assert\" utility to generate a run-time error when we can't complete a stack operation. It is found in the \"cassert\" library. Usage: assert(some condition), e.g. assert(x > 0);. assert will display an error message if the condition fails, and assert does not print anything if the condition is true.",
+      criteria: [
+        "States assert generates a run-time error when a condition fails",
+        "States it comes from the cassert library",
+        "States it's silent when the condition is true",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#assert",
+        excerpt:
+          "We can use \"assert\" utility to generate a run-time error when we can't complete a stack operation\n- It is found in \"cassert\" library\n- usage: assert(some condition)\n- Example: assert(x > 0);\n- assert will display an error message if the condition fails\n- assert does not print anything if the condition is true",
+        citation: "Lecture Deck 05.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/stacks.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-05",
+      topicId: "stacks",
+      format: FORMATS.COMPARE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "How does pushing onto a linked-list-based stack differ from pushing onto an array-based stack?",
+      expected:
+        "In the linked list implementation, the top of the stack is the head node topPtr, and pushing an item is equivalent to inserting at the head of the list. In the array implementation, pushing means incrementing top and storing the new entry at the top position in the array. Both are O(1), but the linked-list version allocates a new node (Node<Item> *temp = new Node<Item>(entry, topPtr); topPtr = temp;) instead of writing into a pre-sized array.",
+      criteria: [
+        "States linked-list push inserts at the head (topPtr)",
+        "States array push increments top and writes into the array",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#linked-list-stack-push",
+        excerpt:
+          "template <typename Item>\nvoid Stack<Item>::push(const Item &entry){\n// insert at the begining\nNode<Item> *temp =\nnew Node<Item>(entry, topPtr);\ntopPtr = temp;\nnumItems++;\n}",
+        citation: "Lecture Deck 05.1",
+      },
+      extraAtoms: ["#linked-list-stack-concept", "#array-implementation-concept"],
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/stacks.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-06",
+      topicId: "stacks",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Trace this linked-list stack pop() call:\n```\ntemplate <typename Item>\nItem Stack<Item>::pop() {\nassert(!isEmpty());\nNode<Item> *delPtr = topPtr;\nItem topItem = topPtr->getData();\ntopPtr = topPtr->getNext();\ndelete delPtr;\nnumItems--;\nreturn topItem;\n}\n```\nWhat happens to topPtr, and what is returned?",
+      expected:
+        "delPtr saves the current topPtr. topItem is read from topPtr->getData() before anything is deallocated. topPtr is then advanced to the second node via topPtr->getNext(). The old top node (delPtr) is deleted, numItems is decremented, and topItem (the value that was on top before the pop) is returned.",
+      criteria: [
+        "States topPtr moves to the next node before the old node is deleted",
+        "States the returned value is the data that was on top before popping",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#linked-list-stack-pop",
+        excerpt:
+          "template <typename Item>\nItem Stack<Item>::pop() {\nassert(!isEmpty());\nNode<Item> *delPtr = topPtr;\nItem topItem = topPtr->getData();\ntopPtr = topPtr->getNext();\ndelete delPtr;\nnumItems--;\nreturn topItem;\n}",
+        citation: "Lecture Deck 05.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/stacks.md",
+      },
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-07",
+      topicId: "stacks",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What three special member functions should a linked-list-based Stack have, and why?",
+      expected:
+        "The stack should have a destructor, a copy constructor, and an overloaded assignment operator — because the items are stored in a linked list, so the stack owns dynamically allocated nodes that the compiler's default copy/destroy behavior would not handle correctly.",
+      criteria: [
+        "Names all three: destructor, copy constructor, overloaded assignment operator",
+        "Attributes the need to the stack owning dynamically allocated (linked-list) nodes",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#linked-list-stack-concept",
+        excerpt:
+          "- The items are stored in a linked list\n- The top of the stack is the head node topPtr\n- The stack is empty when topPtr is pointing to nullptr\n- Pushing an item is equivalent to inserting at the head of the list\n- Popping an item is equivalent to removing the head node in the list\n- The stack should have a destructor, a copy constructor, and an overloaded assignment operator",
+        citation: "Lecture Deck 05.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/stacks.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
   ],
 };

@@ -1,14 +1,15 @@
-// ─────────────────── CS2401 · 04.2 STL Containers & Iterators ───────────────────
-// Content authored from Nasseef Abukamail's CS 2401 lecture deck 04.2, "STL
+// ─────────────────── c++ · 04.2 STL Containers & Iterators ───────────────────
 // Containers & Iterators". Text is original; the code snippets are the deck's own.
 // The `flashcards` deck has a different source: it is authored from the drill
 // questions the repo owner supplied directly, targeting C++11 hand-written
 // linked-list iterators. It therefore ranges past deck 04.2 — into operator--,
 // const_iterator, iterator invalidation, and template/linker mechanics.
+import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
+
 export default {
   id: "iterators",
   title: "STL Containers & Iterators",
-  subtitle: "CS 2401 — this, multiset, and writing your own iterator",
+  subtitle: "c++ — this, multiset, and writing your own iterator",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the
@@ -526,5 +527,228 @@ export default {
       back:
         "'undefined reference' (GCC/Clang) or LNK2019 unresolved external symbol (MSVC) — no instantiation was ever emitted.",
     },
+  ],
+  items: [
+    makeItem({
+      id: "iterators-01",
+      topicId: "iterators",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What does the `this` pointer point to, and when is it available?",
+      expected:
+        "C++ provides a keyword called this that will always point to the current object. If this is used within a member function, it will reference the object that invoked the function.",
+      criteria: [
+        "States this always points to the current object",
+        "States it references the object that invoked the member function",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#this-pointer",
+        excerpt:
+          "C++ provides a keyword called this\n- this will always point to the current object\n- If this is used within a member function, it will reference the object that invoked the function",
+        citation: "Lecture Deck 04.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/iterators.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-02",
+      topicId: "iterators",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "Why do containers like linked lists need iterators instead of an integer index?",
+      expected:
+        "Containers may have complex types and data structures, and sometimes it's not easy to reference elements using an integer index — for example, linked lists. Iterators solve this problem by creating a standard way to navigate container elements regardless of their complexity or data structures.",
+      criteria: [
+        "Gives linked lists as the example where an integer index doesn't work well",
+        "States iterators give a standard way to navigate regardless of the container's internal complexity",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#why-iterators",
+        excerpt:
+          "Containers may have complex types and data structures\n- Sometimes it's not easy to reference elements using an integer index, for example, linked lists\n- Iterators solve this problem by creating a standard way to navigate container elements regardless of their complexity or data structures",
+        citation: "Lecture Deck 04.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/iterators.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-03",
+      topicId: "iterators",
+      format: FORMATS.COMPARE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "How does multiset differ from set?",
+      expected:
+        "set and multiset are similar with one difference: Set cannot have duplicate elements. Both set and multiset keep their elements ordered. Multiset specifically allows for duplicate elements, and elements cannot be changed once inserted, though they can be deleted.",
+      criteria: [
+        "States set cannot have duplicates while multiset can",
+        "States both keep their elements ordered",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#multiset",
+        excerpt:
+          "- Multiset is a container\n- All elements are sorted\n- Allows for duplicate elements\n- Elements cannot be changed once inserted in the list\n- Elements can be deleted\n- Includes an iterator\n- Overloads ++, -- operators to advance the iterator in either direction",
+        citation: "Lecture Deck 04.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/iterators.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-04",
+      topicId: "iterators",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Trace this loop over `multiset<string> names;` after inserting \"Jack\", \"Janet\", \"Chrissy\", \"Jack\":\n```\nfor (auto it = names.begin(); it != names.end(); it++) {\nstring word = *it; //get stored string at it\ncout << word << endl;\n}\n```\nWhat order does it print in, and what type does auto deduce for it?",
+      expected:
+        "The output will be sorted (Chrissy, Jack, Jack, Janet). C++ will deduce the object type when auto is used — here it is of type multiset<string>::iterator. With older C++ compilers, it would have to be defined explicitly as multiset<string>::iterator it;.",
+      criteria: [
+        "States the output is sorted",
+        "States auto deduces it as multiset<string>::iterator",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#iterate-over-elements",
+        excerpt:
+          "for (auto it = names.begin(); it != names.end(); it++) {\nstring word = *it; //get stored string at it\ncout << word << endl;\n}\n```\n- The output will be sorted\n- C++ will deduce the object type when auto is used\n- In this case the it is of type multiset<string>::iterator",
+        citation: "Lecture Deck 04.2",
+      },
+      extraAtoms: ["#multiset"],
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/iterators.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-05",
+      topicId: "iterators",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "Name the five categories of iterators and what distinguishes each.",
+      expected:
+        "Input – allows you to input(retrieve) the data from the object. Output – allows you to output to the object (modify it) but does not allow for retrieval. Forward – performs input/output but moves in a forward direction. Bidirectional – includes all the functionalities of the operators above but moves in either direction. Random – allows random access to elements as in [index].",
+      criteria: [
+        "Names all five categories: input, output, forward, bidirectional, random",
+        "Correctly distinguishes at least forward (one direction) from bidirectional (either direction) and random (index access)",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#types-of-iterators",
+        excerpt:
+          "Input – allows you to input(retrieve) the data from the object\n- Output – allows you to output to the object (modify it) but does not allow for retrieval\n- Forward – performs input/output but moves in a forward direction\n- Bidirectional – includes all the functionalities of the operators above but moves in either direction\n- Random – allows random access to elements as in [index]",
+        citation: "Lecture Deck 04.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/iterators.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-06",
+      topicId: "iterators",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Write the prefix and postfix `operator++` overloads for a hand-written forward Iterator class with `private: Node<ItDataType> *current;`.",
+      expected:
+        "// overload prefix ++ operator as in ++it\nIterator &operator++() {\ncurrent = current->getNext();\nreturn *this;\n}\n// overload postfix ++ operator as in it++\nIterator operator++(int) {\nIterator original = *this;\ncurrent = current->getNext();\nreturn original;\n}",
+      criteria: [
+        "Prefix operator++() advances current and returns *this (a reference to the same iterator)",
+        "Postfix operator++(int) saves the original iterator before advancing, and returns that saved copy",
+      ],
+      timeBudgetSec: 180,
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#iterator-implementation-increment",
+        excerpt:
+          "// overload prefix ++ operator as in ++it\nIterator &operator++() {\ncurrent = current->getNext();\nreturn *this;\n}\n// overload postfix ++ operator as in it++\nIterator operator++(int) {\nIterator original = *this;\ncurrent = current->getNext();\nreturn original;\n}",
+        citation: "Lecture Deck 04.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/iterators.md",
+      },
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-07",
+      topicId: "iterators",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What five properties does C++ expect a hand-written iterator class to include?",
+      expected:
+        "iterator_category – one of the iterator types (input_iterator_tag, output_iterator_tag, forward_iterator_tag, bidirectional_iterator_tag, random_access_iterator_tag). difference_type – a signed integer used to find the distance between iterators (e.g., ptrdiff_t). value_type – the type of data the iterator iterates over (e.g., int). pointer – pointer to the type (e.g. int*). reference – reference to the data type (e.g., int &).",
+      criteria: [
+        "Names all five: iterator_category, difference_type, value_type, pointer, reference",
+        "Gives at least one correct example type for one of them (e.g. ptrdiff_t for difference_type)",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#designing-iterators",
+        excerpt:
+          "iterator_category – one of the iterator types:\ninput_iterator_tag, output_iterator_tag,\nforward_iterator_tag, bidirectional_iterator_tag,\nrandom_access_iterator_tag)\n- difference_type – a signed integer used to find the distance between iterrators (e.g., ptrdiff_t)\n- value_type – the type of data the iterator iterates over (e.g., int)\n- pointer – pointer to the type (e.g. int*)\n- reference – reference to the data type (e.g., int &)",
+        citation: "Lecture Deck 04.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/iterators.md",
+      },
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-08",
+      topicId: "iterators",
+      format: FORMATS.CLOZE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Fill in the blank:\n```\nIterator<DataType> begin() {\nreturn Iterator<DataType>(head);\n}\nIterator<DataType> end() {\nreturn Iterator<DataType>___;\n}\n```",
+      expected: "()",
+      criteria: [
+        "Fills in an empty argument list, i.e. Iterator<DataType>()",
+        "Matches that end() constructs the iterator with no argument (defaulting current to nullptr)",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#list-class-member-types",
+        excerpt:
+          "using iterator = Iterator<DataType>;\nIterator<DataType> begin() {\nreturn Iterator<DataType>(head);\n}\nIterator<DataType> end() {\nreturn Iterator<DataType>();\n}",
+        citation: "Lecture Deck 04.2",
+      },
+      extraAtoms: ["#iterator-implementation-constructor"],
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/iterators.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

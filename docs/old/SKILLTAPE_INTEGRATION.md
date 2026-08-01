@@ -2,7 +2,7 @@
 
 Replaces `cs-drill-integration.md`. That version was written before the codebase had been reviewed and assumed a CLI application, a SQLite database, and a separate `atoms/` layer — none of which exist. Delete the old file; nothing in it is worth keeping that isn't here.
 
-This covers how SkillTape wires into what already exists: the `nasseef-cpp-tutor` skill, the Claude Code hooks and slash commands, and the OU Dining Tracker.
+This covers how SkillTape wires into what already exists: the Claude Code hooks and slash commands, and the OU Dining Tracker.
 
 **What changed:** no CLI · no database · no `atoms/` layer · gap capture justified differently · leech handoff moves in-app · the SessionStart hook doesn't work as originally specced (§3) · no phase numbers.
 
@@ -19,10 +19,10 @@ This covers how SkillTape wires into what already exists: the `nasseef-cpp-tutor
       │                    ▲
       │                    │  reads for C++ house style
       │                    │
-      │   references/ou-cpp-conventions.md  ◀── single source of truth
+      │   references/cpp-conventions.md  ◀── single source of truth
       │                    │                          ▲
       │                    │                          │ reads
-      │                    │                nasseef-cpp-tutor skill
+      │                    │                cpp-tutor skill
       │                    │                          ▲     │
       │                    │           gap records    │     │  leech handoff
       │                    │                          │     ▼
@@ -53,7 +53,7 @@ The highest-signal input to the bank is whatever just confused you in a tutoring
 
 **[CORRECTED]** The original reason given was that tutor-authored questions would "smuggle model-generated content into the bank." That reasoning is void — generated items are fine when grounded in a source excerpt. The real reason is narrower and better: **the tutor doesn't have the source text in front of it.** It would be recalling from training data rather than reformatting a sentence you supplied, and there'd be nothing to verify the answer against. Same conclusion, correct justification.
 
-So the tutor emits a **gap record**. Append to `nasseef-cpp-tutor/SKILL.md`:
+So the tutor emits a **gap record**. Append to :
 
 ```markdown
 ## Gap capture (SkillTape integration)
@@ -64,7 +64,7 @@ concept isn't sticking, append a gap record to
 
 {
   "ts": "2026-07-26T14:22:00Z",
-  "topic_guess": "cs2401.linked-lists.doubly",
+  "topic_guess": "c++.linked-lists.doubly",
   "what_broke": "Reversed the pointer-update order when inserting after
                  a node; lost the tail of the list.",
   "source_hint": "zyBooks Ch 3 insertion section, or Lab 3 handout",
@@ -104,12 +104,12 @@ Build this after drill mode exists; there's no attempt history to hand over and 
 
 ## 2. Kill the convention duplication before it starts
 
-Whatever writes `write`, `cloze`, and `error` items needs Abukamail's C++ house style, or the items won't look like his exam questions. The tutor skill already documents that style in full. A second copy inside an extraction prompt guarantees the two drift, and drift means drill items that don't match what the exam expects.
+Whatever writes `write`, `cloze`, and `error` items needs the course's C++ house style, or the items won't look like his exam questions. The tutor skill already documents that style in full. A second copy inside an extraction prompt guarantees the two drift, and drift means drill items that don't match what the exam expects.
 
 Lift the tutor skill's "OU CS code conventions" section verbatim into:
 
 ```
-~/SkillTape/references/ou-cpp-conventions.md
+~/SkillTape/references/cpp-conventions.md
 ```
 
 C++11/14 only · `using DataType = ...` aliases · full getter/setter interface · the cursor traversal idiom · const-correctness · `nullptr` never `NULL` · `using namespace std;` · no `#include <string>` · includes limited to `<cstdlib> <iomanip> <iostream> <fstream>` · attached opening brace with the body indented on its own line · `} // main` and `#endif` closers.
@@ -117,12 +117,12 @@ C++11/14 only · `using DataType = ...` aliases · full getter/setter interface 
 Then both the tutor skill and `.claude/commands/extract.md` reference it:
 
 ```markdown
-Read `~/SkillTape/references/ou-cpp-conventions.md` before writing any
+Read `~/SkillTape/references/cpp-conventions.md` before writing any
 C++. It is the single source of truth for course style. If Ethan's
 pasted code or slides differ, the local materials win.
 ```
 
-One file to update when Abukamail does something unexpected.
+One file to update when the instructor does something unexpected.
 
 ---
 
@@ -193,7 +193,7 @@ What still holds:
 
 Still the most valuable step in this document, and it involves no code.
 
-You have the graded midterm. That's 68 points of ground truth on two things the system otherwise has to guess: **how Abukamail weights topics**, and **exactly where you lost points.** Nothing in the bank is better calibrated than that.
+You have the graded midterm. That's 68 points of ground truth on two things the system otherwise has to guess: **how the instructor weights topics**, and **exactly where you lost points.** Nothing in the bank is better calibrated than that.
 
 1. For each midterm question, record the topic and the points available.
 2. Sum by topic. Those ratios become each topic's `examWeight`.

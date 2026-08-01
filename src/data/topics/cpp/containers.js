@@ -1,7 +1,7 @@
 export default {
   id: "containers",
   title: "Container Classes",
-  subtitle: "CS 2401 — the Bag class & STL",
+  subtitle: "c++ — the Bag class & STL",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the

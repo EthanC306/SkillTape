@@ -28,12 +28,12 @@ function figureOf(row) {
 }
 
 const listTopics = db.prepare(`
-  SELECT id, course_id, title, subtitle, show_chart
+  SELECT id, course_id, title, subtitle, show_chart, exam_weight
   FROM topics ORDER BY position
 `);
 
 const getTopic = db.prepare(`
-  SELECT id, course_id, title, subtitle, show_chart
+  SELECT id, course_id, title, subtitle, show_chart, exam_weight
   FROM topics WHERE id = ?
 `);
 
@@ -126,6 +126,7 @@ export function buildTopic(row) {
     subtitle: row.subtitle,
     course: row.course_id,
     showChart: Boolean(row.show_chart),
+    examWeight: row.exam_weight,
     cards,
     questions,
     // Absent, not empty, when the topic ships no deck — TopicView keys the

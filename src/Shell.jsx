@@ -7,7 +7,7 @@ import { PALETTE, MONO, HEADING, RADII, fadeDivider } from "./data/theme";
  *
  * A single page with a tab bar pinned to the bottom. Three tabs:
  *   • "Home"   → the landing page with a link to the GitHub repo (tab === null).
- *   • "CS2401" → the tutor showing the C++ class topics.
+ *   • "c++" → the tutor showing the C++ class topics.
  *   • "CS3000" → the tutor showing the Discrete Structures topics.
  *
  * The tab bar is rendered here, outside of <App>, so it stays on screen no matter
@@ -18,7 +18,7 @@ import { PALETTE, MONO, HEADING, RADII, fadeDivider } from "./data/theme";
  */
 export default function Shell() {
   // Which bottom tab is active. `null` = the plain home page (nothing selected).
-  const [tab, setTab] = useState(null); // "cs2401" | "cs3000" | null
+  const [tab, setTab] = useState(null); // "c++" | "cs3000" | null
 
   return (
     <div
@@ -33,8 +33,8 @@ export default function Shell() {
       {/* Active view fills the space above the tab bar. Each class tab renders
           the tutor filtered to that course; no tab yet = the blank home page. */}
       <div style={{ flex: 1, minHeight: 0 }}>
-        {tab === "cs2401" ? (
-          <App key="cs2401" course="cpp" />
+        {tab === "c++" ? (
+          <App key="c++" course="cpp" />
         ) : tab === "cs3000" ? (
           <App key="cs3000" course="discrete" />
         ) : (
@@ -140,7 +140,7 @@ export default function Shell() {
       >
         {[
           [null, "Home"],
-          ["cs2401", "CS2401"],
+          ["c++", "c++"],
           ["cs3000", "CS3000"],
         ].map(([id, label]) => {
           const active = tab === id;

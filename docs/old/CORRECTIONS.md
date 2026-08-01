@@ -129,7 +129,7 @@ Added `preview` script, `engines: node >=18` (README already states the requirem
 
 `PLAN_PLATFORMIZE.md` §4 option 2 is LLM-generated MCQs, described as "the highest-quality option," and §4 option 3 names a hybrid with a "✨ Generate quiz with AI" button as the **recommended target state**. Your instruction was that nothing should be model-generated, to guarantee accuracy.
 
-Both goals are legitimate and they're incompatible at the global level — but not per course. For your own CS2401/CS3000 material, correctness against Abukamail's exam is the entire point and generated content is a liability. For a platform serving strangers who won't hand-author question JSON, generation is the feature that makes the product work at all.
+Both goals are legitimate and they're incompatible at the global level — but not per course. For your own course material, correctness against the instructor's exam is the entire point and generated content is a liability. For a platform serving strangers who won't hand-author question JSON, generation is the feature that makes the product work at all.
 
 The seam already exists in your Phase 2 schema: you designed `source: "manual" | "generated"`. Extend it.
 
@@ -171,14 +171,14 @@ Cards and items both need to point at real source text. Minimum shape:
 
 ```js
 export default {
-  id: "cs2401.linked-lists.doubly",
-  course: "CS2401",
+  id: "c++.linked-lists.doubly",
+  course: "c++",
   title: "Doubly Linked Lists",
   contentPolicy: "extracted_only",
 
   sources: {
     "zb-ch03": { citation: "zyBooks, Data Structures Essentials, Ch. 3" },
-    "lab03":   { citation: "CS2401 Lab 3 handout" },
+    "lab03":   { citation: "c++ Lab 3 handout" },
   },
 
   cards: [

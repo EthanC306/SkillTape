@@ -1,10 +1,11 @@
-// ─────────────────── CS2401 · 04.1 Function and Class Templates ───────────────────
-// Content authored from Nasseef Abukamail's CS 2401 lecture deck 04.1, "Function
+// ─────────────────── C++ · 04.1 Function and Class Templates ───────────────────
 // and Class Templates". Text is original; the code snippets are the deck's own.
+import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
+
 export default {
   id: "templates",
   title: "Function & Class Templates",
-  subtitle: "CS 2401 — writing one version that works for every type",
+  subtitle: "c++ — writing one version that works for every type",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the
@@ -224,5 +225,147 @@ export default {
       explanation:
         "Pair declares only one generic type, so both members are T and a Pair holds two values of the same type.",
     },
+  ],
+  items: [
+    makeItem({
+      id: "templates-01",
+      topicId: "templates",
+      format: FORMATS.COMPARE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "Why use a template function instead of overloaded functions like these?",
+      expected:
+        "One way to implement an algorithm that works on different data types is through overloaded functions, e.g. void swap(int &first, int &second); void swap(double &first, double &second); void swap(string &first, string &second);. Another way is to use template functions and only write the function once — instead of writing a separate overload per type.",
+      criteria: [
+        "States overloaded functions require writing a separate version per type",
+        "States a template function is written only once and works across types",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-04.1-templates",
+        anchor: "#why-use-templates",
+        excerpt:
+          "- One way to do this is through the use of overloaded functions\n- Example:\n```\nvoid swap(int &first, int &second);\nvoid swap(double &first, double &second);\nvoid swap(string &first, string &second);\n```\n- Another way is to use template functions and only write the function once",
+        citation: "Lecture Deck 04.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/templates.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "templates-02",
+      topicId: "templates",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "Write a template swap function that works for any type T.",
+      expected:
+        "template <typename T>\nvoid swap (T &first, T &second)\n{\nT temp = first;\nfirst = second;\nsecond = temp;\n}",
+      criteria: [
+        "Declares template <typename T> before the function",
+        "Takes both parameters by reference as T &first, T &second",
+        "Uses a temp of type T to perform the three-step swap",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-04.1-templates",
+        anchor: "#swap-template-function",
+        excerpt:
+          "template <typename T>\nvoid swap (T &first, T &second)\n{\nT temp = first;\nfirst = second;\nsecond = temp;\n}",
+        citation: "Lecture Deck 04.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/templates.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "templates-03",
+      topicId: "templates",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What does the generic type T in `template <typename T>` actually stand for, and which keyword is used for it in this course?",
+      expected:
+        "T (or any valid identifier) is a generic type that will match any type we send the function. A function can be defined to take a generic type specified by the keyword typename or class; this course uses typename throughout since it's more readable.",
+      criteria: [
+        "States T matches any type passed to the function",
+        "States typename (not class) is the keyword used, because it's more readable",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-04.1-templates",
+        anchor: "#template-functions-typename",
+        excerpt:
+          "We can define a function to take a generic type specified by the keyword typename or class\n- We will use typename throughout the course as it's more readable",
+        citation: "Lecture Deck 04.1",
+      },
+      extraAtoms: ["#swap-template-function"],
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/templates.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "templates-04",
+      topicId: "templates",
+      format: FORMATS.CLOZE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Fill in the blank in this out-of-class member function definition for the Pair template class:\n```\ntemplate <typename T>\nvoid Pair ___::setFirst(T value)\n{\nfirst = value;\n}\n```",
+      expected: "<T>",
+      criteria: [
+        "Fills in <T> after Pair",
+        "Matches the note that \"<T>\" must be specified with the class name",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-04.1-templates",
+        anchor: "#function-definition-out-of-class",
+        excerpt:
+          "template <typename T>\nvoid Pair <T>::setFirst(T value)\n{\nfirst = value;\n}\n```\nNote that \"<T>\" must be specified with the class name",
+        citation: "Lecture Deck 04.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/templates.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "templates-05",
+      topicId: "templates",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Given `template <typename T1, typename T2> class ClassName { public: void setvars (T1 v1, T2 v2); T2 getvar2 (); private: T1 var1; T2 var2; };`, what type does `getvar2()` return, and what does it return the value of?",
+      expected:
+        "getvar2() returns T2 — template <typename T1, typename T2> T2 ClassName <T1, T2>::getvar2 () { return var2; } — it returns the value of var2, which is of type T2.",
+      criteria: [
+        "States the return type is T2",
+        "States it returns var2's value",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-04.1-templates",
+        anchor: "#function-definitions-two-type",
+        excerpt:
+          "template <typename T1, typename T2>\nT2 ClassName <T1, T2>::getvar2 ()\n{ return var2;\n}",
+        citation: "Lecture Deck 04.1",
+      },
+      extraAtoms: ["#multiple-types-template-classes"],
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/templates.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

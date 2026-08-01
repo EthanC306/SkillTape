@@ -1,7 +1,7 @@
 export default {
   id: "cstrings",
   title: "C-Style Strings",
-  subtitle: "CS 2401 — <cstring>",
+  subtitle: "c++ — <cstring>",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the
