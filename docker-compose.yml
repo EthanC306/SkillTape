@@ -1,0 +1,21 @@
+services:
+  api:
+    build:
+      context: .
+      target: api
+    volumes:
+      - ./db:/app/db
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3001
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      target: web
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    restart: unless-stopped
