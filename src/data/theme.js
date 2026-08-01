@@ -81,6 +81,21 @@ export const RAMP = {
   accent: ACCENT_RAMP,
 };
 
+// Syntax-highlighting colors for code listings (src/components/CodeBlock.jsx).
+// Desaturated on purpose: they have to read as one family with the accent
+// rather than as a stock rainbow theme dropped onto a Nocturne surface.
+export const SYNTAX = {
+  plain: PALETTE.text,
+  comment: NEUTRAL[600],
+  keyword: "#a397e8", // accent-leaning purple — template, class, const, return
+  type: "#7fb0d9", // soft blue — int, size_t, and user-defined types (Node, Stack)
+  constant: "#d9a87f", // warm sand — numbers and ALL_CAPS constants
+  string: "#8fc79f", // muted green, sibling of PALETTE.good
+  func: "#d9c98f", // pale gold — identifiers being called
+  preproc: "#c98fb0", // muted mauve — #include and friends
+  punct: NEUTRAL[400],
+};
+
 // Inter, loaded via Google Fonts link in index.html — used for both headings
 // and body text. Weight is capped at 500 for headings (never bolder).
 export const HEADING = '"Inter", system-ui, -apple-system, sans-serif';

@@ -50,12 +50,12 @@ export default {
     {
       prompt: "What does a doubly linked list add compared to a singly linked list?",
       choices: [
-        "A previous pointer in each node, enabling efficient backward traversal",
-        "A second data field in each node",
-        "Automatic sorting of the list",
         "A guarantee that the list is never empty",
+        "Automatic sorting of the list",
+        "A second data field in each node",
+        "A previous pointer in each node, enabling efficient backward traversal",
       ],
-      answer: 0,
+      answer: 3,
       explanation:
         "Each DNode stores both next and previous, so the list can be walked backward without restarting from head.",
     },
@@ -65,8 +65,8 @@ export default {
       choices: [
         "data, next, and previous",
         "data, head, and tail",
-        "next, previous, and count",
         "data and next only",
+        "next, previous, and count",
       ],
       answer: 0,
       explanation:
@@ -77,12 +77,12 @@ export default {
         "In insertAfter(head, cursor, value), what happens if head == nullptr?",
       code: "if (head == nullptr) {\n    head = temp;\n    temp->next = nullptr;\n    temp->prev = nullptr;\n    return;\n}",
       choices: [
-        "The new node becomes head, with both next and previous set to nullptr",
-        "The function does nothing and returns immediately",
         "It throws an exception",
         "cursor is used as the new head instead of temp",
+        "The new node becomes head, with both next and previous set to nullptr",
+        "The function does nothing and returns immediately",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "An empty list is a special case handled before any cursor-relative linking: the new node simply becomes the sole node in the list.",
     },
@@ -102,12 +102,12 @@ export default {
     {
       prompt: "Why is `if (cursor->next != nullptr)` needed before `cursor->next->prev = temp;`?",
       choices: [
-        "To avoid dereferencing a null pointer when cursor is the last node in the list",
-        "To check whether the list has more than one node",
         "It's optional and only improves performance",
+        "To avoid dereferencing a null pointer when cursor is the last node in the list",
         "To decide whether to allocate temp",
+        "To check whether the list has more than one node",
       ],
-      answer: 0,
+      answer: 1,
       explanation:
         "If cursor is the last node, cursor->next is nullptr, and dereferencing it (cursor->next->prev) would be undefined behavior.",
     },
@@ -115,12 +115,12 @@ export default {
       prompt: "When deleting the first node in a doubly linked list, what must happen to the new head?",
       code: "if (cursor == head) {\n    head = cursor->getNext();\n    if (head != nullptr) {\n        head->setPrevious(nullptr);\n    }\n}",
       choices: [
-        "Its previous pointer must be cleared to nullptr, since it has no node before it now",
         "Its next pointer must be cleared to nullptr",
+        "Its previous pointer must be cleared to nullptr, since it has no node before it now",
         "It must be deleted immediately",
         "Nothing — head can keep its old previous pointer",
       ],
-      answer: 0,
+      answer: 1,
       explanation:
         "After removing the old first node, the new first node's previous must be nullptr since nothing precedes it anymore.",
     },
@@ -129,24 +129,24 @@ export default {
         "What is the key efficiency advantage of deleting a middle node in a doubly linked list versus a singly linked list?",
       code: "DNode *after = cursor->getNext();\nDNode *before = cursor->getPrevious();\nbefore->setNext(after);\nafter->setPrevious(before);",
       choices: [
-        "The previous node is already known directly — no loop is needed to find it",
-        "Middle nodes can't be deleted in a singly linked list at all",
         "It avoids calling delete on the node",
+        "Middle nodes can't be deleted in a singly linked list at all",
+        "The previous node is already known directly — no loop is needed to find it",
         "It doesn't require updating any pointers",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "A singly linked list must walk from head to find the predecessor before it can delete; a doubly linked node already stores that pointer.",
     },
     {
       prompt: "Deleting a node in a doubly linked list has how many distinct cases?",
       choices: [
-        "Three: first node, last node, and a node in the middle",
-        "Two: empty list and non-empty list",
         "One: the same logic always applies",
         "Four: first, last, middle, and root",
+        "Two: empty list and non-empty list",
+        "Three: first node, last node, and a node in the middle",
       ],
-      answer: 0,
+      answer: 3,
       explanation:
         "Deletion branches on whether the target is the head, the last node (next is nullptr), or somewhere in the middle.",
     },

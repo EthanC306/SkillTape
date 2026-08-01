@@ -52,6 +52,9 @@ import dynamicClasses from "./topics/cpp/dynamic-classes.js";
 import linkedLists from "./topics/cpp/linked-lists.js";
 import linkedListsAlgorithms from "./topics/cpp/linked-lists-algorithms.js";
 import doublyLinkedLists from "./topics/cpp/doubly-linked-lists.js";
+import templates from "./topics/cpp/templates.js";
+import iterators from "./topics/cpp/iterators.js";
+import stacks from "./topics/cpp/stacks.js";
 
 // CS 3000 — Discrete Structures (Epp, 5e)
 import discrete11Variables from "./topics/discrete/1-1-variables.js";
@@ -74,6 +77,9 @@ const curriculum = [
   linkedLists,
   linkedListsAlgorithms,
   doublyLinkedLists,
+  templates,
+  iterators,
+  stacks,
 
   discrete11Variables,
   discrete12Sets,

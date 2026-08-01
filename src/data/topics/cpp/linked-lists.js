@@ -45,15 +45,25 @@ export default {
     {
       prompt:
         "What is the running time for inserting an element at the beginning of an array/vector?",
-      choices: ["O(1)", "O(log n)", "O(n)", "O(n²)"],
-      answer: 2,
+      choices: [
+        "O(n)",
+        "O(1)",
+        "O(log n)",
+        "O(n²)",
+      ],
+      answer: 0,
       explanation:
         "Every existing element must shift over by one position to make room, so the cost scales with the array's size → O(n).",
     },
     {
       prompt: "What does a linked list's last node's next pointer point to?",
-      choices: ["The head node", "Itself", "nullptr", "The first node inserted"],
-      answer: 2,
+      choices: [
+        "The first node inserted",
+        "nullptr",
+        "The head node",
+        "Itself",
+      ],
+      answer: 1,
       explanation:
         "The last node's next pointer is nullptr, which is how algorithms know they've reached the end of the list.",
     },
@@ -61,12 +71,12 @@ export default {
       prompt: "In a singly linked Node class, what does the next member store?",
       code: "class Node {\nprivate:\n    DataType data;\n    Node *next;\n};",
       choices: [
-        "A pointer to the following node in the list (or nullptr if last)",
-        "A copy of the following node's data",
         "The index of the following node",
         "A pointer to the head of the list",
+        "A pointer to the following node in the list (or nullptr if last)",
+        "A copy of the following node's data",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "next holds the address of the next node, letting code walk the list one link at a time; it's nullptr on the last node.",
     },
@@ -74,12 +84,12 @@ export default {
       prompt: "What does this code produce?",
       code: "Node *head;\nhead = nullptr;",
       choices: [
-        "An empty list",
-        "A list with one node containing garbage data",
         "A compiler error",
+        "A list with one node containing garbage data",
+        "An empty list",
         "A list with one node whose data is 0",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "Setting head to nullptr with no nodes allocated is exactly how an empty linked list is represented.",
     },
@@ -87,18 +97,23 @@ export default {
       prompt: "Why does Node provide two getNext() overloads?",
       code: "const Node* getNext() const { return next; }\nNode* getNext() { return next; }",
       choices: [
-        "So a const Node gets a const Node* back, and a non-const Node gets a modifiable Node*",
-        "So getNext can be called with or without parentheses",
         "One overload is for the head node, the other for all other nodes",
+        "So a const Node gets a const Node* back, and a non-const Node gets a modifiable Node*",
         "C++ requires two overloads for every getter",
+        "So getNext can be called with or without parentheses",
       ],
-      answer: 0,
+      answer: 1,
       explanation:
         "Overloading on const-ness lets the compiler pick the appropriate return type depending on whether the calling object is const.",
     },
     {
       prompt: "After `head = new Node(); head->setData(50);`, what does head->getNext() return?",
-      choices: ["nullptr", "50", "A pointer to head itself", "Undefined/garbage"],
+      choices: [
+        "nullptr",
+        "50",
+        "Undefined/garbage",
+        "A pointer to head itself",
+      ],
       answer: 0,
       explanation:
         "The default constructor initializes next to nullptr, and setData only touches the data field, so getNext() still returns nullptr.",
@@ -107,12 +122,12 @@ export default {
       prompt:
         "Why is inserting at the head of a linked list an O(1) operation, unlike inserting at the front of a vector?",
       choices: [
-        "Only the new node's next pointer and head need to change — no existing elements move",
-        "Linked lists don't actually store the new data",
-        "Because linked lists are always kept sorted",
         "Vectors don't support insertion at the front",
+        "Because linked lists are always kept sorted",
+        "Linked lists don't actually store the new data",
+        "Only the new node's next pointer and head need to change — no existing elements move",
       ],
-      answer: 0,
+      answer: 3,
       explanation:
         "Adding at the head just points the new node at the old head and reassigns head — a constant number of pointer updates, regardless of list size.",
     },

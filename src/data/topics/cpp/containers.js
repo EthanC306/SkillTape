@@ -57,31 +57,36 @@ export default {
     {
       prompt: "What is a container class?",
       choices: [
-        "A class whose objects hold a collection of items",
-        "A function that sorts data",
         "A special kind of loop",
+        "A class whose objects hold a collection of items",
         "A header file",
+        "A function that sorts data",
       ],
-      answer: 0,
+      answer: 1,
       explanation:
         "A container class is a class whose objects store a collection of items — a vector is a familiar example.",
     },
     {
       prompt: "Which of these is a container class you've already used?",
-      choices: ["int", "vector", "if", "cout"],
-      answer: 1,
+      choices: [
+        "vector",
+        "cout",
+        "int",
+        "if",
+      ],
+      answer: 0,
       explanation:
         "A vector is a container class — it bundles a collection of elements into one object.",
     },
     {
       prompt: "What makes a sequence class different from a plain container?",
       choices: [
-        "Its elements are kept in a set order",
         "It can only hold integers",
+        "Its elements are kept in a set order",
         "It has no capacity limit",
         "Its items cannot be erased",
       ],
-      answer: 0,
+      answer: 1,
       explanation:
         "A sequence class keeps its elements in a defined order (for example, sorted).",
     },
@@ -89,12 +94,12 @@ export default {
       prompt: "In the Bag class, what does `used` track?",
       code: "int data[CAPACITY];\nsize_t used;",
       choices: [
-        "The maximum capacity",
-        "How many values are currently stored",
-        "The largest value in the bag",
         "The array's memory address",
+        "The largest value in the bag",
+        "How many values are currently stored",
+        "The maximum capacity",
       ],
-      answer: 1,
+      answer: 2,
       explanation:
         "used counts how many slots are currently filled. CAPACITY is the fixed maximum.",
     },
@@ -102,9 +107,9 @@ export default {
       prompt: "What is CAPACITY in the Bag class?",
       choices: [
         "A static constant for the most items the bag can hold",
+        "A loop counter",
         "The current number of items",
         "A member function",
-        "A loop counter",
       ],
       answer: 0,
       explanation:
@@ -113,12 +118,12 @@ export default {
     {
       prompt: "What kind of type is size_t?",
       choices: [
+        "A container class",
         "A signed integer",
         "An unsigned integer used for sizes and counts",
         "A floating-point type",
-        "A container class",
       ],
-      answer: 1,
+      answer: 2,
       explanation:
         "size_t is an unsigned integer type (never negative), used for sizes and counts.",
     },
@@ -126,24 +131,24 @@ export default {
       prompt: "What does this line do?",
       code: "typedef int Integer;",
       choices: [
-        "Creates a new name (alias) for int",
-        "Converts an Integer into an int",
         "Declares a variable named Integer",
+        "Converts an Integer into an int",
+        "Creates a new name (alias) for int",
         "Defines a new class",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "typedef gives an existing type a second name. After this, Integer means int.",
     },
     {
       prompt: "Which line is the modern equivalent of `typedef int Integer;`?",
       choices: [
-        "using Integer = int;",
-        "int = Integer;",
-        "alias Integer int;",
         "#define Integer int",
+        "alias Integer int;",
+        "int = Integer;",
+        "using Integer = int;",
       ],
-      answer: 0,
+      answer: 3,
       explanation:
         "using Integer = int; creates the same alias as the typedef, in modern C++ style.",
     },
@@ -153,8 +158,8 @@ export default {
       choices: [
         "It only reads the bag and never changes it",
         "It runs faster",
-        "It always returns a constant value",
         "It can only be called once",
+        "It always returns a constant value",
       ],
       answer: 0,
       explanation:
@@ -163,38 +168,48 @@ export default {
     {
       prompt: "What's the difference between erase and eraseAll?",
       choices: [
-        "erase removes one matching value; eraseAll removes every match",
-        "erase is simply the faster version",
         "eraseAll only works on sorted bags",
         "There is no real difference",
+        "erase is simply the faster version",
+        "erase removes one matching value; eraseAll removes every match",
       ],
-      answer: 0,
+      answer: 3,
       explanation:
         "erase deletes a single copy of the target; eraseAll deletes every copy that matches.",
     },
     {
       prompt: "Why is operator<< declared a friend of the Bag class?",
       choices: [
-        "So it can read the bag's private data",
-        "So it runs automatically at startup",
         "Because it is a member function",
         "To make it const",
+        "So it runs automatically at startup",
+        "So it can read the bag's private data",
       ],
-      answer: 0,
+      answer: 3,
       explanation:
         "operator<< isn't a member, so it's made a friend — that lets it read the bag's private data while still being called as out << bag.",
     },
     {
       prompt: "Which STL container stores unique, sorted elements?",
-      choices: ["vector", "set", "multiset", "array"],
+      choices: [
+        "multiset",
+        "set",
+        "vector",
+        "array",
+      ],
       answer: 1,
       explanation:
         "set holds unique, sorted elements. multiset is sorted too but allows duplicates; vector is an unordered dynamic array.",
     },
     {
       prompt: "What does insert return when the bag is already full?",
-      choices: ["true", "false", "the current size", "nothing"],
-      answer: 1,
+      choices: [
+        "false",
+        "true",
+        "the current size",
+        "nothing",
+      ],
+      answer: 0,
       explanation:
         "insert returns false when CAPACITY is reached, so the caller knows the value wasn't added.",
     },

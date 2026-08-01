@@ -44,15 +44,25 @@ export default {
   questions: [
     {
       prompt: "What marks the end of a C-style string?",
-      choices: ["A semicolon", "The null character '\\0'", "A newline '\\n'", "The last index of the array"],
-      answer: 1,
+      choices: [
+        "A semicolon",
+        "The last index of the array",
+        "A newline '\\n'",
+        "The null character '\\0'",
+      ],
+      answer: 3,
       explanation:
         "A C-string is a char array terminated by the null character '\\0' (ASCII 0). Library functions rely on it to know where the string stops.",
     },
     {
       prompt: "What is the size of the array name3?",
       code: 'char name3[] = "Smith";',
-      choices: ["5", "6", "7", "Depends on the compiler"],
+      choices: [
+        "Depends on the compiler",
+        "6",
+        "5",
+        "7",
+      ],
       answer: 1,
       explanation:
         '"Smith" is 5 characters, plus the \'\\0\' that string-literal initialization adds automatically → size 6.',
@@ -72,15 +82,25 @@ export default {
     {
       prompt: 'With the input "  hello world", what ends up in st?',
       code: "char st[100];\ncin >> st;",
-      choices: ['"  hello"', '"hello world"', '"hello"', '"world"'],
-      answer: 2,
+      choices: [
+        '"hello"',
+        '"  hello"',
+        '"hello world"',
+        '"world"',
+      ],
+      answer: 0,
       explanation:
         "operator>> skips leading whitespace, then reads until the next whitespace — so it stops at the space and stores \"hello\".",
     },
     {
       prompt: "You need to read a full line, spaces included, into a char array. Which call do you use?",
-      choices: ["cin >> name;", "cin.getline(name, length);", "strlen(name);", "name = cin;"],
-      answer: 1,
+      choices: [
+        "strlen(name);",
+        "cin >> name;",
+        "cin.getline(name, length);",
+        "name = cin;",
+      ],
+      answer: 2,
       explanation:
         "cin.getline(name, length) reads characters including whitespace until the newline (or length-1 chars). operator>> would stop at the first space.",
     },
@@ -88,10 +108,10 @@ export default {
       prompt: "What does the third argument do here?",
       code: "cin.getline(name, 10, '!');",
       choices: [
-        "Limits the line to 10 lines",
+        "Pads the string with '!'",
         "Reads until the delimiter '!' is reached",
         "Skips all '!' characters",
-        "Pads the string with '!'",
+        "Limits the line to 10 lines",
       ],
       answer: 1,
       explanation:
@@ -101,57 +121,72 @@ export default {
       prompt: "After reading a string one character at a time into an array, what must you do?",
       code: "for (i = 0; i < 10; i++) {\n    cin >> name[i];\n}",
       choices: [
-        "Nothing — it's automatic",
         "Manually set name[i] = '\\0'",
-        "Call strlen(name)",
         "Reverse the array",
+        "Nothing — it's automatic",
+        "Call strlen(name)",
       ],
-      answer: 1,
+      answer: 0,
       explanation:
         "Reading char-by-char never adds a terminator, so you must append '\\0' yourself or the array isn't a valid C-string.",
     },
     {
       prompt: "What does strlen return for the string \"Smith\"?",
-      choices: ["4", "5", "6", "It depends on the array size"],
-      answer: 1,
+      choices: [
+        "6",
+        "It depends on the array size",
+        "4",
+        "5",
+      ],
+      answer: 3,
       explanation:
         "strlen counts characters up to but not including the '\\0' terminator → 5.",
     },
     {
       prompt: "strncmp(str1, str2, limit) returns 0 when…",
       choices: [
-        "the first limit characters are equal",
         "str1 is longer than str2",
+        "the first limit characters are equal",
         "str1 comes before str2 alphabetically",
         "an error occurs",
       ],
-      answer: 0,
+      answer: 1,
       explanation:
         "strncmp returns 0 when the strings match, a negative value if str1 < str2, and a positive value if str1 > str2.",
     },
     {
       prompt: "Which function copies at most a limited number of characters from one C-string into another?",
-      choices: ["strlen", "strncpy", "strncat", "strncmp"],
-      answer: 1,
+      choices: [
+        "strncmp",
+        "strlen",
+        "strncat",
+        "strncpy",
+      ],
+      answer: 3,
       explanation:
         "strncpy(target, src, limit) copies at most limit characters. strncat appends, strncmp compares, strlen measures.",
     },
     {
       prompt: "In which header are atoi, atol, and atof defined?",
-      choices: ["<cstring>", "<cstdlib>", "<string>", "<iostream>"],
-      answer: 1,
+      choices: [
+        "<string>",
+        "<cstring>",
+        "<cstdlib>",
+        "<iostream>",
+      ],
+      answer: 2,
       explanation:
         "The string-to-number converters atoi/atol/atof live in <cstdlib>, not <cstring>.",
     },
     {
       prompt: "How do you convert a std::string `name` into the C-string array `st`?",
       choices: [
-        "char st[] = name;",
         "strncpy(st, name.c_str(), 100);",
         "st = name;",
         "atoi(name);",
+        "char st[] = name;",
       ],
-      answer: 1,
+      answer: 0,
       explanation:
         "Use name.c_str() to get the C-string view, then strncpy it into your char array. The reverse direction — C-string to std::string — is automatic.",
     },

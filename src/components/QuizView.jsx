@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
+import { shuffleChoices } from "../utils/shuffle";
 import Inline from "./Inline";
 import Figure from "./Figure";
+import CodeBlock from "./CodeBlock";
 import ComplexityChart from "./ComplexityChart";
 
 /** QuizView — one question at a time, then a results screen with a restart button. */
@@ -11,8 +13,23 @@ export default function QuizView({ topic, onFinish, best }) {
   const [correctCount, setCorrectCount] = useState(0);
   const [results, setResults] = useState([]);
   const [finished, setFinished] = useState(false);
+  // Bumped by restart() to draw a fresh set of permutations without remounting.
+  const [round, setRound] = useState(0);
 
-  const questions = topic.questions;
+  /**
+   * Answer order is randomized per run, so the correct choice isn't pinned to
+   * the position the topic file happens to list it in.
+   *
+   * Memoized because it must stay fixed while a question is on screen — a bare
+   * `.map()` would re-permute on every render, so the options would jump around
+   * as you click. `topic.questions` is a safe key: curriculum topics are module
+   * constants and the Master Set's mix lives in App state, so the identity only
+   * changes when there is genuinely a new set of questions to ask.
+   */
+  const questions = useMemo(
+    () => topic.questions.map((q) => shuffleChoices(q)),
+    [topic.questions, round]
+  );
   const q = questions[qIndex];
   const revealed = selected !== null;
 
@@ -41,6 +58,7 @@ export default function QuizView({ topic, onFinish, best }) {
     setCorrectCount(0);
     setResults([]);
     setFinished(false);
+    setRound((r) => r + 1); // re-permute every question's choices
   }
 
   if (finished) {
@@ -93,25 +111,7 @@ export default function QuizView({ topic, onFinish, best }) {
           <span>{correctCount} correct</span>
         </div>
         <div style={{ fontSize: 16, lineHeight: 1.5, marginBottom: q.code ? 12 : 18 }}>{q.prompt}</div>
-        {q.code && (
-          <pre
-            style={{
-              background: PALETTE.bg,
-              border: `1px solid ${PALETTE.line}`,
-              borderRadius: RADII.md,
-              padding: 14,
-              overflowX: "auto",
-              fontFamily: MONO,
-              fontSize: 13,
-              lineHeight: 1.5,
-              color: PALETTE.text,
-              marginBottom: 18,
-              marginTop: 0,
-            }}
-          >
-            <code>{q.code}</code>
-          </pre>
-        )}
+        {q.code && <CodeBlock code={q.code} style={{ padding: 14, marginBottom: 18 }} />}
         {/* Optional diagram the question refers to (e.g. "which arrow diagram…"). */}
         {q.figure && <Figure src={q.figure.src} alt={q.figure.alt} caption={q.figure.caption} />}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

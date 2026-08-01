@@ -65,16 +65,26 @@ export default {
     {
       prompt: "What is the running time of the list-length algorithm?",
       code: "size_t count = 0;\nNode *cursor = head;\nwhile (cursor != nullptr) {\n    count++;\n    cursor = cursor->getNext();\n}",
-      choices: ["O(1)", "O(log n)", "O(n)", "O(n²)"],
-      answer: 2,
+      choices: [
+        "O(n)",
+        "O(1)",
+        "O(n²)",
+        "O(log n)",
+      ],
+      answer: 0,
       explanation:
         "The cursor visits every node exactly once before reaching nullptr, so the work scales linearly with the list's size.",
     },
     {
       prompt: "What does search() return if target is not found in the list?",
       code: "Node* search(int target) {\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        if (cursor->getData() == target) return cursor;\n        cursor = cursor->getNext();\n    }\n    return nullptr;\n}",
-      choices: ["nullptr", "head", "The last node visited", "A node with data == -1"],
-      answer: 0,
+      choices: [
+        "The last node visited",
+        "nullptr",
+        "A node with data == -1",
+        "head",
+      ],
+      answer: 1,
       explanation:
         "If the loop runs out of nodes without a match, it falls through to `return nullptr;`.",
     },
@@ -82,12 +92,12 @@ export default {
       prompt: "Why is head insert an O(1) operation?",
       code: "Node *temp = new Node(value);\ntemp->setNext(head);\nhead = temp;",
       choices: [
-        "It does a fixed number of pointer operations no matter how large the list is",
         "It only works on lists with one node",
-        "It secretly uses binary search",
         "It doesn't allocate any new memory",
+        "It secretly uses binary search",
+        "It does a fixed number of pointer operations no matter how large the list is",
       ],
-      answer: 0,
+      answer: 3,
       explanation:
         "Allocating one node and reassigning two pointers takes the same amount of work regardless of the list's length.",
     },
@@ -96,12 +106,12 @@ export default {
         "Why must temp->setNext(previous->getNext()) happen BEFORE previous->setNext(temp) when inserting after a pointer?",
       code: "Node *temp = new Node(value);\nif (previous != nullptr) {\n    temp->setNext(previous->getNext());\n    previous->setNext(temp);\n}",
       choices: [
-        "Otherwise previous->getNext() would already be temp, losing the link to the rest of the list",
         "The order doesn't actually matter here",
-        "C++ requires setNext calls in alphabetical order",
+        "Otherwise previous->getNext() would already be temp, losing the link to the rest of the list",
         "It avoids a memory leak in temp itself",
+        "C++ requires setNext calls in alphabetical order",
       ],
-      answer: 0,
+      answer: 1,
       explanation:
         "If previous were redirected to temp first, previous->getNext() would return temp instead of the original next node, orphaning the rest of the list.",
     },
@@ -109,8 +119,8 @@ export default {
       prompt: "In the insert algorithm, what does `previous == nullptr` signal?",
       choices: [
         "The list is empty, so the new value should be inserted at the head",
-        "The list has exactly one node",
         "An invalid pointer was passed and the program should crash",
+        "The list has exactly one node",
         "previous points to the last node in the list",
       ],
       answer: 0,
@@ -121,12 +131,12 @@ export default {
       prompt: "When deleting a node, why does the head case need special handling?",
       code: "if (current == head) {\n    head = current->getNext();\n    delete current;\n}",
       choices: [
-        "There's no predecessor node whose next pointer needs updating — head itself must move instead",
         "The head node can never be deleted",
         "Deleting the head always empties the whole list",
+        "There's no predecessor node whose next pointer needs updating — head itself must move instead",
         "head is a const pointer and can't be reassigned",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "Every other node has a predecessor to re-link, but the head node doesn't — so head itself is advanced to the next node instead.",
     },
@@ -135,9 +145,9 @@ export default {
       code: "Node *previous = head;\nwhile (previous->getNext() != current) {\n    previous = previous->getNext();\n}\nprevious->setNext(current->getNext());\ndelete current;",
       choices: [
         "Because it's the previous node's next pointer that must be redirected around current",
+        "previous is only used for printing, not deletion",
         "Because current cannot be deleted directly in C++",
         "To count how many nodes come before current",
-        "previous is only used for printing, not deletion",
       ],
       answer: 0,
       explanation:
@@ -146,19 +156,24 @@ export default {
     {
       prompt: "Why keep a separate tail pointer if a program frequently appends to the end of a list?",
       choices: [
+        "It's required for the list destructor to work",
+        "It automatically sorts the list",
         "It avoids an O(n) walk from head every time, making appends O(1)",
         "It removes the need for a head pointer",
-        "It automatically sorts the list",
-        "It's required for the list destructor to work",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "Without tail, reaching the last node requires traversing the whole list each time; tail gives direct O(1) access to it.",
     },
     {
       prompt: "What is the running time of search() in the worst case?",
-      choices: ["O(1)", "O(log n)", "O(n)", "O(n log n)"],
-      answer: 2,
+      choices: [
+        "O(1)",
+        "O(log n)",
+        "O(n log n)",
+        "O(n)",
+      ],
+      answer: 3,
       explanation:
         "If the target isn't in the list (or is the last node), search must examine all n nodes before finishing.",
     },
