@@ -109,3 +109,25 @@ export function logout() {
 export function getMe() {
   return api("/api/auth/me");
 }
+
+// ── Drill mode (ROADMAP.md A4) ──────────────────────────────────────────────
+
+/** Due (or new) items for `course`, FSRS-ordered, ready to drill. */
+export function getDrillQueue(course, limit = 20) {
+  return api(`/api/drill/queue?course=${encodeURIComponent(course)}&limit=${limit}`);
+}
+
+/** Record one drill attempt. body: { itemId, mode, grade, seconds, tabBlurs, note, abandoned }. */
+export function postDrillAttempt(body) {
+  return api("/api/drill/attempts", { method: "POST", body });
+}
+
+/** The full item-attempt log as JSON, for download. */
+export function getDrillExport() {
+  return api("/api/drill/export");
+}
+
+/** Re-ingest a previously exported attempt log. body: { attempts: [...] }. */
+export function postDrillImport(body) {
+  return api("/api/drill/import", { method: "POST", body });
+}

@@ -39,6 +39,7 @@ const upsertTopic = db.prepare(`
 const clearCards = db.prepare("DELETE FROM cards WHERE topic_id = ?");
 const clearQuestions = db.prepare("DELETE FROM questions WHERE topic_id = ?");
 const clearFlashcards = db.prepare("DELETE FROM flashcards WHERE topic_id = ?");
+const clearItems = db.prepare("DELETE FROM items WHERE topic_id = ?");
 
 const insertCard = db.prepare(`
   INSERT INTO cards (topic_id, position, heading, body, code, accept,
@@ -62,6 +63,20 @@ const insertFlashcard = db.prepare(
   "INSERT INTO flashcards (topic_id, position, front, back) VALUES (?, ?, ?, ?)"
 );
 
+// items (ROADMAP.md A3/A4): itemSchema.js's polymorphic bank. Seeded
+// wholesale like everything else here — the topic module stays the source of
+// truth, this is a one-way bridge into SQLite.
+const insertItem = db.prepare(`
+  INSERT INTO items (id, topic_id, position, format, origin, prompt, expected,
+                     criteria, provenance, generation_meta, difficulty,
+                     verified_by_human, retired, choices, answer_index,
+                     time_budget_sec, extra_atoms)
+  VALUES (@id, @topic_id, @position, @format, @origin, @prompt, @expected,
+          @criteria, @provenance, @generation_meta, @difficulty,
+          @verified_by_human, @retired, @choices, @answer_index,
+          @time_budget_sec, @extra_atoms)
+`);
+
 /** Flatten the optional { src, alt, caption } figure into three columns. */
 function figureCols(figure) {
   return {
@@ -84,6 +99,7 @@ const seed = db.transaction(() => {
   let cards = 0;
   let questions = 0;
   let flashcards = 0;
+  let items = 0;
 
   curriculum.forEach((topic, position) => {
     upsertTopic.run(
@@ -98,6 +114,7 @@ const seed = db.transaction(() => {
     clearCards.run(topic.id);
     clearQuestions.run(topic.id);
     clearFlashcards.run(topic.id);
+    clearItems.run(topic.id);
 
     (topic.cards ?? []).forEach((card, i) => {
       insertCard.run({
@@ -133,14 +150,38 @@ const seed = db.transaction(() => {
       insertFlashcard.run(topic.id, i, f.front, f.back);
       flashcards++;
     });
+
+    (topic.items ?? []).forEach((it, i) => {
+      insertItem.run({
+        id: it.id,
+        topic_id: topic.id,
+        position: i,
+        format: it.format,
+        origin: it.origin,
+        prompt: it.prompt,
+        expected: it.expected ?? null,
+        criteria: it.criteria?.length ? JSON.stringify(it.criteria) : null,
+        provenance: it.provenance ? JSON.stringify(it.provenance) : null,
+        generation_meta: it.generationMeta ? JSON.stringify(it.generationMeta) : null,
+        difficulty: it.difficulty ?? 2,
+        verified_by_human: it.verifiedByHuman ? 1 : 0,
+        retired: it.retired ? 1 : 0,
+        choices: it.choices?.length ? JSON.stringify(it.choices) : null,
+        answer_index: typeof it.answerIndex === "number" ? it.answerIndex : null,
+        time_budget_sec: it.timeBudgetSec ?? null,
+        extra_atoms: it.extraAtoms?.length ? JSON.stringify(it.extraAtoms) : null,
+      });
+      items++;
+    });
   });
 
-  return { cards, questions, flashcards };
+  return { cards, questions, flashcards, items };
 });
 
 const counts = seed();
 
 console.log(
   `Seeded ${COURSES.length} courses · ${curriculum.length} topics · ` +
-    `${counts.cards} cards · ${counts.questions} questions · ${counts.flashcards} flashcards`
+    `${counts.cards} cards · ${counts.questions} questions · ` +
+    `${counts.flashcards} flashcards · ${counts.items} items`
 );

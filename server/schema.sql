@@ -117,3 +117,81 @@ CREATE TABLE IF NOT EXISTS attempts (
 CREATE INDEX IF NOT EXISTS idx_attempts_run ON attempts(run_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_topic ON attempts(user_id, topic_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_attempts_question ON attempts(question_id, created_at);
+
+-- ── Drill mode (ROADMAP.md A4) ──────────────────────────────────────────────
+-- Three tables, deliberately separate from the legacy MCQ-only `questions` /
+-- `attempts` pair above rather than reshaped into it:
+--   items             — the polymorphic src/data/itemSchema.js bank, one row
+--                        per item. Content, shared across users, like cards.
+--   item_review_state — per-user FSRS scheduling state, one row per
+--                        (user, item). NOT content — this is what changes
+--                        every time someone drills the item.
+--   item_attempts     — the append-only attempt log CORR §4.3 specifies:
+--                        { itemId, ts, mode, grade, seconds, tabBlurs, note }.
+
+CREATE TABLE IF NOT EXISTS items (
+  -- Authored id from itemSchema.js (e.g. "dynamic-alloc-01"), stable forever
+  -- for the same reason topics.id is (AUTHORING.md §2.1) — it keys both
+  -- review state and the attempt log.
+  id               TEXT PRIMARY KEY,
+  topic_id         TEXT NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
+  position         INTEGER NOT NULL,
+  format           TEXT NOT NULL,   -- itemSchema.js FORMATS
+  origin           TEXT NOT NULL,   -- itemSchema.js ITEM_ORIGIN
+  prompt           TEXT NOT NULL,
+  expected         TEXT,
+  criteria         TEXT,            -- JSON string[]
+  provenance       TEXT,            -- JSON Provenance object or NULL
+  generation_meta  TEXT,            -- JSON object or NULL
+  difficulty       INTEGER NOT NULL DEFAULT 2,  -- AUTHORED 1..3 rating — see
+                                                 -- item_review_state.difficulty
+                                                 -- for the unrelated FSRS state
+  verified_by_human INTEGER NOT NULL DEFAULT 0, -- 0/1 — rotation gate
+  retired          INTEGER NOT NULL DEFAULT 0,  -- 0/1
+  -- MCQ only:
+  choices          TEXT,            -- JSON string[]
+  answer_index     INTEGER,
+  -- WRITE only:
+  time_budget_sec  INTEGER,
+  -- COMPARE only:
+  extra_atoms      TEXT             -- JSON string[]
+);
+CREATE INDEX IF NOT EXISTS idx_items_topic ON items(topic_id, position);
+
+-- One row per (user, item) the user has ever reviewed. user_id is NOT NULL —
+-- 0 stands in for "no session", the same anonymous-single-user convention
+-- progress.js already uses for `attempts.user_id`, but here it MUST be a real
+-- value rather than SQL NULL: SQLite's uniqueness checks treat every NULL as
+-- distinct from every other NULL, so a nullable user_id would let each
+-- anonymous review insert a fresh row instead of updating the existing one —
+-- due dates would never advance. 0 is never a real users.id (AUTOINCREMENT
+-- starts at 1), so it can't collide with an actual account later.
+CREATE TABLE IF NOT EXISTS item_review_state (
+  user_id        INTEGER NOT NULL DEFAULT 0,
+  item_id        TEXT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+  state          INTEGER NOT NULL DEFAULT 0,  -- ts-fsrs State enum
+  difficulty     REAL NOT NULL DEFAULT 0,     -- FSRS difficulty, NOT items.difficulty
+  stability      REAL NOT NULL DEFAULT 0,
+  due_on         INTEGER NOT NULL,            -- epoch ms; next review becomes due
+  reps           INTEGER NOT NULL DEFAULT 0,
+  lapses         INTEGER NOT NULL DEFAULT 0,
+  leech          INTEGER NOT NULL DEFAULT 0,  -- 0/1, set once lapses >= 3 (A8)
+  last_reviewed_at INTEGER,                   -- epoch ms, NULL before the first review
+  PRIMARY KEY (user_id, item_id)
+);
+CREATE INDEX IF NOT EXISTS idx_item_review_due ON item_review_state(user_id, due_on);
+
+CREATE TABLE IF NOT EXISTS item_attempts (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER NOT NULL DEFAULT 0,
+  item_id    TEXT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+  ts         INTEGER NOT NULL,   -- epoch ms
+  mode       TEXT NOT NULL,      -- "closed" | "open" | "exam"
+  grade      INTEGER,            -- 0..3 (Again/Hard/Good/Easy), NULL if abandoned
+  seconds    INTEGER NOT NULL,
+  tab_blurs  INTEGER NOT NULL DEFAULT 0,
+  note       TEXT,
+  abandoned  INTEGER NOT NULL DEFAULT 0  -- 0/1 — "End drill" mid-item (A4 escape hatch)
+);
+CREATE INDEX IF NOT EXISTS idx_item_attempts_user ON item_attempts(user_id, ts);
+CREATE INDEX IF NOT EXISTS idx_item_attempts_item ON item_attempts(item_id, ts);

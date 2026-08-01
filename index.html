@@ -24,9 +24,19 @@
        * the hex, so the two can no longer drift. This declaration still has
        * to live here (not just in theme.js) because :focus-visible and
        * ::selection apply before React mounts.
+       *
+       * --nocturne-accent-soft/-soft-strong are color-mix() derivations of
+       * the same variable, so a theme-preset swap (src/hooks/useTheme.js)
+       * only ever has to set the one base var and every tint follows it —
+       * PALETTE.accentSoft/accentSoftStrong in theme.js just point here.
        */
       :root {
         --nocturne-accent: #9184d9;
+        --nocturne-accent-soft: color-mix(in srgb, var(--nocturne-accent) 12%, transparent);
+        --nocturne-accent-soft-strong: color-mix(in srgb, var(--nocturne-accent) 22%, transparent);
+      }
+      ::selection {
+        background: color-mix(in srgb, var(--nocturne-accent) 30%, transparent);
       }
       * {
         box-sizing: border-box;
@@ -47,19 +57,47 @@
         outline: 2px solid var(--nocturne-accent);
         outline-offset: 2px;
       }
-      ::selection {
-        background: rgba(145, 132, 217, 0.3);
-      }
       button,
       [role="button"],
       a {
         -webkit-tap-highlight-color: transparent;
       }
-      /* Drill mode hides all navigation chrome; see CORRECTIONS.md §4.2. */
+      /*
+       * Drill mode hides all navigation chrome; see CORRECTIONS.md §4.2.
+       *
+       * !important is required, not optional here: Shell.jsx's <nav
+       * className="app-chrome"> sets `style={{ display: "flex" }}` inline,
+       * and an inline style always wins over a stylesheet rule at equal or
+       * lower specificity — a plain `display: none` here would never fire.
+       * Caught 2026-08-01 (ROADMAP.md A4) by actually loading Drill mode in
+       * a browser; A1 only confirmed the class/attribute were wired, not
+       * that hiding worked.
+       */
       body[data-drill-active="true"] .app-chrome {
-        display: none;
+        display: none !important;
       }
     </style>
+    <script>
+      // Applies a saved theme preset before first paint, so switching away
+      // from purple doesn't flash purple on reload. Mirrors ACCENT_PRESETS in
+      // src/data/theme.js (kept as a plain inline script, not an import, so
+      // it can run ahead of the module bundle).
+      (function () {
+        try {
+          var saved = localStorage.getItem("skilltape:theme");
+          var presets = {
+            purple: "#9184d9",
+            blue: "#7aa2d9",
+            green: "#7fb894",
+            amber: "#d9ab6e",
+            rose: "#d98a9e",
+          };
+          if (saved && presets[saved]) {
+            document.documentElement.style.setProperty("--nocturne-accent", presets[saved]);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

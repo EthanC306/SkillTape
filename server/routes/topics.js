@@ -56,6 +56,18 @@ const getFlashcards = db.prepare(
   "SELECT front, back FROM flashcards WHERE topic_id = ? ORDER BY position"
 );
 
+// ROADMAP.md A4 — drill mode's item bank. Server/routes/drill.js is what
+// actually queries these for a due-item queue; this is included in
+// buildTopic() for parity with cards/questions/flashcards so a topic's
+// content is fully described by one GET, and so a future authoring UI (A7)
+// has something to read.
+const getItems = db.prepare(`
+  SELECT id, position, format, origin, prompt, expected, criteria, provenance,
+         generation_meta, difficulty, verified_by_human, retired, choices,
+         answer_index, time_budget_sec, extra_atoms
+  FROM items WHERE topic_id = ? ORDER BY position
+`);
+
 /** Assemble one topic row plus all its children into the module-shaped object. */
 export function buildTopic(row) {
   const cards = getCards.all(row.id).map((c) =>
@@ -87,6 +99,27 @@ export function buildTopic(row) {
 
   const flashcards = getFlashcards.all(row.id);
 
+  const items = getItems.all(row.id).map((it) =>
+    compact({
+      id: it.id,
+      topicId: row.id,
+      format: it.format,
+      origin: it.origin,
+      prompt: it.prompt,
+      expected: it.expected,
+      criteria: it.criteria ? JSON.parse(it.criteria) : [],
+      provenance: it.provenance ? JSON.parse(it.provenance) : null,
+      generationMeta: it.generation_meta ? JSON.parse(it.generation_meta) : undefined,
+      difficulty: it.difficulty,
+      verifiedByHuman: Boolean(it.verified_by_human),
+      retired: Boolean(it.retired),
+      choices: it.choices ? JSON.parse(it.choices) : undefined,
+      answerIndex: it.answer_index ?? undefined,
+      timeBudgetSec: it.time_budget_sec ?? undefined,
+      extraAtoms: it.extra_atoms ? JSON.parse(it.extra_atoms) : undefined,
+    })
+  );
+
   return compact({
     id: row.id,
     title: row.title,
@@ -98,6 +131,7 @@ export function buildTopic(row) {
     // Absent, not empty, when the topic ships no deck — TopicView keys the
     // Flashcards tab off `topic.flashcards?.length`.
     flashcards: flashcards.length ? flashcards : undefined,
+    items: items.length ? items : undefined,
   });
 }
 
