@@ -95,6 +95,10 @@ export const ITEM_ORIGIN = {
  * @property {string} anchor     e.g. "#s3-5" — must resolve in the source file
  * @property {string} excerpt    VERBATIM source text, >= 1 full sentence
  * @property {string} citation   human-readable, e.g. "Epp 5e, §5.2"
+ * @property {number|string} [page]  page/slide number as printed on the
+ *   source material, when it has one (lecture decks number every slide).
+ *   Lets verification jump straight to the original page instead of relying
+ *   only on the transcribed excerpt.
  */
 
 /**

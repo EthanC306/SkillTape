@@ -1,5 +1,5 @@
 ================================================================================
-                        SKILLTAPR — PROJECT UPDATES LOG
+                        SKILLTAPE — PROJECT UPDATES LOG
 ================================================================================
 Newest entries at the top. Copy the entry template below to add a new update.
 
@@ -12,6 +12,39 @@ Files:    <files changed>
 Summary:
   - <what changed and why>
 
+
+--------------------------------------------------------------------------------
+A3 pilot migration: dynamic-alloc's real source + 8 new itemSchema items
+--------------------------------------------------------------------------------
+Date:     2026-08-01
+Commit:   uncommitted
+Files:    sources/cpp/dynamic-alloc.md (new, gitignored), sources/README.md
+          (new), .gitignore, src/data/topics/cpp/dynamic-alloc.js
+Summary:
+  - Transcribed the real data into sources/cpp/dynamic-alloc.md
+    with 13 anchored sections, per the CS_DRILL_BUILD_SPEC.md source-file
+    format. Verbatim, not paraphrased. Gitignored — never pushed, matches the
+    existing copyrighted-material policy. The PDF itself was not saved
+    anywhere in the repo.
+  - Added sources/README.md documenting the format (the one file in
+    sources/ that IS meant to be committed). Had to fix .gitignore along the
+    way: `sources/` as a bare directory ignore silently blocks re-including
+    anything inside it even with `!sources/README.md` — git won't descend
+    into an already-ignored directory to re-evaluate a negation. Changed to
+    `sources/*` + the negation, which actually works (verified with
+    `git add --dry-run`, the authoritative test).
+  - Added an `items` array (8 items) to dynamic-alloc.js using the new
+    itemSchema.js shape — RECALL/TRACE/ERROR/CLOZE/COMPARE/WRITE, no MCQ —
+    each with real `provenance` citing an anchor in the new source file.
+    origin: GENERATED (I wrote these from the source excerpts; "hand-written
+    only" was dropped as a live constraint on this phase, per request — see
+    ROADMAP.md A3's [UPDATED] note). verifiedByHuman is false on all 8 —
+    that review pass is still owed, and there's no UI for it yet (A7).
+  - Did NOT touch the existing `questions` array (13 legacy MCQs) —
+    QuizView still reads it directly, so the live Quiz feature is
+    unaffected. auditBank.js prefers `items` over `questions` when both are
+    present, so the audit now validates the new schema for this topic.
+    dynamic-alloc now audits at zero errors (bank-wide: 1230 -> 1165).
 
 --------------------------------------------------------------------------------
 ROADMAP.md: FSRS decision (D10), A0 (exam weighting), A1 (hygiene) done

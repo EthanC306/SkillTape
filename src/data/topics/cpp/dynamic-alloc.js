@@ -1,3 +1,5 @@
+import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
+
 export default {
   id: "dynamic-alloc",
   title: "Dynamic Allocation",
@@ -224,5 +226,246 @@ export default {
       explanation:
         "auto variables must be initialized at declaration so the compiler can infer the type from the initializer.",
     },
+  ],
+  // items (ROADMAP.md A3 pilot migration, 2026-08-01): the new itemSchema.js
+  // shape, grounded in sources/cpp/dynamic-alloc.md. `questions` above is
+  // untouched and still what QuizView reads; auditBank.js prefers `items`
+  // when present, so this is what the audit now validates for this topic.
+  //
+  // origin: GENERATED — Claude wrote these from the source excerpts below.
+  // "Hand-written only" was dropped as a live constraint on this phase per
+  // explicit request (see A3's [UPDATED] note) since D2 already settled the
+  // broader question: generation is fine as long as it's grounded and
+  // verified. verifiedByHuman starts false on every item below — flip it
+  // per-item only after checking prompt/expected/criteria against the cited
+  // excerpt (and against sources/cpp/dynamic-alloc.md for fuller context).
+  // There is no review UI for this yet (that's A7); it's a direct edit here.
+  items: [
+    makeItem({
+      id: "dynamic-alloc-01",
+      topicId: "dynamic-alloc",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "What is the difference between what `intPtr = new int;` and `intPtr = new int(99);` leave in memory?",
+      expected:
+        "`new int;` allocates space for one int but leaves it holding garbage (an unspecified value) — nothing is written into it. `new int(99);` allocates the same space AND initializes it to 99 in one step.",
+      criteria: [
+        "States that new int; alone leaves the memory as garbage/unspecified",
+        "States that new int(99); allocates and initializes in a single step",
+        "Doesn't confuse the parenthesized value with an array size",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.1-dynamic-alloc",
+        anchor: "#new-operator",
+        excerpt:
+          "After `intPtr = new int;`, intPtr points to a location holding garbage. After `intPtr = new int(99);`, intPtr points to a location holding 99.",
+        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        page: 6,
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-alloc.md",
+      },
+      difficulty: 2,
+    }),
+    makeItem({
+      id: "dynamic-alloc-02",
+      topicId: "dynamic-alloc",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What is a dangling reference, and how does one typically come to exist?",
+      expected:
+        "A dangling reference is a pointer that still holds the address of memory that is no longer allocated. It typically comes to exist when two pointers hold the same address and the memory is deleted through one of them — the other pointer is left pointing at deallocated memory.",
+      criteria: [
+        "Defines a dangling reference as pointing to memory that's no longer allocated",
+        "Explains it arises from two pointers sharing an address, then deleting through only one",
+        "Doesn't claim the pointer becomes nullptr automatically",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.1-dynamic-alloc",
+        anchor: "#dangling-reference",
+        excerpt:
+          "intPtr2 has a dangling reference. Pointing to memory that is no longer allocated.",
+        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        page: 10,
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-alloc.md",
+      },
+      difficulty: 2,
+    }),
+    makeItem({
+      id: "dynamic-alloc-03",
+      topicId: "dynamic-alloc",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Trace this code:\n\nint *intPtr1, *intPtr2;\nintPtr1 = new int(99);\nintPtr2 = intPtr1;\ndelete intPtr1;\n\nAfter the last line, what does intPtr2 point to, and is reading through it safe?",
+      expected:
+        "intPtr2 holds the same address intPtr1 held. delete intPtr1; frees that memory but does not change what intPtr1 or intPtr2 point to — both pointer variables still hold the old address. intPtr2 is now a dangling reference; reading through it is not safe.",
+      criteria: [
+        "States intPtr2 still holds the same address as before (unchanged by delete)",
+        "States that memory is now deallocated",
+        "Identifies intPtr2 as a dangling reference and reading it as unsafe",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.1-dynamic-alloc",
+        anchor: "#dangling-reference",
+        excerpt:
+          "After `delete intPtr1;`, that location becomes deallocated memory, and intPtr2 still points to it (the dangling reference) — the diagram explicitly shows intPtr2 pointing at the deallocated-memory box, not at nullptr and not at a valid 99.",
+        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        page: 10,
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-alloc.md",
+      },
+      difficulty: 3,
+    }),
+    makeItem({
+      id: "dynamic-alloc-04",
+      topicId: "dynamic-alloc",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Trace intPtr's state through each line:\n\nint *intPtr;\nintPtr = nullptr;\nintPtr = new int;\n*intPtr = 99;\ndelete intPtr;",
+      expected:
+        "Line 2: intPtr holds nullptr. Line 3: intPtr points to a newly allocated int holding garbage. Line 4: intPtr points to the same int, now holding 99. Line 5: the memory is deallocated; intPtr still holds that (now-invalid) address — it does not become nullptr on its own.",
+      criteria: [
+        "Correctly sequences nullptr -> garbage -> 99",
+        "States the memory is deallocated after delete",
+        "Does not claim delete resets intPtr to nullptr",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.1-dynamic-alloc",
+        anchor: "#pointer-diagrams",
+        excerpt:
+          "After `*intPtr = 99;`, intPtr points to a location holding 99. After `delete intPtr;`, intPtr points to deallocated memory again.",
+        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        page: 9,
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-alloc.md",
+      },
+      difficulty: 2,
+    }),
+    makeItem({
+      id: "dynamic-alloc-05",
+      topicId: "dynamic-alloc",
+      format: FORMATS.ERROR,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "What's wrong with this code, if anything?\n\nint *a = new int(5);\nint *b = a;\ndelete a;\ncout << *b;",
+      expected:
+        "The last line dereferences b after the memory it points to has been freed through a — b is a dangling reference at that point. This is undefined behavior, not a guaranteed print of 5: delete does not null out a or b, so both still hold the old address, but reading through it afterward is unsafe and the actual output is unpredictable.",
+      criteria: [
+        "Identifies b as dangling after delete a (not merely 'still 5')",
+        "States the read is undefined behavior, not a guaranteed value",
+        "Explains delete doesn't change what a or b point to",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.1-dynamic-alloc",
+        anchor: "#dangling-reference",
+        excerpt:
+          "intPtr2 has a dangling reference. Pointing to memory that is no longer allocated.",
+        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        page: 10,
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-alloc.md",
+      },
+      difficulty: 3,
+    }),
+    makeItem({
+      id: "dynamic-alloc-06",
+      topicId: "dynamic-alloc",
+      format: FORMATS.CLOZE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Memory deleted with the delete operator is returned to the ___, where it becomes available to be allocated again.",
+      expected: "heap",
+      criteria: ["Answer is exactly 'heap'"],
+      provenance: {
+        sourceId: "cpp-slides-02.1-dynamic-alloc",
+        anchor: "#delete-operator",
+        excerpt:
+          "Memory deleted is now available to be allocated again. Returned to the heap.",
+        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        page: 8,
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-alloc.md",
+      },
+      difficulty: 1,
+    }),
+    makeItem({
+      id: "dynamic-alloc-07",
+      topicId: "dynamic-alloc",
+      format: FORMATS.COMPARE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "What's the difference between a dynamic variable and an automatic variable, in terms of how each is created and how long each lives?",
+      expected:
+        "A dynamic variable is created explicitly with the new operator and exists until it is explicitly deleted. An automatic variable is an ordinary local variable, created and destroyed automatically as its scope is entered and exited — no new or delete involved.",
+      criteria: [
+        "States dynamic variables require explicit new (and implicitly, delete)",
+        "States automatic variables are the ordinary local variables with automatic scope-based lifetime",
+        "Contrasts explicit lifetime management vs. automatic lifetime",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.1-dynamic-alloc",
+        anchor: "#static-dynamic-automatic",
+        excerpt:
+          "Dynamic Variables are created using the new operator\nStatic variables are created using the static keyword\nstatic int x = 5;\nStatic variables are global to the file\nAutomatic variables are the ordinary variables we've been using",
+        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        page: 13,
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-alloc.md",
+      },
+      difficulty: 2,
+    }),
+    makeItem({
+      id: "dynamic-alloc-08",
+      topicId: "dynamic-alloc",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Write the lines of code that declare an int pointer, allocate space for a single int initialized to 42 in one step, and then free it.",
+      expected: "int *p;\np = new int(42);\ndelete p;",
+      criteria: [
+        "Declares a pointer (not a plain int)",
+        "Uses new int(42) to allocate and initialize in one step (not new int[42])",
+        "Calls delete (not delete[]) on that same pointer",
+      ],
+      timeBudgetSec: 90,
+      provenance: {
+        sourceId: "cpp-slides-02.1-dynamic-alloc",
+        anchor: "#new-operator",
+        excerpt:
+          "To allocate memory use the new operator.\nint *intPtr;\nintPtr = new int;\nintPtr = new int(99); //Allocate and initialize",
+        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        page: 6,
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-alloc.md",
+      },
+      difficulty: 1,
+    }),
   ],
 };
