@@ -1,7 +1,9 @@
+import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
+
 export default {
   id: "linked-lists",
   title: "Linked Lists",
-  subtitle: "Data Structures — nodes, pointers & the Node class",
+  subtitle: "c++ — nodes, pointers & the Node class",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js
@@ -135,5 +137,146 @@ export default {
       explanation:
         "Adding at the head just points the new node at the old head and reassigns head — a constant number of pointer updates, regardless of list size.",
     },
+  ],
+  items: [
+    makeItem({
+      id: "linked-lists-01",
+      topicId: "linked-lists",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What is a linked list, and how does a program know it has reached the end of one?",
+      expected:
+        "A linked list is a sequence of objects where each object (called a node) points to the next in the list. A node includes data and a pointer to the next node. The beginning of the list is marked with a pointer (e.g., head), and the last node in the list points to nullptr — that's how you know you've reached the end.",
+      criteria: [
+        "Defines a linked list as a sequence of nodes, each pointing to the next",
+        "States a node holds data plus a pointer to the next node",
+        "States the last node's pointer is nullptr",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#what-is-a-linked-list",
+        excerpt:
+          "A linked list is a sequence of objects where each object points to the next in the list\n- Each object is called a node\n- A node includes data and a pointer to the next node in the list\n- The beginning of the list is marked with a pointer (e.g., head)\n- The last node in the list is pointing to nullptr",
+        citation: "Lecture Deck 03.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/linked-lists.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-02",
+      topicId: "linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Write a Node constructor that takes optional data and a next pointer, defaulting next to nullptr, given `private: DataType data; Node *next;`.",
+      expected:
+        "Node(const DataType newData = DataType(),\nNode *newNext = nullptr){\ndata = newData;\nnext = newNext;\n}",
+      criteria: [
+        "Gives newData a default of DataType() and newNext a default of nullptr",
+        "Assigns the parameters into data and next",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#node-constructor",
+        excerpt:
+          "//constructor\nNode(const DataType newData = DataType(),\nNode *newNext = nullptr){\ndata = newData;\nnext = newNext;\n}",
+        citation: "Lecture Deck 03.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/linked-lists.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-03",
+      topicId: "linked-lists",
+      format: FORMATS.COMPARE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "Why does Node declare two getNext() overloads instead of one?",
+      expected:
+        "One overload is `const Node* getNext() const{ return next; }` — get the next field as constant. The other is `Node* getNext(){ return next; }` — get the next field. The const version returns a const Node* for use on a const Node, while the non-const version returns a modifiable Node*.",
+      criteria: [
+        "Quotes/describes both getNext overloads (const-returning and non-const-returning)",
+        "Explains the const overload exists for when the node itself is const",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#node-getters",
+        excerpt:
+          "//getters\nDataType getData() const{\nreturn data;\n}\nconst Node* getNext() const{ //get the next field as constant\nreturn next;\n}\nNode* getNext(){ //get the next field\nreturn next;\n}",
+        citation: "Lecture Deck 03.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/linked-lists.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-04",
+      topicId: "linked-lists",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Trace this code:\n```\nNode *head;\nhead = new Node();\nhead->setData(50);\n```\nWhat does head point to before and after setData(50) runs?",
+      expected:
+        "Before setData: head points to a node with data: ? (unspecified, since Node's default constructor gives data its default value) and next: nullptr. After head->setData(50): head points to the same node, now with data: 50 and next still nullptr.",
+      criteria: [
+        "States the node's next stays nullptr throughout",
+        "States data changes from its default/unspecified value to 50 after setData",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#allocating-and-using-a-node",
+        excerpt:
+          "Node *head;\nhead = new Node();\nhead->setData(50);\n```\n- head starts pointing to a node with data: ? and next: nullptr\n- after setData(50), head points to a node with data: 50 and next: nullptr",
+        citation: "Lecture Deck 03.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/linked-lists.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-05",
+      topicId: "linked-lists",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "How is an empty linked list represented, using head and tail pointers?",
+      expected:
+        "A linked list object is declared with Node *head; and Node *tail; — head = nullptr; initializes it to an empty list. tail points to the end of the list.",
+      criteria: [
+        "States head = nullptr represents an empty list",
+        "Mentions tail as the pointer to the end of the list",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#declaration-of-linked-list-object",
+        excerpt:
+          "Node *head;\nhead = nullptr; //initialize to empty list\nNode *tail; //point to the end of the list",
+        citation: "Lecture Deck 03.1",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/linked-lists.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
   ],
 };

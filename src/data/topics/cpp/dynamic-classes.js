@@ -1,7 +1,9 @@
+import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
+
 export default {
   id: "dynamic-classes",
   title: "Dynamic Memory with Classes & Structures",
-  subtitle: "Data Structures — destructors, copy constructors & operator=",
+  subtitle: "c++ — destructors, copy constructors & operator=",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js
@@ -229,5 +231,233 @@ export default {
       explanation:
         "-> combines dereference-then-dot into one operator, so itemPtr->number is equivalent to (*itemPtr).number.",
     },
+  ],
+  items: [
+    makeItem({
+      id: "dynamic-classes-01",
+      topicId: "dynamic-classes",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What are the naming and signature rules for a destructor?",
+      expected:
+        "A destructor is a member function called automatically when an object goes out of scope. Its name begins with a '~' followed by the class name, it usually calls delete to deallocate dynamic variables, it takes no parameters and returns no value, and a class may only have one destructor.",
+      criteria: [
+        "States the name is ~ followed by the class name",
+        "States it's called automatically when the object goes out of scope",
+        "States it takes no parameters, returns no value, and a class has only one",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.3-dynamic-classes",
+        anchor: "#destructors",
+        excerpt:
+          "A destructor is a member function of a class that is called automatically when an object goes out of scope\n- Usually calls delete to deallocate all dynamic variables\n- The destructor name begins with a '~' followed by the class name\n- A destructor takes no parameters and returns no value\n- A class may only have one destructor",
+        citation: "Lecture Deck 02.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-classes.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-classes-02",
+      topicId: "dynamic-classes",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "Write the MyString destructor, given `private: char *str;`.",
+      expected: "MyString::~MyString() {\n delete[] str;\n}",
+      criteria: [
+        "Names the destructor ~MyString()",
+        "Uses delete[] (array form), not plain delete, since str is a dynamic array",
+      ],
+      timeBudgetSec: 90,
+      provenance: {
+        sourceId: "cpp-slides-02.3-dynamic-classes",
+        anchor: "#mystring-destructor",
+        excerpt: "MyString::~MyString() {\ndelete[] str;\n}",
+        citation: "Lecture Deck 02.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-classes.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-classes-03",
+      topicId: "dynamic-classes",
+      format: FORMATS.ERROR,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "`void printString(MyString strObject);` is called as `printString(name);` where name is an existing MyString, and MyString has no copy constructor. What goes wrong?",
+      expected:
+        "The object name is copied to the parameter strObject, but since we're using dynamic allocation, both name and strObject end up pointing to the same location. When printString terminates, the destructor runs and deallocates the memory for strObject — which also deallocates it for name. The original object name is now pointing to memory that has been deallocated.",
+      criteria: [
+        "States name and strObject end up pointing to the same memory location",
+        "States printString's destructor deallocates that shared memory when it terminates",
+        "States name is left pointing to deallocated memory",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.3-dynamic-classes",
+        anchor: "#copy-constructor-problem",
+        excerpt:
+          "Because we're using dynamic allocation, both name and strObject will be pointing to the same location\n- When the function printString terminates, the destructor will be called, and the memory allocated for both name and strObject will be deallocated\n- Now the original object name is pointing to memory that has been deallocated",
+        citation: "Lecture Deck 02.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-classes.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-classes-04",
+      topicId: "dynamic-classes",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "What must a copy constructor's parameter be, and when does it get called automatically?",
+      expected:
+        "A copy constructor's one parameter must be of the same type as the class and must be a const call-by-reference. It's called automatically whenever a call-by-value argument of the class is used, or a function returns an object of the class type. Any class that uses pointers and the new operator should have one.",
+      criteria: [
+        "States the parameter must be a const reference to the same class type",
+        "States it triggers on pass-by-value and on function return of the class type",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.3-dynamic-classes",
+        anchor: "#copy-constructor",
+        excerpt:
+          "A copy constructor is a constructor that has one parameter that is of the same type as the class, with the following exceptions:\n- Its parameter must be a const call-by-reference.\n- A copy constructor is called automatically whenever:\n- A call-by-value argument of the class is used\n- A function returns an object of the class type\n- Any class that uses pointers and the new operator should have a copy constructor",
+        citation: "Lecture Deck 02.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-classes.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-classes-05",
+      topicId: "dynamic-classes",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Write MyString's copy constructor, given `private: char *str; int maxLength;` and a `length()` accessor.",
+      expected:
+        "MyString::MyString(const MyString& strObject) {\n maxLength = strObject.length();\n str = strndup(strObject.str, 1000);\n}",
+      criteria: [
+        "Takes a const MyString& parameter",
+        "Uses strndup to allocate a fresh, independent copy of strObject.str rather than copying the pointer",
+        "Sets maxLength from strObject.length()",
+      ],
+      timeBudgetSec: 150,
+      provenance: {
+        sourceId: "cpp-slides-02.3-dynamic-classes",
+        anchor: "#mystring-copy-constructor",
+        excerpt:
+          "// MyString copy constructor\nMyString::MyString(const MyString& strObject) {\nmaxLength = strObject.length();\n// Allocate and copy up to 1000 characters\nstr = strndup(strObject.str, 1000);\n}",
+        citation: "Lecture Deck 02.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-classes.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-classes-06",
+      topicId: "dynamic-classes",
+      format: FORMATS.ERROR,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "In MyString's overloaded operator=, why does it check `if (newLength > maxLength)` before calling `delete [] str;`?\n```\nvoid MyString::operator = (const MyString &rightSide){\n int newLength = strlen(rightSide.str);\n if (newLength > maxLength)\n {\n delete [] str;\n maxLength = newLength;\n str = strndup(rightSide.str, 1000);\n }\n else {\n strncpy(str, rightSide.str, 1000);\n }\n}\n```",
+      expected:
+        "Before deleting, the code checks whether maxLength is already big enough. If it didn't check, a statement like string1 = string1; would delete the memory allocated to the string before it's done being read from — self-assignment would destroy the very data operator= is trying to copy.",
+      criteria: [
+        "States the check avoids unnecessarily/incorrectly deleting str",
+        "Names the specific failure case: string1 = string1; would delete memory the statement still needs to read",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.3-dynamic-classes",
+        anchor: "#mystring-overloaded-assignment",
+        excerpt:
+          "//before deleting check to see if maxLength is enough. If not checked, then\n//the statement string1 = string1; will delete the memory allocated to the string.\nif (newLength > maxLength)",
+        citation: "Lecture Deck 02.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-classes.md",
+      },
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-classes-07",
+      topicId: "dynamic-classes",
+      format: FORMATS.COMPARE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Given `ItemType *itemPtr = new ItemType;`, how do `(*itemPtr).number` and `itemPtr->number` compare?",
+      expected:
+        "(*itemPtr) dereferences the structure, and number can then be accessed with the dot operator: (*itemPtr).number = 5555;. The arrow operator -> replaces that \"*\" and \".\" combination in one step — itemPtr->number = 5555; — and is the most common way to access members of pointers to structures.",
+      criteria: [
+        "States (*itemPtr).number dereferences then uses the dot operator",
+        "States itemPtr->number does the same thing in one operator",
+        "Identifies -> as the more common form",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.3-dynamic-classes",
+        anchor: "#arrow-operator",
+        excerpt:
+          "- C++ offers an operator that replaces the \"*\" and \".\" combination\n- The operator is called the arrow operator \"->\"\n- Arrow operator is the most common way to access members of pointers to structures\n- The structure members can now be accessed as follows:\n```\nitemPtr->number = 5555;\nitemPtr->price = 26.95;\n```",
+        citation: "Lecture Deck 02.3",
+      },
+      extraAtoms: ["#pointers-to-structures"],
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-classes.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-classes-08",
+      topicId: "dynamic-classes",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Why does `createNewArray` take its pointer parameter as `double*&` instead of `double*`?\n```\nvoid createNewArray(double*& arr, size_t n)\n{\n arr = new double[n];\n}\n```",
+      expected:
+        "A function might need to change a pointer to a new location. The pointer has to be passed to the function as a call-by-reference parameter, so double*& lets createNewArray redirect the caller's own pointer variable (not just a local copy of it) to the newly allocated memory.",
+      criteria: [
+        "States a pointer that needs to be redirected must be passed by reference",
+        "Explains double*& lets the function change the caller's actual pointer variable",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-02.3-dynamic-classes",
+        anchor: "#pointers-as-reference-parameters",
+        excerpt:
+          "- A function might need to change a pointer to a new location.\n- The pointer has to be passed to the function as call-by-reference parameter.\n- Example:\n```\nvoid createNewArray(double*& arr, size_t n)\n{\narr = new double[n];\n}\n```",
+        citation: "Lecture Deck 02.3",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/dynamic-classes.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

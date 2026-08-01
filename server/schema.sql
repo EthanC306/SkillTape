@@ -24,7 +24,13 @@ CREATE TABLE IF NOT EXISTS topics (
   title      TEXT NOT NULL,
   subtitle   TEXT,
   show_chart INTEGER NOT NULL DEFAULT 0,   -- SQLite has no BOOLEAN; 0/1
-  position   INTEGER NOT NULL DEFAULT 0    -- display order within the course
+  position   INTEGER NOT NULL DEFAULT 0,   -- display order within the course
+  -- ROADMAP.md A0's per-topic exam weight. Set on 12 cpp topic module files
+  -- since 2026-08-01 but never actually reached the database until A5 needed
+  -- it server-side for exam sampling — seed.js and topics.js buildTopic()
+  -- both had to be updated alongside this column, or the value would keep
+  -- existing only in the .js source files and never in a served topic.
+  exam_weight REAL NOT NULL DEFAULT 1.0
 );
 
 -- Learn-mode cards. `position` carries order: SQL returns rows unordered

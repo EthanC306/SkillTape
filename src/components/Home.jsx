@@ -23,6 +23,10 @@ import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
  *   onShowHistory(topicId)  — open the "older quizzes" history modal for a topic.
  *   onDrill()               — open a closed-book Drill session (ROADMAP.md A4)
  *                              over this course's due items.
+ *   onExam()                — open the timed Exam simulator (ROADMAP.md A5)
+ *                              over this course's item bank.
+ *   onReport()              — open the reporting dashboard (ROADMAP.md A6):
+ *                              coverage, accuracy, and leeches for this course.
  */
 export default function Home({
   topics,
@@ -35,6 +39,8 @@ export default function Home({
   onMasterSet,
   onShowHistory,
   onDrill,
+  onExam,
+  onReport,
 }) {
   const ctrlBtn = (active) => ({
     fontFamily: HEADING,
@@ -59,18 +65,30 @@ export default function Home({
         </p>
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           {!selectMode && (
-            <button
-              onClick={onDrill}
-              title="Closed-book review of items due right now (ROADMAP.md A4)"
-              style={{
-                ...ctrlBtn(false),
-                border: `1px solid ${PALETTE.accent}`,
-                background: PALETTE.accentSoft,
-                color: PALETTE.accent,
-              }}
-            >
-              Drill
-            </button>
+            <>
+              <button
+                onClick={onDrill}
+                title="Closed-book review of items due right now (ROADMAP.md A4)"
+                style={{
+                  ...ctrlBtn(false),
+                  border: `1px solid ${PALETTE.accent}`,
+                  background: PALETTE.accentSoft,
+                  color: PALETTE.accent,
+                }}
+              >
+                Drill
+              </button>
+              <button
+                onClick={onExam}
+                title="Timed exam simulator, sampled by exam weight (ROADMAP.md A5)"
+                style={ctrlBtn(false)}
+              >
+                Exam
+              </button>
+              <button onClick={onReport} title="Coverage, accuracy, and leeches (ROADMAP.md A6)" style={ctrlBtn(false)}>
+                Report
+              </button>
+            </>
           )}
           <button onClick={onToggleSelectMode} title="Select topics for a combined quiz" style={ctrlBtn(selectMode)}>
             {selectMode ? "Cancel" : "Select"}

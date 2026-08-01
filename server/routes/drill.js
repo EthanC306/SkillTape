@@ -1,5 +1,7 @@
-// Drill mode routes (ROADMAP.md A4): a due-item queue, the attempt log, and
-// JSON export/import (CORR §4.3 / D4).
+// Drill mode routes (ROADMAP.md A4) and the exam simulator (A5): a due-item
+// queue, the attempt log, JSON export/import (CORR §4.3 / D4), an
+// examWeight-sampled item set, and closed-book accuracy stats for the exam
+// report's "vs. drill accuracy" comparison.
 //
 // Same anonymous-friendly stance as progress.js: this is a single-user app,
 // so gating drilling on being logged in would just add friction. getSessionUser
@@ -34,6 +36,35 @@ function requiredString(value, where) {
 }
 
 const VALID_MODES = new Set(["closed", "open", "exam"]);
+
+/** One `items` row -> the item shape both /queue and /exam send to the client. */
+function rowToItem(r) {
+  return {
+    id: r.id,
+    topicId: r.topic_id,
+    format: r.format,
+    origin: r.origin,
+    prompt: r.prompt,
+    expected: r.expected,
+    criteria: r.criteria ? JSON.parse(r.criteria) : [],
+    provenance: r.provenance ? JSON.parse(r.provenance) : null,
+    difficulty: r.difficulty,
+    choices: r.choices ? JSON.parse(r.choices) : undefined,
+    answerIndex: r.answer_index ?? undefined,
+    timeBudgetSec: r.time_budget_sec ?? undefined,
+    extraAtoms: r.extra_atoms ? JSON.parse(r.extra_atoms) : undefined,
+  };
+}
+
+/** Fisher-Yates. Never mutates the input. */
+function shuffled(arr) {
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
 
 // ── Queries ──────────────────────────────────────────────────────────────
 
@@ -138,22 +169,283 @@ router.get("/queue", (req, res) => {
 
   res.json(
     rows.map((r) => ({
-      id: r.id,
-      topicId: r.topic_id,
-      format: r.format,
-      origin: r.origin,
-      prompt: r.prompt,
-      expected: r.expected,
-      criteria: r.criteria ? JSON.parse(r.criteria) : [],
-      provenance: r.provenance ? JSON.parse(r.provenance) : null,
-      difficulty: r.difficulty,
-      choices: r.choices ? JSON.parse(r.choices) : undefined,
-      answerIndex: r.answer_index ?? undefined,
-      timeBudgetSec: r.time_budget_sec ?? undefined,
-      extraAtoms: r.extra_atoms ? JSON.parse(r.extra_atoms) : undefined,
+      ...rowToItem(r),
       review: r.due_on == null ? null : { dueOn: r.due_on, reps: r.reps, lapses: r.lapses, leech: Boolean(r.leech) },
     }))
   );
+});
+
+// GET /api/drill/exam?course=cpp&count=20&minutes=50
+//
+// A5: samples across topics by examWeight, mixed formats and topics (no
+// grouping), no scheduling/due-date filter at all — an exam draws from
+// everything verified, not just what's due, because a real exam doesn't
+// care what your spaced-repetition schedule says is due today.
+//
+// Sampling: each topic's share of `count` is proportional to its
+// examWeight among topics that actually have eligible items (topics with
+// zero verified items can't be drawn from, so their weight doesn't get to
+// starve the topics that can). Every eligible topic gets at least 1 item if
+// `count` allows one. Not exact — rounding and per-topic item caps mean the
+// total can land a little above or below `count` — "~N items" is the
+// contract here, not an exact quota system.
+router.get("/exam", (req, res) => {
+  const course = req.query.course;
+  if (!course) return res.status(400).json({ error: "course query param required" });
+  const count = Math.min(Math.max(parseInt(req.query.count, 10) || 20, 1), 100);
+  const minutes = Math.min(Math.max(parseInt(req.query.minutes, 10) || 50, 5), 240);
+
+  const topics = db
+    .prepare("SELECT id, title, exam_weight FROM topics WHERE course_id = ? ORDER BY position")
+    .all(course);
+  if (!topics.length) return res.status(400).json({ error: `no topics for course "${course}"` });
+
+  const getEligibleItems = db.prepare(`
+    SELECT id, topic_id, position, format, origin, prompt, expected, criteria, provenance,
+           difficulty, choices, answer_index, time_budget_sec, extra_atoms
+    FROM items WHERE topic_id = ? AND verified_by_human = 1 AND retired = 0
+  `);
+
+  const eligibleTopics = [];
+  const poolByTopic = new Map();
+  for (const t of topics) {
+    const pool = getEligibleItems.all(t.id);
+    if (pool.length) {
+      eligibleTopics.push(t);
+      poolByTopic.set(t.id, pool);
+    }
+  }
+
+  if (!eligibleTopics.length) {
+    return res.json({ items: [], topics: {}, minutes });
+  }
+
+  const weightSum = eligibleTopics.reduce((s, t) => s + t.exam_weight, 0);
+  const sampled = [];
+  const topicMeta = {};
+  for (const t of eligibleTopics) {
+    const pool = poolByTopic.get(t.id);
+    const share = t.exam_weight / weightSum;
+    const quota = Math.min(pool.length, Math.max(1, Math.round(share * count)));
+    const picked = shuffled(pool).slice(0, quota);
+    for (const r of picked) sampled.push({ ...rowToItem(r), topicTitle: t.title, examWeight: t.exam_weight });
+    topicMeta[t.id] = { title: t.title, examWeight: t.exam_weight, sampled: picked.length, available: pool.length };
+  }
+
+  res.json({ items: shuffled(sampled), topics: topicMeta, minutes });
+});
+
+// GET /api/drill/stats?course=cpp — per-topic closed-book accuracy, for the
+// exam report's "vs. drill accuracy" comparison (A5). "Accuracy" here is the
+// same definition DrillView's grading uses for correctness: grade >= 2
+// (Good/Easy) counts as a pass, matching how MCQ auto-grading maps
+// correct/incorrect onto the same 0-3 scale (server/routes/drill.js's
+// submitMcq-equivalent, POST /attempts).
+router.get("/stats", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  const course = req.query.course;
+  if (!course) return res.status(400).json({ error: "course query param required" });
+
+  const rows = db
+    .prepare(
+      `SELECT items.topic_id AS topic_id,
+              COUNT(*) AS attempts,
+              SUM(CASE WHEN item_attempts.grade >= 2 THEN 1 ELSE 0 END) AS passes
+       FROM item_attempts
+       JOIN items ON items.id = item_attempts.item_id
+       JOIN topics ON topics.id = items.topic_id
+       WHERE topics.course_id = ? AND item_attempts.user_id = ? AND item_attempts.mode = 'closed'
+         AND item_attempts.abandoned = 0 AND item_attempts.grade IS NOT NULL
+       GROUP BY items.topic_id`
+    )
+    .all(course, userId);
+
+  const stats = {};
+  for (const r of rows) {
+    stats[r.topic_id] = { attempts: r.attempts, accuracy: r.attempts ? r.passes / r.attempts : null };
+  }
+  res.json(stats);
+});
+
+// GET /api/drill/report?course=cpp — the standing dashboard (A6).
+//
+// "Only one number predicts the exam: closed-book, first-try, timed accuracy
+// per topic. Everything else is diagnostic" (ROADMAP.md A6) — so that number
+// (`firstTryAccuracy`) drives `studyNextScore` and the weakest-topics
+// ranking; format item-counts, median time, the open/closed delta, and leech
+// count are surfaced per topic as the diagnostics, not the ranking signal.
+//
+// "First-try" means the earliest CLOSED, non-abandoned, graded attempt per
+// item — computed in JS from the raw attempt rows rather than a bigger SQL
+// query, since the same per-item first-attempt needs to feed three different
+// aggregations (topic accuracy, format-level median seconds, open/closed
+// delta) and the bank is nowhere near large enough for that to matter.
+router.get("/report", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  const course = req.query.course;
+  if (!course) return res.status(400).json({ error: "course query param required" });
+
+  const topics = db
+    .prepare("SELECT id, title, exam_weight FROM topics WHERE course_id = ? ORDER BY position")
+    .all(course);
+  if (!topics.length) return res.status(400).json({ error: `no topics for course "${course}"` });
+  const topicIds = new Set(topics.map((t) => t.id));
+
+  const items = db
+    .prepare(
+      `SELECT items.id, items.topic_id, items.format, items.verified_by_human, items.retired,
+              items.prompt, items.expected, items.criteria, items.provenance
+       FROM items JOIN topics ON topics.id = items.topic_id
+       WHERE topics.course_id = ?`
+    )
+    .all(course);
+  const itemById = new Map(items.map((it) => [it.id, it]));
+
+  const reviewRows = db
+    .prepare(
+      `SELECT item_review_state.item_id, item_review_state.leech, item_review_state.lapses
+       FROM item_review_state
+       JOIN items ON items.id = item_review_state.item_id
+       JOIN topics ON topics.id = items.topic_id
+       WHERE topics.course_id = ? AND item_review_state.user_id = ?`
+    )
+    .all(course, userId);
+  const reviewByItem = new Map(reviewRows.map((r) => [r.item_id, r]));
+
+  const attempts = db
+    .prepare(
+      `SELECT item_attempts.item_id, item_attempts.ts, item_attempts.mode, item_attempts.grade, item_attempts.seconds
+       FROM item_attempts
+       JOIN items ON items.id = item_attempts.item_id
+       JOIN topics ON topics.id = items.topic_id
+       WHERE topics.course_id = ? AND item_attempts.user_id = ? AND item_attempts.abandoned = 0
+             AND item_attempts.grade IS NOT NULL
+       ORDER BY item_attempts.ts ASC`
+    )
+    .all(course, userId);
+
+  // First graded, non-abandoned attempt per item, split by mode — the
+  // earliest row per (item, mode) since `attempts` is already ts-ascending.
+  const firstByItemMode = new Map(); // `${itemId}:${mode}` -> attempt
+  for (const a of attempts) {
+    const key = `${a.item_id}:${a.mode}`;
+    if (!firstByItemMode.has(key)) firstByItemMode.set(key, a);
+  }
+
+  const formatSecondsClosed = {}; // format -> seconds[] (first-try closed only)
+  const byTopic = new Map(topics.map((t) => [t.id, { topic: t, formats: {}, closedFirstTry: [], openFirstTry: [] }]));
+
+  for (const it of items) {
+    const bucket = byTopic.get(it.topic_id);
+    const fmt = (bucket.formats[it.format] ??= { total: 0, verified: 0 });
+    fmt.total += 1;
+    if (it.verified_by_human && !it.retired) fmt.verified += 1;
+
+    const closed = firstByItemMode.get(`${it.id}:closed`);
+    if (closed) {
+      bucket.closedFirstTry.push(closed.grade >= 2 ? 1 : 0);
+      (formatSecondsClosed[it.format] ??= []).push(closed.seconds);
+    }
+    const open = firstByItemMode.get(`${it.id}:open`);
+    if (open) bucket.openFirstTry.push(open.grade >= 2 ? 1 : 0);
+  }
+
+  function median(nums) {
+    if (!nums.length) return null;
+    const sorted = [...nums].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+  function mean(nums) {
+    return nums.length ? nums.reduce((s, n) => s + n, 0) / nums.length : null;
+  }
+
+  const topicReports = topics.map((t) => {
+    const b = byTopic.get(t.id);
+    const firstTryAccuracy = mean(b.closedFirstTry);
+    const openAccuracy = mean(b.openFirstTry);
+    const leechCount = items.filter((it) => it.topic_id === t.id && reviewByItem.get(it.id)?.leech).length;
+    const verifiedItemCount = Object.values(b.formats).reduce((s, f) => s + f.verified, 0);
+    // Unattempted topics rank as maximum priority (mastery 0) — nothing
+    // demonstrated yet outranks something demonstrated shakily. That's also
+    // true, and arguably more urgent, for a topic with NO verified items at
+    // all — but "study this next" isn't actionable there (there's nothing to
+    // drill yet), so the UI is expected to read verifiedItemCount and say
+    // "migrate this topic first" rather than link straight into Drill.
+    const mastery = firstTryAccuracy ?? 0;
+    return {
+      id: t.id,
+      title: t.title,
+      examWeight: t.exam_weight,
+      formats: b.formats,
+      verifiedItemCount,
+      firstTryAccuracy,
+      firstTryCount: b.closedFirstTry.length,
+      openClosedDelta: openAccuracy != null && firstTryAccuracy != null ? openAccuracy - firstTryAccuracy : null,
+      leechCount,
+      meetsTarget: t.exam_weight >= 1.0 ? firstTryAccuracy != null && firstTryAccuracy >= 0.85 : null,
+      studyNextScore: t.exam_weight * (1 - mastery),
+    };
+  });
+
+  const formatMedianSeconds = {};
+  for (const [fmt, secs] of Object.entries(formatSecondsClosed)) formatMedianSeconds[fmt] = median(secs);
+
+  const weakest = [...topicReports]
+    .filter((t) => t.firstTryCount > 0 || t.examWeight >= 1.0)
+    .sort((a, b) => b.studyNextScore - a.studyNextScore)
+    .slice(0, 3)
+    .map((t) => t.id);
+
+  // Leech detail (also what A8's "copy for tutor" handoff needs): full
+  // content plus this user's complete attempt history for that item.
+  const leeches = items
+    .filter((it) => topicIds.has(it.topic_id) && reviewByItem.get(it.id)?.leech)
+    .map((it) => {
+      const t = topics.find((x) => x.id === it.topic_id);
+      const history = attempts
+        .filter((a) => a.item_id === it.id)
+        .map((a) => ({ ts: a.ts, mode: a.mode, grade: a.grade, seconds: a.seconds }));
+      return {
+        itemId: it.id,
+        topicId: it.topic_id,
+        topicTitle: t?.title,
+        format: it.format,
+        prompt: it.prompt,
+        expected: it.expected,
+        criteria: it.criteria ? JSON.parse(it.criteria) : [],
+        provenance: it.provenance ? JSON.parse(it.provenance) : null,
+        lapses: reviewByItem.get(it.id)?.lapses ?? 0,
+        history,
+      };
+    });
+
+  res.json({ topics: topicReports, formatMedianSeconds, leeches, weakest });
+});
+
+// POST /api/drill/leeches/:itemId/reset — A8's "reset scheduling state"
+// leech-handoff outcome: "concept landed, item is fine" — clear lapses/leech
+// and drop the item back to a fresh, never-reviewed state so it re-enters
+// normal rotation immediately instead of staying parked. Does NOT touch the
+// item's content (prompt/expected/criteria) — "rewrite the item" and "split
+// the fact" are content edits with no authoring UI yet (A7), so those two
+// outcomes stay a direct file edit for now, same as verifiedByHuman today.
+const deleteReviewState = db.prepare("DELETE FROM item_review_state WHERE user_id = ? AND item_id = ?");
+router.post("/leeches/:itemId/reset", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  const itemId = req.params.itemId;
+
+  const item = getItemForScheduling.get(itemId);
+  if (!item) return res.status(400).json({ error: `itemId "${itemId}" does not exist` });
+
+  // Deleting the row (rather than zeroing its fields) is equivalent to
+  // "never reviewed" — the exact state a genuinely new item is in, and
+  // /queue already treats a missing row as eligible immediately.
+  deleteReviewState.run(userId, itemId);
+  res.json({ ok: true });
 });
 
 // POST /api/drill/attempts — record one graded (or abandoned) drill attempt.

@@ -30,4 +30,18 @@ db.pragma("foreign_keys = ON");
 // is a no-op once the tables exist. That makes it a create-or-noop migration.
 db.exec(fs.readFileSync(path.join(HERE, "schema.sql"), "utf8"));
 
+// CREATE TABLE IF NOT EXISTS can't add a column to a table that already
+// exists from a previous boot — this app has no real migration system yet
+// (docs/PRODUCTION_READINESS.md §2.3 tracks that gap). `exam_weight` landed
+// on `topics` after some installs already had the table, so it needs this
+// one guarded ALTER TABLE to reach a DB created before A5. A fresh DB gets
+// the column straight from schema.sql above, so this is a no-op there.
+function ensureColumn(table, column, ddl) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  }
+}
+ensureColumn("topics", "exam_weight", "exam_weight REAL NOT NULL DEFAULT 1.0");
+
 export default db;

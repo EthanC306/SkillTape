@@ -12,7 +12,7 @@ The home screen has a bottom tab bar, one tab per class:
 
 | Tab | Course | Focus |
 | --- | --- | --- |
-| `cpp` | C++ Data Structures & Algorithms | Big-O, C-strings, containers, linked lists, the Big Three |
+| `c++` | C++ Data Structures & Algorithms | Big-O, C-strings, containers, linked lists, the Big Three |
 | `CS3000` | Discrete Structures (Epp, 5e) | logic, quantifiers, proof, sets, relations, graphs |
 
 Selecting a tab opens the tutor filtered to that course's topics.

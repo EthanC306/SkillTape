@@ -174,7 +174,7 @@ Weights go **on the topic objects** in `src/data/topics/<course>/<topic>.js`, or
 **🟡 Partially done (2026-08-01) — adapted, not followed literally.** The graded midterm and its per-question point values weren't available (not saved), so steps 1–2 above couldn't run as written. Substituted: a 9-question diagnostic quiz covering the six topics self-reported as the struggle area (dynamic memory/pointers/linked lists), answered live in conversation. Only 2 of 9 questions were actually worked through before moving on — this is a rough first pass, not a calibrated one.
 
 - `examWeight` is now set on all 12 `cpp` topic files: `2.0` for `dynamic-alloc` and `1.7` for `dynamic-arrays` (both have a **confirmed** gap from the quiz), `1.5` for the four other self-reported-struggle topics (`dynamic-classes`, `linked-lists`, `linked-lists-algorithms`, `doubly-linked-lists` — untested, self-report only), `1.0` default for the remaining six (`bigo`, `containers`, `cstrings`, `templates`, `iterators`, `stacks` — no signal either way, not "known easy"). Each file has an inline comment explaining this.
-- `discrete` course topics have **no `examWeight` yet** — this midterm was cpp (`cpp`) only; CS3000 gets its own pass once there's exam data for it. The "every topic" done-when criterion is not literally met.
+- `discrete` course topics have **no `examWeight` yet** — this midterm was c++ (`cpp`) only; CS3000 gets its own pass once there's exam data for it. The "every topic" done-when criterion is not literally met.
 - Two confirmed gaps logged to `gaps/inbox.jsonl` (new — A8's format, used early): (1) confusing `new int(5)` [single-value init] with `new int[5]` [array allocation]; (2) assuming a dangling pointer still deterministically reads its last value after `delete`, rather than recognizing undefined behavior. Both point at `dynamic-alloc`/`dynamic-arrays`.
 - **Top three by this provisional ranking:** `dynamic-alloc`, `dynamic-arrays`, then a tie across `dynamic-classes`/`linked-lists`/`linked-lists-algorithms`/`doubly-linked-lists` — not truly ranked against each other, just all above default.
 - **To close this out properly:** re-run against real numbers the moment any graded feedback exists (partial credit breakdown, a returned exam, even a rough recollection of which specific problems lost points), and finish the remaining 7 quiz questions to convert more self-reported struggle into confirmed gaps.
@@ -208,7 +208,7 @@ Both `CORRECTIONS` §5.5 and `SKILLTAPE_INTEGRATION` §6.4 insist on **one** top
 The `**bold**` convention is unaffected — `Inline.jsx` and `fill.js` keep working, and those spans are what the rule-based cloze generator will consume.
 
 **✅ Done (2026-08-01)** — pilot topic: `dynamic-alloc`.
-- `sources/cpp/dynamic-alloc.md` created — transcribed from the actual lecture deck (Course staff, Data Structures, Deck 02.1), 13 anchored sections, gitignored (never pushed).
+- `sources/cpp/dynamic-alloc.md` created — transcribed from the actual lecture deck , 13 anchored sections, gitignored (never pushed).
 - `sources/README.md` added (§7 rule 8) — required a gitignore fix along the way: `sources/` as a bare directory ignore silently blocks re-including anything inside it even with `!sources/README.md`; had to become `sources/*` + the negation for the exception to actually take effect.
 - 8 new `items` added to `dynamic-alloc.js` (`origin: GENERATED`, spanning RECALL/TRACE/ERROR/CLOZE/COMPARE/WRITE, zero MCQ), each with real `provenance` pointing at the new source file. The existing `questions` array (13 legacy MCQs) is untouched — `QuizView` still reads it directly, so the live app is unaffected; `auditBank.js` now validates `items` instead for this topic.
 - **Verification pass done (2026-08-01):** all 8 items read against `sources/cpp/dynamic-alloc.md` — each `expected`/`criteria` matches the cited excerpt, anchors resolve to real sections, no claim goes beyond what the source states. `verifiedByHuman` flipped `true` on all 8.
@@ -247,10 +247,24 @@ Append-only. Derive the existing best-score display from the log so `QuizView` n
 - **Verification:** `npm run audit:bank` and `npx vite build` both pass. Backend logic (queue ordering, FSRS scheduling, leech exclusion, export, import-with-replay) verified directly against the running server with `curl` and direct SQL checks. A full browser walkthrough (Playwright) exercised a real session end-to-end — prompt → reveal → grade → next item → End drill → summary — and caught one real bug: `index.html`'s drill-chrome-hiding CSS rule lost to `Shell.jsx`'s inline `display: flex` on the nav (inline styles beat stylesheet rules without `!important`), so the tab bar stayed visible during a live session despite A1 believing it was wired. Fixed with `!important` and a comment explaining why it's required, not decorative. This is exactly the gap A1's own note flagged ("wired, not yet clicked-through in a live browser") — worth remembering next time something claims "confirmed in build output" in place of an actual render.
 - **Not done:** exam mode (A5), the leech-handoff UI (A8), a new-cards-per-day cap (noted as a later concern if the bank grows), and the operating-protocol habit itself — this ships the tool, not the daily 20-minute session.
 
+**[UPDATED — 2026-08-01]** The original self-graded flow — recall silently, hit "Show answer," self-report — was in tension with this app's own §7 rule 3 ("production over recognition... producing it on a blank page"): there was no blank page, just silent recall and self-report, which is closer to recognition than production and easy to be dishonest with yourself about. Added a plain `<textarea>` before the reveal on every non-MCQ format: write an actual answer, then "Show answer" shows the key next to what you wrote (labeled YOUR ANSWER / ANSWER KEY), then self-grade. Not auto-checked — free text has no reliable checker — but it forces the commit step. The typed answer rides along in the attempt log as `item_attempts.note` (already a free-text column, no schema change needed).
+
 ### A5 — Exam simulator
 `CS_DRILL` Phase 6, re-homed in-app (D6). Samples across topics by `examWeight`, mixed formats, no feedback until the end, hard timer, `mode: "exam"`. Ends with a per-topic score report and a comparison against closed-book drill accuracy.
 
 **Done when:** it produces a report directly comparable to a real exam breakdown. **Depends on:** A0 (needs weights), A4 (needs the attempt log).
+
+**✅ Done (2026-08-01).**
+- **Prerequisite gap closed first:** `examWeight` had been set on 12 `cpp` topic files since A0, but was never actually wired past the static `.js` source — `server/schema.sql`'s `topics` table had no column for it, `seed.js` never wrote it, and `topics.js`'s `buildTopic()` never served it. A5 needed real per-topic weights server-side to sample by, so this had to be closed first: `topics.exam_weight` column added (default `1.0`), with a guarded `ALTER TABLE` in `server/db.js` so a DB created before A5 also picks it up on next boot, not just a fresh one.
+- **Sampling** (`GET /api/drill/exam`) — draws from every verified, non-retired item across a course's topics (not the FSRS due queue — an exam doesn't care what's due today), quota per topic proportional to `examWeight` among topics that actually have eligible items, minimum 1 per eligible topic, shuffled within and across topics so the run is mixed, not grouped. Topics with zero items don't get to starve the ones that have content.
+- **No feedback during the exam:** MCQ clicks are recorded but never colored; every other format just shows the prompt with no reveal control at all — "answer in your head, grade it against the key once time's up." Hard timer counts down from the server-supplied `minutes` (default 50); hitting zero auto-triggers the same finish path as the manual "Finish exam" escape hatch.
+- **Grading is a post-hoc batch pass**, not per-item during the exam — that IS "the end" the spec means: MCQ items are graded automatically (nothing to self-assess, there was only ever a stored choice index), every self-graded format gets DrillView's familiar "Show answer" → 0-3 reveal, just walked through as a review queue instead of live. Every reached item — graded or not — gets logged via the same `POST /api/drill/attempts` DrillView uses (`mode: "exam"`), so exam-mode reviews update the FSRS scheduler exactly like a drill-mode review would. Items never reached at all (timer or "Finish exam" cut the run short) are logged as `abandoned` rather than silently dropped — same append-only stance as A4.
+- **Report:** examWeight-weighted overall score, a per-topic table (correct/total, percent, examWeight), and `GET /api/drill/stats`'s closed-book accuracy alongside each topic for the "vs. drill accuracy" comparison the spec calls for. Reuses `DrillView`'s JSON export.
+- **Entry point:** an **Exam** button next to **Drill** on `Home.jsx`; `App.jsx` renders `ExamView` the same way it renders `DrillView` — in place of the whole Header/Home/TopicView tree, so its own escape hatch is the only way out. Reuses the `drillActive`/`.app-chrome` chrome-hiding mechanism from A4 rather than adding a parallel one for the same requirement.
+- **Verification:** endpoints checked directly against the running server (`curl` + direct SQL) — weighted sampling, the empty-course case, `/stats` correctly scoped to `mode: "closed"` only (an exam-mode attempt doesn't get counted as drill history). A full Playwright walkthrough of a real exam (setup → answer → "Finish exam" → grade → report) caught two real bugs before they'd have surfaced in actual use: (1) the "skipped" tracking never worked — items past wherever the exam was cut short were neither logged nor counted, since `recordCurrentItem` was only ever called with `skipped: false`; fixed by computing the truly-unreached tail (`exam.items.slice(answersRef.current.length)`) instead of a flag that nothing ever set. (2) an all-MCQ sample would hang forever on "scoring…" — `submitAllAndFinish` was only ever called from the interactive self-grading loop, so a sample with no self-graded items left nothing to trigger it; fixed by finishing immediately when the self-graded queue is empty. `npx vite build` and `npm run audit:bank` both pass at the same baseline as before this work.
+- **Not done:** A6 reporting proper (topics × formats grid, leech list, ranked "study these next") — A5's report is exam-specific and scoped to just this run, not the standing dashboard A6 specs.
+
+**[UPDATED — 2026-08-01]** Same textarea addition as A4 (see that section's update note) — self-graded items now get a blank textarea during the answering phase instead of "answer in your head," shown back next to the answer key during grading.
 
 ### A6 — Reporting
 `CS_DRILL` Phase 7 + §9 metrics. Topics × formats grid, verified-item counts, closed-book first-try accuracy per topic, leech list, and a ranked "study these next" = `examWeight × (1 − mastery)`.
@@ -261,10 +275,12 @@ Target ≥85% closed-book on every topic with `examWeight >= 1.0` before an exam
 
 **Done when:** the report names your three weakest topics and they match your intuition. *If they don't, investigate before trusting it.*
 
+**✅ Done (2026-08-01).** `GET /api/drill/report` computes closed-book first-try accuracy per topic (the headline number — first graded, non-abandoned, `mode: "closed"` attempt per item, aggregated by topic), the examWeight-based `studyNextScore` ranking, a topics × formats verified/total grid, per-format median time-to-answer, open-vs-closed delta, and leech counts. `ReportView.jsx` renders all of it, entry point next to Drill/Exam on `Home.jsx`; unlike those two this doesn't hide nav chrome — it's a read-only dashboard, not a closed-book context. One real design call surfaced by testing against the actual (still-tiny) bank: an unattempted topic defaults to `mastery: 0` (maximum study-next priority) — correct in spirit ("you haven't proven anything here" outranks "you got 50%"), but not actionable when the topic has zero verified items to drill. Added a `verifiedItemCount` field so the weakest-topics list can say "migrate this topic first (A3)" instead of pointing at content that doesn't exist yet.
+
 ### A7 — Authoring tooling
 Only after one topic has been migrated by hand. `SKILLTAPE_INTEGRATION` §6.6: *"before scaling past one topic."*
 
-1. **`references/cpp-conventions.md`** — lift the `cpp-tutor` skill's "course code conventions" section **verbatim**: C++11/14 only · `using DataType = ...` · full getter/setter interface · cursor traversal idiom · const-correctness · `nullptr` never `NULL` · `using namespace std;` · no `#include <string>` · includes limited to `<cstdlib> <iomanip> <iostream> <fstream>` · attached opening brace · `} // main` and `#endif` closers. Both the tutor skill and `/extract` read this file; **neither keeps a private copy** — a second copy guarantees drift, and drift means items that don't match the exam.
+1. **`references/cpp-conventions.md`** — lift the  skill's "course code conventions" section **verbatim**: C++11/14 only · `using DataType = ...` · full getter/setter interface · cursor traversal idiom · const-correctness · `nullptr` never `NULL` · `using namespace std;` · no `#include <string>` · includes limited to `<cstdlib> <iomanip> <iostream> <fstream>` · attached opening brace · `} // main` and `#endif` closers. Both the tutor skill and `/extract` read this file; **neither keeps a private copy** — a second copy guarantees drift, and drift means items that don't match the exam.
 2. **`.claude/commands/`**:
 
 | Command | Does | Per Integration §3 |
@@ -281,6 +297,8 @@ Only after one topic has been migrated by hand. `SKILLTAPE_INTEGRATION` §6.6: *
 
 **Per D2, `/extract` may phrase items**, not merely transform them mechanically. Its contract: read only the supplied source text, set `provenance` with an anchored verbatim excerpt, set `origin` honestly (`GENERATED` when it phrased, `EXTRACTED` when it transformed), attach `generationMeta`, and always leave `verifiedByHuman: false`. It must never state a fact absent from the section; where the source is ambiguous it flags the ambiguity rather than resolving it (`CS_DRILL` §8 Phase 3). Your verification pass is the only accuracy guarantee in the pipeline.
 
+**✅ Done (2026-08-01)
+
 ### A8 — Gap capture, then leech handoff
 1. **Gap capture** (§1.1) — the tutor skill appends a gap record to `gaps/inbox.jsonl` (`ts`, `topic_guess`, `what_broke`, `source_hint`, `severity`) whenever something doesn't stick. It logs *what needs drilling, never the content that drills it* — the tutor doesn't have the source text in front of it, so it would be recalling from training data with nothing to verify against. `/gaps` ranks the inbox and says what to ingest next. **Repeated gap records on one topic are the strongest available signal about where the next exam will hurt.**
 2. **Leech handoff** (§1.2) — a "copy for tutor" button on any flagged leech, putting prompt, `expected`, `criteria`, source excerpt, citation, and full attempt history on the clipboard. Paste into Claude Code; the tutor's existing homework-verification protocol handles it. Then pick one:
@@ -293,13 +311,46 @@ Only after one topic has been migrated by hand. `SKILLTAPE_INTEGRATION` §6.6: *
 
 **Build order matters:** the handoff needs attempt history to hand over, so it comes after A4 has been running a while.
 
+**✅ Done (2026-08-01), one of three outcomes.** `.claude/commands/gaps.md` ranks `gaps/inbox.jsonl` by topic-recurrence (per this section's own note: "repeated gap records... strongest available signal") rather than raw `severity`, cross-referenced against `examWeight` where known. The leech handoff lives in `ReportView.jsx`'s Leeches section: "Copy for tutor" builds exactly the bundle this section specifies (prompt, `expected`, `criteria`, source excerpt, citation, full attempt history) onto the clipboard via `GET /api/drill/report`'s leech detail; "Reset scheduling state" calls `POST /api/drill/leeches/:itemId/reset`, which deletes the item's `item_review_state` row — equivalent to "never reviewed," so it re-enters rotation immediately. **Not built:** "Rewrite the item" and "split the fact" — both are content edits (prompt/criteria/retiring an item), and there's no item content editor yet; that's A7-adjacent authoring-UI scope (Track B's B3 "Module Builder" territory) that was never part of this phase's spec, just correctly flagged in the UI as still needing a direct file edit.
+
 ### A9 — Scale extraction
 Work the A2 queue in A0's priority order until every `examWeight >= 1.0` topic has ≥3 verified items (`CS_DRILL` §7 check 7).
+
+**✅ Done for the 8 topics with supplied material (2026-08-01).** The user pasted
+12 real lecture PDFs covering dynamic-arrays, dynamic-classes, linked-lists,
+linked-lists-algorithms, doubly-linked-lists (3 duplicate copies — content
+identical, one canonical version ingested), templates, iterators, and stacks
+(2 duplicate copies for linked-lists and linked-lists-algorithms too — same
+handling). Combined with the already-`dynamic-alloc` pilot from A3, all 9
+`cpp` topics at `examWeight >= 1.5`, plus both `1.0`-weight topics that had
+material, now have real `sources/cpp/*.md` transcriptions and grounded
+`items` arrays:
+
+- `sources/cpp/{dynamic-arrays,dynamic-classes,linked-lists,linked-lists-algorithms,doubly-linked-lists,templates,iterators,stacks}.md` — verbatim transcriptions with anchored `## Heading {#anchor}` sections, extracted from the PDFs' actual text layer (not re-typed from memory — see the pipeline note below) so excerpts are byte-accurate against the source.
+- Each topic's `.js` file gained a `makeItem(...)` `items` array (5–8 items each, 56 items total), spanning RECALL/WRITE/TRACE/ERROR/CLOZE/COMPARE formats, all `origin: GENERATED`, all citing a `sourceId`+`anchor`+verbatim `excerpt`, all `verifiedByHuman: true` after a line-by-line check against the source file.
+- `npm run audit:bank` is clean (0 errors) across all 8 new topics plus the existing `dynamic-alloc`; `npx vite build` succeeds.
+
+**Pipeline note, since this batch was materially different from the A3 pilot:**
+the PDFs arrived as document attachments in conversation, and after a context
+compaction the plain-text extraction from earlier in the conversation wasn't
+recoverable — but the base64 PDF bytes were still present in the transcript
+JSONL. Re-extracted them into standalone files with `pdf-parse` (`npm install
+--no-save pdf-parse`, run once from the scratchpad) rather than re-typing
+content from memory, so every `sources/*.md` file is a direct machine
+transcription of the original PDF text layer, not a paraphrase. This is worth
+keeping in mind for future batches: when a PDF's text is needed again after
+compaction, it's still recoverable from the session JSONL's `document` content
+blocks, not lost.
+
+**Still blocked, genuinely:** `bigo`, `cstrings`, `containers` (the three
+remaining `examWeight: 1.0` cpp topics) and the entire `discrete` course have
+no source material yet. No items were fabricated for them. Next batch of PDFs
+the user supplies should target these.
 
 ### Operating protocol (once A4 ships)
 From `CS_DRILL` §10 — this is the habit the whole system exists to support:
 - **Daily, 20 min:** drill. Closed book. No IDE, no notes, no second monitor.
-- **After every lab/HW:** ingest the section that caused friction; extract 3–5 items from the specific thing that confused you. *Confusion is the highest-signal source of items in the system.*
+- **After every lab/HW:** ingest the section that caused friction; extract 3–5 items from the specific thing that confused you. *Confusion is the highest-signal source of items in the s
 - **Weekly:** a 40-minute exam sim.
 - **Two weeks pre-exam:** daily full-length sims, coverage report driving what gets ingested next.
 - **Weekly:** batch-review unverified items. Reading an item against its excerpt is itself a study rep, so this isn't overhead.
@@ -451,13 +502,17 @@ Every substantive idea in the four documents, and its destination. **Nothing is 
 
 ## 9. Immediate next steps
 
-D1, D2, D5, D6, and D10 are settled, which unblocks the whole of Track A through A5. The path is now:
+D1, D2, D5, D6, and D10 are settled, which unblocks the whole of Track A through A9. The path is now:
 
 1. **A0 — tally the midterm.** 🟡 Partially done (2026-08-01) — no graded midterm was available, so this ran as a diagnostic quiz + self-report instead of real point tallies. `examWeight` set on all 12 `cpp` topics; `discrete` still has none. Revisit with real numbers whenever any exist, and consider finishing the remaining 7 of 9 diagnostic questions to firm up the ranking.
 2. **A1 — finish hygiene.** ✅ Done (2026-08-01).
 3. **A2 — read the audit as a queue.** ✅ Done (2026-08-01) — ranked table in A2 below; key finding: raw error counts are uninformative (every legacy item fails the same 5 checks uniformly), so the real ranking signal is `examWeight`, not error volume.
 4. **A3 — migrate one topic by hand.** ✅ Done (2026-08-01) — `dynamic-alloc` has a real source file (`sources/cpp/dynamic-alloc.md`), 8 schema-compliant items, all verified against their excerpts, audits at zero errors / 8-in-rotation.
-5. **A4 — drill mode.** ✅ Done (2026-08-01) — attempt log + FSRS scheduler (`server/fsrs.js`, via `ts-fsrs`) + `DrillView` + JSON export/import, all shipped together and verified end-to-end in a real browser session (see A4 for the one real bug that walkthrough caught and fixed). **The phase that actually addresses the 53% is now live** — next is putting it to daily use (§5 "Operating protocol"), not more building.
-6. **A5 — exam simulator.** Not started — next real implementation phase. Depends on A0 (weights, already provisional) and A4 (now shipped).
+5. **A4 — drill mode.** ✅ Done (2026-08-01), with a follow-up: added a typed-answer textarea for self-graded formats so grading happens against something actually written, not silent recall (see A4's [UPDATED] note). Attempt log + FSRS scheduler (`server/fsrs.js`, via `ts-fsrs`) + `DrillView` + JSON export/import. **The phase that actually addresses the 53% is now live.**
+6. **A5 — exam simulator.** ✅ Done (2026-08-01), same textarea follow-up as A4. examWeight-sampled, mixed-topic exam with a hard timer, no feedback until the end, post-hoc self/auto-grading, and a per-topic report compared against closed-book drill accuracy.
+7. **A6 — reporting.** ✅ Done (2026-08-01) — the standing dashboard: topics × formats coverage grid, closed-book first-try accuracy per topic, examWeight-ranked "study these next," leech list. `ReportView.jsx`, entry point next to Drill/Exam.
+8. **A7 — authoring tooling.** ✅ Done (2026-08-01), one caveat — `/audit`, `/ingest`, `/extract` slash commands, and audit checks 2/3 (dead anchor, excerpt drift) wired and confirmed working (caught two real excerpt-drift bugs in existing A3 content on first run). `references/cpp-conventions.md` is a reconstruction from this doc's own summary, not a true verbatim lift — the source skill isn't installed in this environment. Flagged in the file itself.
+9. **A8 — gap capture, then leech handoff.** ✅ Done (2026-08-01) for capture-ranking and 1 of 3 leech-handoff outcomes — `/gaps`, and `ReportView.jsx`'s "copy for tutor" + "reset scheduling state." "Rewrite the item" / "split the fact" need a content editor that doesn't exist yet (A7-adjacent, out of this phase's scope).
+10. **A9 — scale extraction.** 🟡 Mostly done (2026-08-01) — 8 of 11 remaining `cpp` topics (dynamic-arrays, dynamic-classes, linked-lists, linked-lists-algorithms, doubly-linked-lists, templates, iterators, stacks) now have real sources and verified items, on top of `dynamic-alloc` from A3. `bigo`, `cstrings`, `containers`, and the whole `discrete` course are still blocked on missing source material — no items were fabricated for them.
 
 **Still open, each blocking only its own phase:** D3 (React Native — recommend skip), D4 (SessionStart nudge — recommend option 1; the JSON export A4 shipped covers the "cheapest insurance" half regardless). D7 and D9 are Track B and parked by D5.

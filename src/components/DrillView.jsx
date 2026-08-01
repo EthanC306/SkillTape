@@ -15,9 +15,14 @@ import { getDrillQueue, postDrillAttempt, getDrillExport, postDrillImport } from
  *
  * One item is shown at a time, sampled from the FSRS due queue
  * (GET /api/drill/queue). MCQ items are machine-graded on click; every other
- * format is self-graded 0-3 (Again/Hard/Good/Easy) after a "Show answer"
- * reveal — the same four buttons FSRS's `next()` expects, off by one
- * (ROADMAP.md A4 "Rating alignment").
+ * format gets a blank textarea to actually write an answer into (2026-08-01
+ * addition — silent recall + self-report was too easy to be honest about,
+ * in tension with ROADMAP.md §7 rule 3's "production over recognition")
+ * before "Show answer" reveals the key next to what you wrote, then a 0-3
+ * self-grade (Again/Hard/Good/Easy) — the same four buttons FSRS's `next()`
+ * expects, off by one (ROADMAP.md A4 "Rating alignment"). The written answer
+ * itself isn't auto-graded (free text has no reliable checker); it rides
+ * along in the attempt log as `note`.
  *
  * Props:
  *   course   — which course's due items to pull ("cpp" | "discrete").
@@ -29,6 +34,7 @@ export default function DrillView({ course, onExit }) {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [selected, setSelected] = useState(null); // MCQ choice index
+  const [writtenAnswer, setWrittenAnswer] = useState(""); // self-graded formats: typed before reveal
   const [tabBlurs, setTabBlurs] = useState(0); // for the current item
   const [startedAt, setStartedAt] = useState(() => Date.now());
   const [now, setNow] = useState(() => Date.now()); // ticks once/sec for the on-screen timer
@@ -87,6 +93,7 @@ export default function DrillView({ course, onExit }) {
   function resetForNextItem() {
     setRevealed(false);
     setSelected(null);
+    setWrittenAnswer("");
     setTabBlurs(0);
     setStartedAt(Date.now());
   }
@@ -97,6 +104,7 @@ export default function DrillView({ course, onExit }) {
     try {
       const res = await postDrillAttempt({
         itemId: item.id,
+        note: writtenAnswer.trim() || undefined,
         mode: "closed",
         grade: abandoned ? undefined : grade,
         seconds,
@@ -347,14 +355,62 @@ export default function DrillView({ course, onExit }) {
             )}
           </>
         ) : !revealed ? (
-          <button
-            onClick={() => setRevealed(true)}
-            style={{ ...navBtn, border: `1px solid ${PALETTE.accent}`, background: PALETTE.accentSoft, color: PALETTE.accent, fontWeight: 500 }}
-          >
-            Show answer
-          </button>
+          <div>
+            {/* A blank page to actually write on, not just think about — the
+                app's own "production over recognition" rule (ROADMAP.md §7
+                rule 3) means self-grading against a silently-recalled answer
+                is too easy to be honest about. Not graded automatically
+                (free text has no reliable auto-checker); it's here so you
+                commit to something concrete before comparing against the key. */}
+            <textarea
+              value={writtenAnswer}
+              onChange={(e) => setWrittenAnswer(e.target.value)}
+              placeholder="Write your answer here before revealing…"
+              rows={item.format === FORMATS.WRITE ? 6 : 4}
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                background: PALETTE.bg,
+                border: `1px solid ${PALETTE.line}`,
+                borderRadius: RADII.md,
+                color: PALETTE.text,
+                padding: "10px 12px",
+                fontFamily: item.format === FORMATS.WRITE || item.format === FORMATS.TRACE ? MONO : "inherit",
+                fontSize: 14,
+                lineHeight: 1.6,
+                resize: "vertical",
+                marginBottom: 12,
+              }}
+            />
+            <button
+              onClick={() => setRevealed(true)}
+              style={{ ...navBtn, border: `1px solid ${PALETTE.accent}`, background: PALETTE.accentSoft, color: PALETTE.accent, fontWeight: 500 }}
+            >
+              Show answer
+            </button>
+          </div>
         ) : (
           <div>
+            {writtenAnswer.trim() && (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, marginBottom: 4 }}>YOUR ANSWER</div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    lineHeight: 1.7,
+                    padding: "12px 14px",
+                    borderRadius: RADII.md,
+                    background: PALETTE.panel2,
+                    border: `1px solid ${PALETTE.line}`,
+                    whiteSpace: "pre-wrap",
+                    fontFamily: item.format === FORMATS.WRITE || item.format === FORMATS.TRACE ? MONO : "inherit",
+                  }}
+                >
+                  {writtenAnswer}
+                </div>
+              </div>
+            )}
+            <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, marginBottom: 4 }}>ANSWER KEY</div>
             <div
               style={{
                 fontSize: 14,

@@ -5,7 +5,7 @@ import AuthBar from "./AuthBar";
 
 /**
  * SettingsMenu — the gear button fixed to the top of the page (same corner
- * in both cpp and cs3000, since Header renders it for either course).
+ * in both c++ and cs3000, since Header renders it for either course).
  *
  * Opens a panel with two sections: a theme-preset swatch row (see
  * ACCENT_PRESETS/useTheme) and the account control that used to sit inline

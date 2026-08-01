@@ -1,7 +1,9 @@
+import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
+
 export default {
   id: "linked-lists-algorithms",
   title: "Linked List Algorithms",
-  subtitle: "Data Structures — length, search, insert, delete",
+  subtitle: "c++ — length, search, insert, delete",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js
@@ -182,5 +184,174 @@ export default {
       explanation:
         "If the target isn't in the list (or is the last node), search must examine all n nodes before finishing.",
     },
+  ],
+  items: [
+    makeItem({
+      id: "linked-lists-algorithms-01",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "Write a search function that returns a pointer to the node containing target, or nullptr if not found.",
+      expected:
+        "Node* search(int target)\n{ Node *cursor = head;\nwhile(cursor != nullptr){\nif(cursor->getData() == target){\nreturn cursor;\n}\ncursor = cursor->getNext();\n}\nreturn nullptr;\n}",
+      criteria: [
+        "Traverses with a cursor from head until cursor == nullptr",
+        "Returns cursor as soon as cursor->getData() == target",
+        "Returns nullptr after the loop if nothing matched",
+      ],
+      timeBudgetSec: 150,
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#search-function",
+        excerpt:
+          "Node* search(int target)\n{ Node *cursor = head;\nwhile(cursor != nullptr){\nif(cursor->getData() == target){\nreturn cursor;\n}\ncursor = cursor->getNext();\n}\nreturn nullptr;\n}",
+        citation: "Lecture Deck 03.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/linked-lists-algorithms.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-02",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "Why is head insert an O(1) algorithm, and what does that require if head insert lives inside a separate function?",
+      expected:
+        "Head insert is O(1) because it just attaches a new node in front and moves head — a fixed number of pointer operations, much faster than inserting at the beginning of an array/vector. As a result of the algorithm, head will have a new pointer value, so if passing head to a function, it needs to be referenced (call-by-reference) so the caller's head actually updates.",
+      criteria: [
+        "States head insert is O(1), faster than inserting at the beginning of an array/vector",
+        "States head must be passed by reference if the insert logic is in a function",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#head-insert-concept",
+        excerpt:
+          "- Assuming we are inserting newData at the head of the list\n- As a result of this algorithm, head will have a new pointer value\n- If passing head to a function, it needs to be referenced\n- This is an O(1) algorithm. Much faster than inserting at the beginning of an array/vector",
+        citation: "Lecture Deck 03.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/linked-lists-algorithms.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-03",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.ERROR,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "What breaks if you swap the order of these two lines when inserting after `previous`?\n```\ntemp->setNext(previous->getNext());\nprevious->setNext(temp);\n```",
+      expected:
+        "If previous->setNext(temp) ran first, then temp->setNext(previous->getNext()) would set temp's next to temp itself (since previous->getNext() is now temp), losing the link to the rest of the list. The correct order captures previous's old next before previous is redirected — Case 2: previous is pointing to non-nullptr node — Node *temp = new Node(value); if(previous != nullptr){ temp->setNext(previous->getNext()); previous->setNext(temp); }",
+      criteria: [
+        "Identifies that redirecting previous first would make previous->getNext() return temp instead of the original next node",
+        "States the rest of the list would be lost/orphaned",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#insert-after-previous-pointer",
+        excerpt:
+          "Case 2: previous is pointing to non-nullptr node\nNode *temp = new Node(value);\nif(previous != nullptr){\ntemp->setNext(previous->getNext());\nprevious->setNext(temp);\n}",
+        citation: "Lecture Deck 03.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/linked-lists-algorithms.md",
+      },
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-04",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "Write deleteNode(Node *current), handling both the nullptr case and the current == head case.",
+      expected:
+        "void deleteNode(Node *current){\nif(current == nullptr){//nothing to delete\nreturn;\n}\nif(current == head){//first node\nhead = current->getNext();\ndelete current;\n}\n}",
+      criteria: [
+        "Returns immediately if current is nullptr",
+        "If current == head, sets head = current->getNext() before deleting current",
+      ],
+      timeBudgetSec: 150,
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#delete-node-function",
+        excerpt:
+          "void deleteNode(Node *current){\nif(current == nullptr){//nothing to delete\nreturn;\n}\nif(current == head){//first node\nhead = current->getNext();\ndelete current;\n}",
+        citation: "Lecture Deck 03.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/linked-lists-algorithms.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-05",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt:
+        "Given this code for deleting a node that isn't the head, why does the while loop stop before reaching current itself?\n```\nNode *previous = head;\nwhile(previous->getNext() != current){\nprevious = previous->getNext();\n}\nprevious->setNext(current->getNext());\ndelete current;\n```",
+      expected:
+        "The loop advances previous until previous->getNext() equals current — i.e., until previous is the node right before current. It deliberately stops one node short of current so previous can be used to skip over current: previous->setNext(current->getNext()); splices current out of the list, then delete current frees it.",
+      criteria: [
+        "States the loop stops when previous is the node immediately before current",
+        "Explains previous->setNext(current->getNext()) skips over current in the list",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#delete-node-cont",
+        excerpt:
+          "else{ //find the previous pointer of current\nNode *previous = head;\nwhile(previous->getNext() != current){\nprevious = previous->getNext();\n}\n//skip over current in the list and delete it\nprevious->setNext(current->getNext());\ndelete current;\n}",
+        citation: "Lecture Deck 03.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/linked-lists-algorithms.md",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-06",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.GENERATED,
+      prompt: "When is it worth keeping a tail pointer for a linked list, and what does it buy you?",
+      expected:
+        "If we're accessing the end of the list regularly (e.g., adding at the end of the list), we can improve the performance by keeping track of the end of the list (tail). tail always points the last element of the list, and as elements are added to the end, tail changes accordingly.",
+      criteria: [
+        "States tail is worth it when the end of the list is accessed regularly (e.g. frequent appends)",
+        "States tail always points to the last element and is updated as elements are appended",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#list-tail",
+        excerpt:
+          "If we're accessing the end of the list regularly (e.g., adding at the end of the list), we can improve the performance by keeping track of the end of the list (tail)\n- tail always points the last element of the list\n- As we add elements to the end of the list, tail changes accordingly",
+        citation: "Lecture Deck 03.2",
+      },
+      generationMeta: {
+        model: "claude-sonnet-5",
+        generatedAt: "2026-08-01",
+        promptedFrom: "sources/cpp/linked-lists-algorithms.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
   ],
 };

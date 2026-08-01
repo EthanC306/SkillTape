@@ -11,6 +11,8 @@ import TopicView from "./components/TopicView";
 import MasterQuizView from "./components/MasterQuizView";
 import HistoryModal from "./components/HistoryModal";
 import DrillView from "./components/DrillView";
+import ExamView from "./components/ExamView";
+import ReportView from "./components/ReportView";
 
 /**
  * Status — the panel shown while the curriculum is loading, or when it can't
@@ -95,6 +97,15 @@ export default function App({ course }) {
   // and leaving Header's home-logo link on screen would give a second, less
   // honest one.
   const [drilling, setDrilling] = useState(false);
+
+  // Same rationale as `drilling`, for the exam simulator (ROADMAP.md A5).
+  const [examining, setExamining] = useState(false);
+
+  // The reporting dashboard (ROADMAP.md A6). Not closed-book, so — unlike
+  // drilling/examining — it keeps Header/nav chrome visible; it's rendered
+  // in place of Home rather than alongside it purely to keep App's render
+  // tree flat, not for any escape-hatch reason.
+  const [reporting, setReporting] = useState(false);
 
   // Only the topics belonging to this class (or all of them if no course given).
   const topics = useMemo(
@@ -203,6 +214,8 @@ export default function App({ course }) {
     >
       {drilling ? (
         <DrillView course={course} onExit={() => setDrilling(false)} />
+      ) : examining ? (
+        <ExamView course={course} onExit={() => setExamining(false)} />
       ) : (
         <>
           <Header
@@ -219,6 +232,8 @@ export default function App({ course }) {
             <Status text={error} tone="bad" onRetry={reload} />
           ) : masterTopic ? (
             <MasterQuizView topic={masterTopic} onExit={exitMasterSet} />
+          ) : reporting ? (
+            <ReportView course={course} onExit={() => setReporting(false)} />
           ) : !topic ? (
             <Home
               topics={topics}
@@ -231,6 +246,8 @@ export default function App({ course }) {
               onMasterSet={buildMasterSet}
               onShowHistory={setHistoryTopicId}
               onDrill={() => setDrilling(true)}
+              onExam={() => setExamining(true)}
+              onReport={() => setReporting(true)}
             />
           ) : (
             <TopicView

@@ -25,13 +25,14 @@ const upsertCourse = db.prepare(`
 `);
 
 const upsertTopic = db.prepare(`
-  INSERT INTO topics (id, course_id, title, subtitle, show_chart, position)
-  VALUES (?, ?, ?, ?, ?, ?)
-  ON CONFLICT(id) DO UPDATE SET course_id  = excluded.course_id,
-                                title      = excluded.title,
-                                subtitle   = excluded.subtitle,
-                                show_chart = excluded.show_chart,
-                                position   = excluded.position
+  INSERT INTO topics (id, course_id, title, subtitle, show_chart, position, exam_weight)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(id) DO UPDATE SET course_id   = excluded.course_id,
+                                title       = excluded.title,
+                                subtitle    = excluded.subtitle,
+                                show_chart  = excluded.show_chart,
+                                position    = excluded.position,
+                                exam_weight = excluded.exam_weight
 `);
 
 // Child rows are replaced wholesale per topic — simpler and more predictable
@@ -108,7 +109,8 @@ const seed = db.transaction(() => {
       topic.title,
       topic.subtitle ?? null,
       topic.showChart ? 1 : 0,
-      position
+      position,
+      topic.examWeight ?? 1.0
     );
 
     clearCards.run(topic.id);

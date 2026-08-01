@@ -1,7 +1,7 @@
 export default {
   id: "bigo",
   title: "Big-O Notation & Running Time",
-  subtitle: "Data Structures — algorithm efficiency",
+  subtitle: "c++ — algorithm efficiency",
   course: "cpp",
   showChart: true,
   // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the

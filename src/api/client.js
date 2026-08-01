@@ -44,7 +44,7 @@ export async function api(path, { method = "GET", body } = {}) {
 // ── Topics ─────────────────────────────────────────────────────────────────
 
 // Module-level cache, deliberately outside React. Shell.jsx renders
-// <App key="cpp" …>, so switching course tabs REMOUNTS App and re-runs its
+// <App key="c++" …>, so switching course tabs REMOUNTS App and re-runs its
 // effects — without this, every tab switch would refetch the whole bank.
 let topicsPromise = null;
 
@@ -130,4 +130,28 @@ export function getDrillExport() {
 /** Re-ingest a previously exported attempt log. body: { attempts: [...] }. */
 export function postDrillImport(body) {
   return api("/api/drill/import", { method: "POST", body });
+}
+
+// ── Exam simulator (ROADMAP.md A5) ──────────────────────────────────────────
+
+/** An examWeight-sampled, mixed-topic item set for `course`, plus the topic breakdown and time budget. */
+export function getExamSet(course, { count = 20, minutes = 50 } = {}) {
+  return api(`/api/drill/exam?course=${encodeURIComponent(course)}&count=${count}&minutes=${minutes}`);
+}
+
+/** Per-topic closed-book drill accuracy for `course` — the exam report's comparison baseline. */
+export function getDrillStats(course) {
+  return api(`/api/drill/stats?course=${encodeURIComponent(course)}`);
+}
+
+// ── Reporting + leech handoff (ROADMAP.md A6 / A8) ──────────────────────────
+
+/** The standing dashboard for `course`: topics x formats grid, first-try accuracy, leeches, weakest-topic ranking. */
+export function getDrillReport(course) {
+  return api(`/api/drill/report?course=${encodeURIComponent(course)}`);
+}
+
+/** A8 "reset scheduling state" outcome — clears a leech's review history so it re-enters rotation fresh. */
+export function resetLeech(itemId) {
+  return api(`/api/drill/leeches/${encodeURIComponent(itemId)}/reset`, { method: "POST" });
 }

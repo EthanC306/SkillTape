@@ -3,7 +3,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "dynamic-alloc",
   title: "Dynamic Allocation",
-  subtitle: "Data Structures — pointers & the heap",
+  subtitle: "c++ — pointers & the heap",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): provisional, not point-derived —
@@ -260,7 +260,7 @@ export default {
         anchor: "#new-operator",
         excerpt:
           "After `intPtr = new int;`, intPtr points to a location holding garbage. After `intPtr = new int(99);`, intPtr points to a location holding 99.",
-        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        citation: "Lecture Deck 02.1",
         page: 6,
       },
       generationMeta: {
@@ -289,7 +289,7 @@ export default {
         anchor: "#dangling-reference",
         excerpt:
           "intPtr2 has a dangling reference. Pointing to memory that is no longer allocated.",
-        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        citation: "Lecture Deck 02.1",
         page: 10,
       },
       generationMeta: {
@@ -319,7 +319,7 @@ export default {
         anchor: "#dangling-reference",
         excerpt:
           "After `delete intPtr1;`, that location becomes deallocated memory, and intPtr2 still points to it (the dangling reference) — the diagram explicitly shows intPtr2 pointing at the deallocated-memory box, not at nullptr and not at a valid 99.",
-        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        citation: "Lecture Deck 02.1",
         page: 10,
       },
       generationMeta: {
@@ -349,7 +349,7 @@ export default {
         anchor: "#pointer-diagrams",
         excerpt:
           "After `*intPtr = 99;`, intPtr points to a location holding 99. After `delete intPtr;`, intPtr points to deallocated memory again.",
-        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        citation: "Lecture Deck 02.1",
         page: 9,
       },
       generationMeta: {
@@ -379,7 +379,7 @@ export default {
         anchor: "#dangling-reference",
         excerpt:
           "intPtr2 has a dangling reference. Pointing to memory that is no longer allocated.",
-        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        citation: "Lecture Deck 02.1",
         page: 10,
       },
       generationMeta: {
@@ -404,7 +404,7 @@ export default {
         anchor: "#delete-operator",
         excerpt:
           "Memory deleted is now available to be allocated again. Returned to the heap.",
-        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+        citation: "Lecture Deck 02.1",
         page: 8,
       },
       generationMeta: {
@@ -433,8 +433,8 @@ export default {
         sourceId: "cpp-slides-02.1-dynamic-alloc",
         anchor: "#static-dynamic-automatic",
         excerpt:
-          "Dynamic Variables are created using the new operator\nStatic variables are created using the static keyword\nstatic int x = 5;\nStatic variables are global to the file\nAutomatic variables are the ordinary variables we've been using",
-        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+          "- Dynamic Variables are created using the new operator\n- Static variables are created using the static keyword\n```\nstatic int x = 5;\n```\n- Static variables are global to the file\n- Automatic variables are the ordinary variables we've been using",
+        citation: "Lecture Deck 02.1",
         page: 13,
       },
       generationMeta: {
@@ -463,8 +463,8 @@ export default {
         sourceId: "cpp-slides-02.1-dynamic-alloc",
         anchor: "#new-operator",
         excerpt:
-          "To allocate memory use the new operator.\nint *intPtr;\nintPtr = new int;\nintPtr = new int(99); //Allocate and initialize",
-        citation: "Course staff, Data Structures, Lecture Deck 02.1",
+          "- To allocate memory use the new operator.\n```\nint *intPtr;\nintPtr = new int;\nintPtr = new int(99); //Allocate and initialize\n```",
+        citation: "Lecture Deck 02.1",
         page: 6,
       },
       generationMeta: {
