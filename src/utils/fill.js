@@ -14,7 +14,7 @@
 // Layers 1 and 2 are automatic and need no changes to the topic files.
 
 // Same split as Inline.jsx — the **bold** segments are the blanks to fill.
-const BOLD_RE = /(\*\*[^*]+\*\*)/g;
+export const BOLD_RE = /(\*\*[^*]+\*\*)/g;
 
 // Break a card body into tokens: plain text and fillable blanks.
 // Returns [{ type: "text" | "blank", value }]. For blanks, value is the

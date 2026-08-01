@@ -19,7 +19,7 @@ import FlashcardsView from "./FlashcardsView";
  *   onSelectMode     — jump back to the topic list with selection mode already
  *                       on, ready to pick topics for a Master Set quiz.
  */
-export default function TopicView({ topic, mode, setMode, onFinish, best, onPrev, onNext, prevTopic, nextTopic, onSelectMode }) {
+export default function TopicView({ topic, mode, setMode, onFinish, best, onPrev, onNext, prevTopic, nextTopic, onSelectMode, editMode, onToggleEdit, onSaveContent, saveState }) {
   const navBtn = {
     fontFamily: HEADING,
     fontSize: 12,
@@ -31,11 +31,13 @@ export default function TopicView({ topic, mode, setMode, onFinish, best, onPrev
     color: PALETTE.text,
   };
 
-  // Mode buttons. "Flashcards" only appears when this topic ships a deck.
+  // Mode buttons. "Flashcards" normally only appears when this topic ships a
+  // deck — but in edit mode it always does, otherwise there'd be no way to
+  // create the first flashcard for a topic that doesn't have one yet.
   const modes = [
     ["learn", "Learn"],
     ["quiz", "Quiz"],
-    ...(topic.flashcards?.length ? [["cards", "Flashcards"]] : []),
+    ...(topic.flashcards?.length || editMode ? [["cards", "Flashcards"]] : []),
   ];
 
   return (
@@ -61,6 +63,19 @@ export default function TopicView({ topic, mode, setMode, onFinish, best, onPrev
           </button>
         ))}
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+          {/* Turns Learn and Flashcards into editors for this topic's content. */}
+          <button
+            onClick={onToggleEdit}
+            title="Edit this topic's cards"
+            style={{
+              ...navBtn,
+              border: `1px solid ${editMode ? PALETTE.accent : PALETTE.line}`,
+              background: editMode ? PALETTE.accentSoft : "transparent",
+              color: editMode ? PALETTE.accent : PALETTE.text,
+            }}
+          >
+            {editMode ? "Done" : "Edit"}
+          </button>
           {/* Jumps back to the topic list in selection mode (for Master Set). */}
           <button onClick={onSelectMode} title="Select topics for a combined quiz" style={navBtn}>
             Select
@@ -80,11 +95,13 @@ export default function TopicView({ topic, mode, setMode, onFinish, best, onPrev
         </div>
       </div>
       {mode === "learn" ? (
-        <LearnView topic={topic} />
+        <LearnView topic={topic} editMode={editMode} onSave={onSaveContent} saveState={saveState} />
       ) : mode === "quiz" ? (
+        // Quiz stays read-only: editing questions means editing four choices and
+        // a correct-answer index, which is a different (and riskier) editor.
         <QuizView topic={topic} onFinish={onFinish} best={best} />
       ) : (
-        <FlashcardsView topic={topic} />
+        <FlashcardsView topic={topic} editMode={editMode} onSave={onSaveContent} saveState={saveState} />
       )}
     </div>
   );
