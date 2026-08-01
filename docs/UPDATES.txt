@@ -1,0 +1,27 @@
+================================================================================
+                        SKILLTAPR — PROJECT UPDATES LOG
+================================================================================
+Newest entries at the top. Copy the entry template below to add a new update.
+
+--------------------------------------------------------------------------------
+ENTRY TEMPLATE (copy/paste for new entries)
+--------------------------------------------------------------------------------
+Date:     YYYY-MM-DD
+Commit:   <hash or "uncommitted">
+Files:    <files changed>
+Summary:
+  - <what changed and why>
+
+
+--------------------------------------------------------------------------------
+ENTRY TEMPLATE (copy/paste for new entries)
+--------------------------------------------------------------------------------
+Date:     2026-08-01
+Commit:   <commited">
+Files:    <auth.js progress.js curriculum.js>
+Summary:
+  - <what changed and why>
+- Added src/data/topics/discrete/vocabulary.js — a new "Vocabulary" topic under CS3000, with one intro card explaining the deck, no quiz questions, and an empty flashcards array for you to fill in yourself.
+- Registered it in src/data/curriculum.js.
+- Fixed a latent bug in src/components/TopicView.jsx: the Quiz tab was always shown regardless of whether a topic had questions, which would've crashed on a flashcards-only topic like this one. Now it only shows when questions.length > 0 (same pattern the Flashcards tab already used).
+- Ran npm run db:seed to load it into the database.

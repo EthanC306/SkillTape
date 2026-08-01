@@ -72,3 +72,40 @@ export function putFlashcards(topicId, flashcards) {
     body: { flashcards },
   });
 }
+
+// ── Progress ───────────────────────────────────────────────────────────────
+
+/** Record one finished quiz run. body: { topicId, runId, results }. */
+export function postAttempts(body) {
+  return api("/api/attempts", { method: "POST", body });
+}
+
+/** Every topic's quiz history: { [topicId]: { best, total, runs, history } }. */
+export function getProgress() {
+  return api("/api/progress");
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+// All four set/read the httpOnly session cookie server-side; nothing here
+// touches document.cookie directly, so there's no token for frontend code to
+// mishandle.
+
+/** Create an account and log in as it. Resolves { id, email }; rejects on 409/400. */
+export function signup(email, password) {
+  return api("/api/auth/signup", { method: "POST", body: { email, password } });
+}
+
+/** Log in. Resolves { id, email }; rejects with a generic message on 401. */
+export function login(email, password) {
+  return api("/api/auth/login", { method: "POST", body: { email, password } });
+}
+
+/** End the session. Never rejects on "already logged out" — the route is idempotent. */
+export function logout() {
+  return api("/api/auth/logout", { method: "POST" });
+}
+
+/** The logged-in user, or throws if there isn't one (useAuth treats 401 as "no user"). */
+export function getMe() {
+  return api("/api/auth/me");
+}

@@ -27,7 +27,8 @@ Shipped:
 - **Flashcards** — front/back pairs per topic.
 - **Diagrams** — optional captioned figures on cards and questions.
 - **Big-O visuals** — C++ topics can render a complexity-growth chart and reference table, with the relevant curve highlighted when you answer.
-- **Progress tracking** — per topic: best score, run count, and the last 50 runs, persisted to `localStorage`.
+- **Progress tracking** — per topic: best score, run count, and the last 50 runs, persisted server-side (one row per question answered) and readable across browsers once logged in. See `docs/BACKEND.md`.
+- **Edit Mode** — an Edit toggle on any topic makes Learn cards and flashcards editable in place (add/delete/reorder, a bold-toggle button that doubles as the Fill Mode blank marker). Requires an account. Quiz questions are not editable this way — see `docs/AUTHORING.md`.
 
 Planned — designed but **not built**. Nothing below exists in `src/` yet:
 
@@ -44,12 +45,16 @@ These four ship together or not at all. The scheduler needs per-item history to 
 Requires [Node.js](https://nodejs.org/) 18 or newer.
 
 ```bash
-npm install       # required after pulling: @vitejs/plugin-react was added
-npm run dev       # Vite dev server, typically http://localhost:5173
-npm run build     # production build → dist/
-npm run preview   # serve the production build locally
+npm install         # required after pulling: @vitejs/plugin-react was added
+npm run dev         # Vite dev server, http://localhost:5173
+npm run dev:server  # API server, http://127.0.0.1:3001 — run alongside dev, separate terminal
+npm run db:seed     # load/refresh curriculum content into the database
+npm run build       # production build → dist/
+npm run preview     # serve the production build locally
 npm run audit:bank  # validate the question bank (see below)
 ```
+
+The app needs **both** `dev` and `dev:server` running to load content — see `docs/BACKEND.md` for the backend architecture, the two-process setup, and the database.
 
 `npm run audit:bank` currently **fails**, and that is expected: it checks the bank against the
 planned item schema, which the existing MCQ content predates. Every legacy question is reported as
@@ -134,6 +139,6 @@ The MCQ cap is the point, not an accident. Recognizing a correct answer among fo
 ## Notes
 
 - Lecture slides, textbook PDFs, and zyBooks exports (`pages/`, `sources/`) are **not** in this repository — they're copyrighted course materials and are gitignored. Verify with `git ls-files | grep -Ei '\.pdf$|^pages/'` before pushing.
-- There is no backend or account system. Progress is per-browser and clearing site data wipes it. `docs/PLAN_PLATFORMIZE.md` covers the multi-user roadmap; it is planning only, with no implementation yet.
+- There **is** a backend and account system now: a self-hosted Express + SQLite API (see `docs/BACKEND.md`). Progress is stored server-side, keyed to an account once you log in; accounts are optional for reading content and taking quizzes, required only for Edit Mode. `docs/PLAN_PLATFORMIZE.md` covers the rest of the multi-user roadmap, most of which is still planning only — see `docs/ROADMAP.md` for what's landed versus what hasn't.
 - `npm run audit:bank` validates structure — anchors, formats, quotas, required fields. It does **not** validate accuracy. Only human sign-off (`verifiedByHuman`) does that.
-- Docs moved under `docs/`: `AUTHORING.md` (how to write a topic file — the authoring contract), `CORRECTIONS.md` (code review and findings), `CS_DRILL_BUILD_SPEC.md` (the drill-system brief), `SKILLTAPE_INTEGRATION.md` (tutor-skill wiring), `PLAN_PLATFORMIZE.md` (platform roadmap). Several describe the target state — check this README's Features list for what actually runs. `AUTHORING.md` describes what to do today.
+- Docs moved under `docs/`: `AUTHORING.md` (how to write a topic file, by hand or in Edit Mode — the authoring contract), `BACKEND.md` (the API/database architecture), `CORRECTIONS.md` (code review and findings), `CS_DRILL_BUILD_SPEC.md` (the drill-system brief), `SKILLTAPE_INTEGRATION.md` (tutor-skill wiring), `PLAN_PLATFORMIZE.md` (platform roadmap). Several describe the target state — check this README's Features list for what actually runs. `AUTHORING.md` and `BACKEND.md` describe what to do today.

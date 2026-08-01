@@ -8,6 +8,7 @@
 // indistinguishable to the views.
 import { Router } from "express";
 import db from "../db.js";
+import { requireAuth } from "../auth.js";
 
 const router = Router();
 
@@ -69,6 +70,10 @@ export function buildTopic(row) {
 
   const questions = getQuestions.all(row.id).map((q) =>
     compact({
+      // Real database id, exposed so the frontend can send it back in a quiz
+      // attempt (server/routes/progress.js). Never existed in the old bundled
+      // topic modules — purely additive, nothing downstream keyed off its absence.
+      id: q.id,
       prompt: q.prompt,
       code: q.code,
       // pluck() would return scalars, but .all() keeps this readable.
@@ -283,14 +288,17 @@ function replaceChildren(req, res, key, toRow, replace) {
 }
 
 // PUT /api/topics/:id/cards — replace the topic's Learn-mode cards.
-router.put("/:id/cards", (req, res) =>
+// requireAuth only — the GET routes above stay open, and quiz-taking in
+// progress.js stays anonymous-friendly. Editing content is the one thing that
+// needs an account.
+router.put("/:id/cards", requireAuth, (req, res) =>
   replaceChildren(req, res, "cards", cardRow, replaceCards)
 );
 
 // PUT /api/topics/:id/flashcards — replace the topic's deck. An empty array is
 // a legal payload: it is how the editor deletes a deck, and buildTopic turns
 // zero rows back into an absent `flashcards` key.
-router.put("/:id/flashcards", (req, res) =>
+router.put("/:id/flashcards", requireAuth, (req, res) =>
   replaceChildren(req, res, "flashcards", flashcardRow, replaceFlashcards)
 );
 

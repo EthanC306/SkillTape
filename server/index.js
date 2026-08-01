@@ -2,6 +2,8 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import topics from "./routes/topics.js";
+import progress from "./routes/progress.js";
+import auth from "./routes/auth.js";
 
 //Returns an application object. Think of app as your servers rulebook, every route is a rule saying run that function if this happens
 const app = express();
@@ -18,6 +20,11 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/topics", topics);
+// progress.js defines both /attempts and /progress itself (two unrelated
+// collection names sharing one file, per docs/RESUME-EDIT-MODE.md), so it is
+// mounted at the bare /api prefix rather than one fixed sub-path.
+app.use("/api", progress);
+app.use("/api/auth", auth);
 
 // 404 for anything under /api that matched no route above. Without this, an
 // unknown /api path falls through and returns Express's HTML error page, which

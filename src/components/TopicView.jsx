@@ -34,9 +34,12 @@ export default function TopicView({ topic, mode, setMode, onFinish, best, onPrev
   // Mode buttons. "Flashcards" normally only appears when this topic ships a
   // deck — but in edit mode it always does, otherwise there'd be no way to
   // create the first flashcard for a topic that doesn't have one yet.
+  // "Quiz" only appears when there are questions to ask — QuizView indexes
+  // into topic.questions unconditionally, so an empty bank (a flashcards-only
+  // topic, e.g. a vocab deck authored entirely in Edit Mode) would crash it.
   const modes = [
     ["learn", "Learn"],
-    ["quiz", "Quiz"],
+    ...(topic.questions?.length ? [["quiz", "Quiz"]] : []),
     ...(topic.flashcards?.length || editMode ? [["cards", "Flashcards"]] : []),
   ];
 
