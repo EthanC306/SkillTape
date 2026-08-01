@@ -1,8 +1,14 @@
 import React from "react";
 import { PALETTE, HEADING } from "../data/theme";
+import { BOLD_RE } from "../utils/fill";
 
 export default function Inline({ text }) {
-  const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
+  // One shared regex so Learn mode and Fill Mode can never disagree on what a
+  // blank is. BOLD_RE is global, and a global regex carries a mutable lastIndex
+  // across calls — but split() neither reads nor writes it, so sharing is safe
+  // here. Anything that reaches for .test() or .exec() must clone it first:
+  // new RegExp(BOLD_RE.source, "g").
+  const parts = String(text).split(BOLD_RE);
   return (
     <>
       {parts.map((p, i) =>

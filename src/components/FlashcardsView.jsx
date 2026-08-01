@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 
 /**
@@ -11,17 +11,46 @@ import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
  *
  * Props:
  *   topic — the open topic; its `flashcards` [{ front, back }] drive the deck.
+ *
+ * In edit mode the flip-card carousel is replaced by a plain list (see
+ * FlashcardEditor below): the card container sets `userSelect: "none"` and
+ * flips on any click, both of which fight text selection.
  */
-export default function FlashcardsView({ topic }) {
+export default function FlashcardsView({ topic, editMode, onSave, saveState }) {
   const [index, setIndex] = useState(0);   // which card is showing
   const [flipped, setFlipped] = useState(false); // false = front, true = back
 
-  const cards = topic.flashcards;
-  const card = cards[index];
+  const cards = topic.flashcards ?? [];
+
+  // Deleting cards (or opening a topic with no deck at all) can leave `index`
+  // past the end, and the old `cards[index]` read would throw on the next line.
+  const safeIndex = cards.length ? Math.min(index, cards.length - 1) : 0;
+  const card = cards[safeIndex];
+
+  if (editMode) {
+    return <FlashcardEditor topic={topic} onSave={onSave} saveState={saveState} />;
+  }
+
+  if (!card) {
+    return (
+      <div style={{ fontFamily: MONO, fontSize: 13, color: PALETTE.muted, textAlign: "center", padding: 40 }}>
+        No flashcards in this topic yet — hit Edit to add some.
+      </div>
+    );
+  }
+
+  // Fronts range from a bare "O(1)" to a full sentence ("Why does prefix
+  // operator++ return Iterator&?"). Scale the type down as they get longer so a
+  // question-shaped front still fits the card instead of overflowing it.
+  const frontSize =
+    card.front.length <= 14 ? 42 : card.front.length <= 40 ? 27 : card.front.length <= 90 ? 21 : 18;
 
   /** Step forward/back through the deck (wrapping), new card starts on FRONT. */
   function go(delta) {
-    setIndex((i) => (i + delta + cards.length) % cards.length);
+    setIndex((i) => {
+      const from = Math.min(i, cards.length - 1);
+      return (from + delta + cards.length) % cards.length;
+    });
     setFlipped(false);
   }
 
@@ -40,7 +69,7 @@ export default function FlashcardsView({ topic }) {
     <div style={{ maxWidth: 620, margin: "0 auto" }}>
       {/* Deck position + which side is up. */}
       <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 12, color: PALETTE.muted, marginBottom: 12 }}>
-        <span>CARD {index + 1} / {cards.length}</span>
+        <span>CARD {safeIndex + 1} / {cards.length}</span>
         <span>{flipped ? "BACK" : "FRONT"}</span>
       </div>
 
@@ -63,11 +92,12 @@ export default function FlashcardsView({ topic }) {
         }}
       >
         {flipped ? (
-          <div style={{ fontSize: 17, lineHeight: 1.8, letterSpacing: 0.2, color: PALETTE.text }}>
+          // pre-wrap so a code answer keeps its line breaks and indentation.
+          <div style={{ fontSize: 17, lineHeight: 1.8, letterSpacing: 0.2, color: PALETTE.text, whiteSpace: "pre-wrap" }}>
             {card.back}
           </div>
         ) : (
-          <div style={{ fontFamily: HEADING, fontSize: 42, fontWeight: 500, color: PALETTE.accent }}>
+          <div style={{ fontFamily: HEADING, fontSize: frontSize, lineHeight: 1.4, fontWeight: 500, color: PALETTE.accent }}>
             {card.front}
           </div>
         )}
@@ -97,6 +127,197 @@ export default function FlashcardsView({ topic }) {
           Next ›
         </button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * FlashcardEditor — the deck as an editable list.
+ *
+ * Deliberately not the flip card: authoring a deck means seeing front and back
+ * together, and the carousel shows one side of one card at a time. Fronts and
+ * backs are plain strings with no `**bold**` markup (AUTHORING §5), so there is
+ * no B button here — that only belongs on Learn cards.
+ */
+function FlashcardEditor({ topic, onSave, saveState }) {
+  const [draft, setDraft] = useState(null);
+
+  useEffect(() => {
+    setDraft((topic.flashcards ?? []).map((c) => ({ ...c })));
+  }, [topic.id, topic.flashcards]);
+
+  if (!draft) return null;
+
+  const dirty = JSON.stringify(draft) !== JSON.stringify(topic.flashcards ?? []);
+  // The server rejects blank front/back, so catch it here rather than letting
+  // the save round-trip into a 400.
+  const blank = draft.some((c) => !c.front?.trim() || !c.back?.trim());
+  const canSave = dirty && !blank && saveState !== "saving";
+
+  function update(i, patch) {
+    setDraft((prev) => prev.map((c, j) => (j === i ? { ...c, ...patch } : c)));
+  }
+
+  function move(i, delta) {
+    setDraft((prev) => {
+      const j = i + delta;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  }
+
+  const btn = (active) => ({
+    fontFamily: HEADING,
+    fontSize: 13,
+    padding: "7px 16px",
+    borderRadius: RADII.md,
+    cursor: "pointer",
+    border: `1px solid ${active ? PALETTE.accent : PALETTE.line}`,
+    background: active ? PALETTE.accentSoft : "transparent",
+    color: active ? PALETTE.accent : PALETTE.text,
+    fontWeight: 500,
+  });
+
+  const smallBtn = (extra) => ({
+    fontFamily: MONO,
+    fontSize: 12,
+    padding: "5px 10px",
+    borderRadius: RADII.sm,
+    cursor: "pointer",
+    border: `1px solid ${PALETTE.line}`,
+    background: "transparent",
+    color: PALETTE.text,
+    ...extra,
+  });
+
+  const field = {
+    width: "100%",
+    boxSizing: "border-box",
+    background: PALETTE.bg,
+    border: `1px solid ${PALETTE.line}`,
+    borderRadius: RADII.md,
+    color: PALETTE.text,
+    padding: "8px 10px",
+    fontFamily: "inherit",
+    fontSize: 14,
+    lineHeight: 1.6,
+  };
+
+  return (
+    <div style={{ display: "grid", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <button
+          onClick={() => onSave({ flashcards: draft })}
+          disabled={!canSave}
+          style={{ ...btn(canSave), cursor: canSave ? "pointer" : "default", opacity: canSave ? 1 : 0.5 }}
+        >
+          {saveState === "saving" ? "Saving…" : "Save"}
+        </button>
+        <button
+          onClick={() => setDraft((topic.flashcards ?? []).map((c) => ({ ...c })))}
+          disabled={!dirty}
+          style={{ ...btn(false), opacity: dirty ? 1 : 0.5, cursor: dirty ? "pointer" : "default" }}
+        >
+          Revert
+        </button>
+        <span style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>
+          {draft.length} card{draft.length === 1 ? "" : "s"}
+          {dirty ? " · unsaved changes" : ""}
+        </span>
+        {blank && (
+          <span style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.bad }}>
+            ⚠ every card needs a front and a back
+          </span>
+        )}
+        {saveState && saveState !== "saving" && (
+          <span
+            style={{
+              fontFamily: MONO,
+              fontSize: 11,
+              color: saveState === "saved" ? PALETTE.good : PALETTE.bad,
+            }}
+          >
+            {saveState === "saved" ? "saved ✓" : saveState}
+          </span>
+        )}
+      </div>
+
+      {draft.map((c, i) => (
+        <div
+          key={i}
+          style={{
+            background: PALETTE.panel,
+            border: `1px solid ${PALETTE.line}`,
+            borderRadius: RADII.lg,
+            padding: "16px 18px",
+            display: "grid",
+            gap: 8,
+          }}
+        >
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, minWidth: 28 }}>
+              {i + 1}
+            </span>
+            <input
+              value={c.front ?? ""}
+              onChange={(e) => update(i, { front: e.target.value })}
+              placeholder="Front — the prompt"
+              aria-label="flashcard front"
+              style={{ ...field, fontFamily: HEADING, color: PALETTE.accent, fontWeight: 500 }}
+            />
+            <button
+              onClick={() => move(i, -1)}
+              disabled={i === 0}
+              title="Move up"
+              style={smallBtn({ opacity: i === 0 ? 0.35 : 1 })}
+            >
+              ↑
+            </button>
+            <button
+              onClick={() => move(i, 1)}
+              disabled={i === draft.length - 1}
+              title="Move down"
+              style={smallBtn({ opacity: i === draft.length - 1 ? 0.35 : 1 })}
+            >
+              ↓
+            </button>
+            <button
+              onClick={() => setDraft((prev) => prev.filter((_, j) => j !== i))}
+              title="Delete this flashcard"
+              style={smallBtn({ borderColor: PALETTE.bad, color: PALETTE.bad })}
+            >
+              ✕
+            </button>
+          </div>
+          {/* pre-wrap in the reader, so keep it a textarea — backs carry line breaks. */}
+          <textarea
+            value={c.back ?? ""}
+            onChange={(e) => update(i, { back: e.target.value })}
+            rows={Math.min(8, Math.max(2, Math.ceil((c.back?.length ?? 0) / 70)))}
+            placeholder="Back — the reveal"
+            aria-label="flashcard back"
+            style={{ ...field, resize: "vertical" }}
+          />
+        </div>
+      ))}
+
+      <button
+        onClick={() => setDraft((prev) => [...prev, { front: "", back: "" }])}
+        style={{
+          background: "transparent",
+          border: `1px dashed ${PALETTE.line}`,
+          borderRadius: RADII.lg,
+          padding: "16px 20px",
+          cursor: "pointer",
+          fontFamily: HEADING,
+          fontSize: 14,
+          color: PALETTE.muted,
+        }}
+      >
+        + Add flashcard
+      </button>
     </div>
   );
 }
