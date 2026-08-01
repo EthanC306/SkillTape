@@ -7,6 +7,9 @@ export default {
   subtitle: "Data Structures — LIFO, array and linked-list implementations",
   course: "cpp",
   showChart: false,
+  // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the
+  // diagnostic quiz or self-reported struggle list, not "known easy."
+  examWeight: 1.0,
   cards: [
     {
       heading: "What a stack is",

@@ -18,12 +18,12 @@
       /*
        * Nocturne interaction states that inline styles can't express.
        *
-       * TOKEN COUPLING: --nocturne-accent is duplicated in src/data/theme.js
-       * (PALETTE). It has to live here too because :focus-visible and
-       * ::selection apply before React mounts. theme.js is the source of
-       * truth per PLAN_PLATFORMIZE §6 — have PALETTE read
-       * `var(--nocturne-accent)` rather than restating the hex, or these two
-       * will silently drift the first time the palette changes.
+       * TOKEN COUPLING (resolved 2026-08-01, ROADMAP.md A1): this --nocturne-
+       * accent definition is the single source of truth. src/data/theme.js's
+       * PALETTE.accent reads `var(--nocturne-accent)` rather than restating
+       * the hex, so the two can no longer drift. This declaration still has
+       * to live here (not just in theme.js) because :focus-visible and
+       * ::selection apply before React mounts.
        */
       :root {
         --nocturne-accent: #9184d9;

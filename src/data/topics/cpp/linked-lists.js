@@ -4,6 +4,10 @@ export default {
   subtitle: "Data Structures — nodes, pointers & the Node class",
   course: "cpp",
   showChart: false,
+  // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js
+  // for the methodology note. Self-reported struggle area; not yet confirmed
+  // by a diagnostic question.
+  examWeight: 1.5,
   cards: [
     {
       heading: "Why not just use an array?",

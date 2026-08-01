@@ -59,19 +59,20 @@ What is actually true in the repo today, against what the docs assume.
 | README rewritten | CORR §4.4 | current |
 | `docs/AUTHORING.md` — authoring contract | (new) | 2026-07-29 |
 | Runtime answer-order shuffling | (new) | `src/utils/shuffle.js`, `QuizView` |
+| Drill-mode CSS hook wired up | CORR §4.2 / A1 | `Shell.jsx`'s `<nav>` carries `className="app-chrome"` (2026-08-01); confirmed present in `dist/assets/*.js` after `vite build`. Not yet clicked through in a live browser — no browser-automation tool was available in this environment. |
+| Accent token de-duplicated | CORR §2.5 / A1 | `theme.js`'s `PALETTE.accent` reads `var(--nocturne-accent)` instead of restating the hex (2026-08-01); confirmed in build output |
 
 ### Partial
 
 | Item | State | Gap |
 | --- | --- | --- |
-| Drill-mode CSS hook | `index.html:59` defines `body[data-drill-active="true"] .app-chrome { display:none }` | **No element carries `.app-chrome`.** `Shell.jsx`'s tab bar needs the class or the rule is inert. |
-| Accent token | `index.html` defines `--nocturne-accent`; `theme.js:68` restates `#9184d9` | CORR §2.5's coupling fix (`accent: "var(--nocturne-accent)"`) **not applied** — the duplication it flagged is still live |
-| Audit coverage | Checks 1, 4, 5, 6 of `CS_DRILL` §7 implemented | Checks 2 (dead anchor) and 3 (excerpt drift) **cannot run** — they need `sources/` files that don't exist. Check 7 (coverage gap) needs `examWeight`, which no topic has. |
+| Audit coverage | Checks 1, 4, 5, 6 of `CS_DRILL` §7 implemented | Checks 2 (dead anchor) and 3 (excerpt drift) **cannot run** — they need `sources/` files that don't exist. Check 7 (coverage gap) needs `examWeight`, which `cpp` topics now have (see A0) but `discrete` topics don't. |
+| `examWeight` / A0 calibration | Set on all 12 `cpp` topics (2026-08-01), provisional — see A0 | Not point-derived (no graded midterm available); based on a 2-of-9 diagnostic quiz + self-report. `discrete` has none yet. Two gap records in `gaps/inbox.jsonl`. |
 | Item schema adoption | Schema written and exercised | **Zero topic files use it.** `npm run audit:bank` reports **1230 errors / 268 warnings across 246 live items, 0 verified for rotation** (re-checked 2026-08-01; item count has grown since this row was first written) and exits 1. Per CORR §5.4 that failure *is* the work queue, not a regression. |
 
 ### Not started
 
-`sources/` · `gaps/` · `references/cpp-conventions.md` · `.claude/commands/` · provenance on any card or item · `examWeight` anywhere · attempts log · scheduler · `DrillView` · exam simulator · reporting · the entire platform track.
+`sources/` · `references/cpp-conventions.md` · `.claude/commands/` · provenance on any card or item · `examWeight` on `discrete` topics · attempts log · scheduler · `DrillView` · exam simulator · reporting · the entire platform track.
 
 ---
 
@@ -168,17 +169,26 @@ Weights go **on the topic objects** in `src/data/topics/<course>/<topic>.js`, or
 **Done when:** every topic has an `examWeight` and the top three point-loss topics are named.
 **Note:** revisit once the final's structure is known — weighting will differ, but the midterm distribution beats a uniform guess by a wide margin.
 
-### A1 — Finish the hygiene pass
-Nearly complete (§3). Remaining:
+**🟡 Partially done (2026-08-01) — adapted, not followed literally.** The graded midterm and its per-question point values weren't available (not saved), so steps 1–2 above couldn't run as written. Substituted: a 9-question diagnostic quiz covering the six topics self-reported as the struggle area (dynamic memory/pointers/linked lists), answered live in conversation. Only 2 of 9 questions were actually worked through before moving on — this is a rough first pass, not a calibrated one.
 
-1. Apply CORR §2.5: `theme.js` → `accent: "var(--nocturne-accent)"`, and have `ComplexityChart.jsx` read the computed value at runtime if Canvas needs a literal hex. **Not yet applied** — `theme.js:68` still hardcodes `#9184d9` (re-checked 2026-08-01).
-2. Add `className="app-chrome"` to `Shell.jsx`'s tab bar so `index.html:59`'s existing rule can actually hide it. **Not yet applied** — `Shell.jsx` carries no such class (re-checked 2026-08-01).
-3. ~~Confirm no copyrighted material is tracked~~ **✅ Done (re-checked 2026-08-01):** `git ls-files | grep -Ei '\.pdf$|\.pptx$|^pages/'` returns nothing.
+- `examWeight` is now set on all 12 `cpp` topic files: `2.0` for `dynamic-alloc` and `1.7` for `dynamic-arrays` (both have a **confirmed** gap from the quiz), `1.5` for the four other self-reported-struggle topics (`dynamic-classes`, `linked-lists`, `linked-lists-algorithms`, `doubly-linked-lists` — untested, self-report only), `1.0` default for the remaining six (`bigo`, `containers`, `cstrings`, `templates`, `iterators`, `stacks` — no signal either way, not "known easy"). Each file has an inline comment explaining this.
+- `discrete` course topics have **no `examWeight` yet** — this midterm was cpp (`cpp`) only; CS3000 gets its own pass once there's exam data for it. The "every topic" done-when criterion is not literally met.
+- Two confirmed gaps logged to `gaps/inbox.jsonl` (new — A8's format, used early): (1) confusing `new int(5)` [single-value init] with `new int[5]` [array allocation]; (2) assuming a dangling pointer still deterministically reads its last value after `delete`, rather than recognizing undefined behavior. Both point at `dynamic-alloc`/`dynamic-arrays`.
+- **Top three by this provisional ranking:** `dynamic-alloc`, `dynamic-arrays`, then a tie across `dynamic-classes`/`linked-lists`/`linked-lists-algorithms`/`doubly-linked-lists` — not truly ranked against each other, just all above default.
+- **To close this out properly:** re-run against real numbers the moment any graded feedback exists (partial credit breakdown, a returned exam, even a rough recollection of which specific problems lost points), and finish the remaining 7 quiz questions to convert more self-reported struggle into confirmed gaps.
 
-**Done when:** the accent hex appears in exactly one file, `git ls-files` is clean, and setting `data-drill-active` hides the tab bar. Two of three sub-items remain — this phase is a five-minute fix, not a gap in understanding.
+### A1 — Finish the hygiene pass — ✅ **DONE (2026-08-01)**
+
+1. ~~Apply CORR §2.5~~ **✅ Done:** `theme.js`'s `PALETTE.accent` now reads `"var(--nocturne-accent)"` instead of restating the hex. `ComplexityChart.jsx` needed no change — it doesn't use `PALETTE.accent` at all, and it's inline SVG, not `<canvas>`, so the "literal hex for Canvas" concern in the original spec didn't actually apply.
+2. ~~Add `className="app-chrome"` to `Shell.jsx`'s tab bar~~ **✅ Done:** the `<nav>` now carries it, so `index.html:59`'s existing drill-mode rule can hide it.
+3. ~~Confirm no copyrighted material is tracked~~ **✅ Done:** `git ls-files | grep -Ei '\.pdf$|\.pptx$|^pages/'` returns nothing.
+
+**Verification:** `npx vite build` succeeds; `app-chrome` and `var(--nocturne-accent)` both confirmed present in the compiled `dist/assets/*.js` output. Not verified in an actual running browser — no browser-automation tool was available in this environment without adding a new dependency, and these two changes are small/mechanical enough (a literal string swap, a JSX `className` prop) that build-output confirmation was judged sufficient. Flagging that judgment call rather than silently skipping it.
+
+**Done when:** the accent hex appears in exactly one file (✅, `index.html` only), `git ls-files` is clean (✅), and setting `data-drill-active` hides the tab bar (wired, not yet clicked-through in a live browser).
 
 ### A2 — Read the audit as a work queue
-`itemSchema.js` and `auditBank.js` already exist. Run `npm run audit:bank`; the 1025 errors are the backlog, not a bug. Sort them by topic and cross-reference A0's ranking to decide what gets migrated first.
+`itemSchema.js` and `auditBank.js` already exist. Run `npm run audit:bank`; the 1230 errors (re-checked 2026-08-01) are the backlog, not a bug. Sort them by topic and cross-reference A0's ranking to decide what gets migrated first.
 
 **Done when:** you have a ranked migration list.
 **Note (D1):** the bank-level MCQ warning will stay lit until migration is well underway — the 5% cap bites per topic, not retroactively across 238 legacy questions. Judge a topic clean by its own error list, not by the bank summary.
@@ -424,9 +434,9 @@ Every substantive idea in the four documents, and its destination. **Nothing is 
 
 D1, D2, D5, D6, and D10 are settled, which unblocks the whole of Track A through A5. The path is now:
 
-1. **A0 — tally the midterm.** No code, highest value, unblocked right now. Everything downstream (what to migrate, what the exam sim weights by, what the report ranks) depends on those numbers.
-2. **A1 — finish hygiene.** Two small edits: the accent-token coupling, and `className="app-chrome"` on `Shell.jsx`'s tab bar so the drill-mode CSS at `index.html:59` stops being inert.
-3. **A2 — read the audit as a queue**, sorted against A0's ranking.
+1. **A0 — tally the midterm.** 🟡 Partially done (2026-08-01) — no graded midterm was available, so this ran as a diagnostic quiz + self-report instead of real point tallies. `examWeight` set on all 12 `cpp` topics; `discrete` still has none. Revisit with real numbers whenever any exist.
+2. **A1 — finish hygiene.** ✅ Done (2026-08-01) — accent-token coupling fixed, `className="app-chrome"` added to `Shell.jsx`'s tab bar.
+3. **A2 — read the audit as a queue**, sorted against A0's ranking. **Next up.**
 4. **A3 — migrate one topic by hand**, the one A0 ranks first. Hand-written, no generation — this phase exists to prove the schema, and a model in the loop would prove less.
 5. **A4 — drill mode.** The phase that addresses the 53%. Ships as one unit: attempt log + FSRS scheduler (D10, via `ts-fsrs`) + `DrillView` + JSON export.
 

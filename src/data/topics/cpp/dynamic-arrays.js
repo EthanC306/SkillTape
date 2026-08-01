@@ -4,6 +4,10 @@ export default {
   subtitle: "Data Structures — new[]/delete[] & pointer arithmetic",
   course: "cpp",
   showChart: false,
+  // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js
+  // for the methodology note. The new(x)-vs-new[x] confirmed gap sits right
+  // on this topic's boundary with dynamic-alloc.
+  examWeight: 1.7,
   cards: [
     {
       heading: "Arrays and pointers are compatible",

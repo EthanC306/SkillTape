@@ -4,6 +4,9 @@ export default {
   subtitle: "Data Structures — the Bag class & STL",
   course: "cpp",
   showChart: false,
+  // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the
+  // diagnostic quiz or self-reported struggle list, not "known easy."
+  examWeight: 1.0,
   cards: [
     {
       heading: "What a container class is",
