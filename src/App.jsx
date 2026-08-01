@@ -3,6 +3,7 @@ import { PALETTE, SANS, RADII, MONO } from "./data/theme";
 import shuffle from "./utils/shuffle";
 import useProgress from "./hooks/useProgress";
 import useTopics from "./hooks/useTopics";
+import useAuth from "./hooks/useAuth";
 import { putCards, putFlashcards } from "./api/client";
 import Header from "./components/Header";
 import Home from "./components/Home";
@@ -64,6 +65,7 @@ function Status({ text, tone, onRetry }) {
 export default function App({ course }) {
   const { progress, recordRun } = useProgress();
   const { topics: allTopics, loading, error, reload } = useTopics();
+  const auth = useAuth();
   const [topicId, setTopicId] = useState(null);
   const [mode, setMode] = useState("learn");
 
@@ -197,6 +199,7 @@ export default function App({ course }) {
           setMasterTopic(null);
           setTopicId(null);
         }}
+        auth={auth}
       />
       {loading ? (
         <Status text="loading curriculum…" />

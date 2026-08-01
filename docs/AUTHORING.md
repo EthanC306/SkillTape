@@ -38,7 +38,7 @@ export default {
 
 ### 2.1 Field notes
 
-- **`id`** — stable forever. It keys quiz progress in `localStorage`, so renaming it silently wipes the user's history for that topic. Pick it once. C++ topics use a plain slug (`linked-lists`); discrete topics use a numbered slug matching the textbook section (`discrete-2-4-circuits`).
+- **`id`** — stable forever. It's the primary key of `topics` in the database (`server/schema.sql`) and keys every quiz attempt row, so renaming it silently orphans that topic's history. Pick it once. C++ topics use a plain slug (`linked-lists`); discrete topics use a numbered slug matching the textbook section (`discrete-2-4-circuits`).
 - **`subtitle`** — course code plus a short scope line. C++ style: `"CS 2401 — destructors, copy constructors & operator="`. Discrete style: `"CS3000 — §2.4"`.
 - **`showChart`** — `true` renders the Big-O `ComplexityChart` and `ReferenceTable` in Learn and Quiz. These visuals are Big-O specific. **Only `bigo.js` sets this true.** Everything else sets it `false` explicitly — don't omit the field.
 
@@ -196,7 +196,30 @@ The import identifier is camelCase of the file (`2-4-circuits.js` → `discrete2
 
 ---
 
-## 8. Adding a course
+## 8. Edit Mode — authoring in the app
+
+Everything above describes hand-authoring a topic file. There is a second way now: **Edit Mode**, an Edit/Done toggle on any topic (`src/components/TopicView.jsx`) that makes that topic's Learn cards and flashcards editable in the browser, backed by `PUT /api/topics/:id/cards` and `PUT /api/topics/:id/flashcards`. See `docs/BACKEND.md` for the API and auth details; this section covers what it can author and how it maps onto the conventions above.
+
+### 8.1 What it can edit
+
+- **Cards** (`src/components/CardEditor.jsx`, rendered per-card in `LearnView.jsx`) — heading, body, code, and `accept`, plus `+ Add card`, delete, and ↑↓ reorder. A **Revert** control discards unsaved changes back to the last saved state.
+- **Flashcards** (`FlashcardsView.jsx`'s editor) — front/back pairs, same add/delete/reorder pattern, including the empty-deck case (an editor still renders, and saving an empty list is how a deck gets deleted — `buildTopic` turns zero flashcard rows back into an absent `flashcards` key, same as a topic that never had a deck).
+- **The bold/blank button.** The **B** button in `CardEditor` wraps the current selection in `**double asterisks**` — the *exact same markup* §3.2 above describes for hand-authored cards. There is no second syntax: `src/utils/fill.js`'s `BOLD_RE` is what both Learn mode's emphasis and Fill Mode's blanks key off, so toggling bold in the editor **is** marking a fill-in-the-blank span. Toggling it again on the same span unwraps it back to plain text. §3.2's "3–6 blanks per card, only terms worth recalling cold" guidance applies exactly as written — `src/utils/blankEdit.js`'s `validateBody()` will warn if a card has none.
+- Requires being logged in (`docs/BACKEND.md` — the two `PUT` routes are the only thing an account gates).
+
+### 8.2 What it can't edit
+
+- **Quiz questions are not editable in Edit Mode**, deliberately, and there's no near-term plan to add it. `QuizView` runs every question through `shuffleChoices` (§4.2) at render time, so the choices and `answer` index on screen are a permuted copy of what's stored — an in-place editor would need a UI built against the *pre-shuffle* source, which doesn't exist. Editing questions today still means editing the topic's `.js` file (§4) and re-seeding.
+- **Figures stay hand-authored.** There is no upload path; `CardEditor` shows a read-only note on a card that has one so it doesn't look like the figure was silently dropped.
+- **Course/topic creation and metadata** (title, subtitle, `course`, `showChart`) aren't editable in-app — registering a new topic is still the file + `curriculum.js` + `db:seed` path in §7 below.
+
+### 8.3 Edit Mode and the seed source
+
+Edit Mode writes only to the database. The `src/data/topics/**/*.js` files this guide otherwise describes are unaffected by anything you do in the app, and running `npm run db:seed` afterward will overwrite the in-app changes with the file's stale content. This is an open, unresolved tension between two sources of truth — see `docs/BACKEND.md`'s "Seed vs. database" section before running a reseed on a topic anyone has edited in-app.
+
+---
+
+## 9. Adding a course
 
 Rarer, and it touches three files. Check `COURSES` in `src/data/courses.js` first — if the topic fits `cpp` or `discrete`, it isn't a new course.
 
@@ -207,13 +230,18 @@ Rarer, and it touches three files. Check `COURSES` in `src/data/courses.js` firs
 
 ---
 
-## 9. Verifying
+## 10. Verifying
+
+**Hand-authored files:**
 
 ```bash
-npx vite build      # the real gate — catches syntax errors and bad imports
+npx vite build      # catches syntax errors and bad imports
+npm run db:seed      # loads the new/changed topic file into the database
 ```
 
-A clean build is the check that matters today. No dev server needed.
+A clean build plus a clean seed run is the check that matters for a `.js`-file edit — see `docs/BACKEND.md` for what `db:seed` does and does not touch. No dev server needed for either.
+
+**Edit Mode changes** are verified live, not built: run **both** `npm run dev` and `npm run dev:server` (§ "Getting started" in the README — Edit Mode has no effect with only one of the two running, since saves go over `/api` to the Express process), open the topic, toggle Edit, and confirm the save round-trips — reload the page and check the edit persisted. There's no separate build step for a database-backed edit.
 
 **`npm run audit:bank` does not currently pass and is not a gate.** It validates the *planned* item schema in `src/data/itemSchema.js` — `id`, `topicId`, `format`, `provenance`, `expected` — and the bank is still 100% legacy MCQ, so it reports **1025 errors across 205 items** and exits non-zero. That's the known state, not a regression you introduced. Run it if you're migrating content to the new schema; ignore it otherwise. See README §"Item formats (planned)".
 
@@ -221,7 +249,7 @@ Structure checks pass ≠ content is correct. Only human review establishes accu
 
 ---
 
-## 10. Checklist
+## 11. Checklist
 
 - [ ] File at `src/data/topics/<course>/<kebab-id>.js`, default export, provenance header comment
 - [ ] `id` unique and final; `course` matches a `COURSES` id; `showChart` set explicitly

@@ -40,7 +40,12 @@ export default function QuizView({ topic, onFinish, best }) {
   }
 
   function next() {
-    const runResults = [...results, selected === q.answer];
+    // Carries the question's real database id (added to the API in
+    // buildTopic's compact() call) alongside the boolean, so recordRun can
+    // send { questionId, correct } pairs to POST /api/attempts. `q.id` may be
+    // absent on a synthetic/legacy question, in which case it stores as null —
+    // the schema's question_id FK is nullable for exactly that case.
+    const runResults = [...results, { questionId: q.id ?? null, correct: selected === q.answer }];
     if (qIndex + 1 < questions.length) {
       setResults(runResults);
       setQIndex(qIndex + 1);

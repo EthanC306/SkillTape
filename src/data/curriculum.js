@@ -66,6 +66,7 @@ import discrete22Conditional from "./topics/discrete/2-2-conditional.js";
 import discrete23Arguments from "./topics/discrete/2-3-arguments.js";
 import discrete24Circuits from "./topics/discrete/2-4-circuits.js";
 import discrete25NumberSystems from "./topics/discrete/2-5-number-systems.js";
+import discreteVocabulary from "./topics/discrete/vocabulary.js";
 
 const curriculum = [
   bigo,
@@ -90,6 +91,7 @@ const curriculum = [
   discrete23Arguments,
   discrete24Circuits,
   discrete25NumberSystems,
+  discreteVocabulary,
 ];
 
 export default curriculum;
