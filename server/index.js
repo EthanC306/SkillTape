@@ -42,7 +42,12 @@ app.use((err, req, res, next) => {
 
 //Start listening... Nothing above has opened a port until you listen
 // 127.0.0.1 keeps this off the LAN, matching the note in vite.config.js — and
-// it matters more here, since this process will hold password hashes.
-app.listen(3001, "127.0.0.1", () => {
-    console.log("SkillTape API on http://127.0.0.1:3001");
+// it matters more here, since this process will hold password hashes. In a
+// container, 127.0.0.1 is only the container's own loopback, so HOST=0.0.0.0
+// is required there for other containers to reach it — the docker-compose
+// setup never publishes this port to the host, so it stays off the LAN either way.
+const HOST = process.env.HOST || "127.0.0.1";
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, HOST, () => {
+    console.log(`SkillTape API on http://${HOST}:${PORT}`);
 });

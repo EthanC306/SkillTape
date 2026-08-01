@@ -21,6 +21,8 @@ Read in this order; each corrects the one before it.
 
 **A fifth authority: the code.** `src/data/itemSchema.js` is newer than all four docs and has already settled one conflict they argue about — see D2.
 
+**A sixth reference: `docs/PRODUCTION_READINESS.md`** (2026-08-01). Written after the `Edit-Mode` branch shipped B1/B2/a scoped B3 out of sequence (see the correction note at the top of §6). It doesn't re-decide anything here — it only adds gaps this file never covered (tests, CI, migrations, backups, ownership model, deployment) and re-checks the §6 security checklist against what actually shipped instead of the Supabase-shaped app it was written for.
+
 ---
 
 ## 2. The two tracks
@@ -65,7 +67,7 @@ What is actually true in the repo today, against what the docs assume.
 | Drill-mode CSS hook | `index.html:59` defines `body[data-drill-active="true"] .app-chrome { display:none }` | **No element carries `.app-chrome`.** `Shell.jsx`'s tab bar needs the class or the rule is inert. |
 | Accent token | `index.html` defines `--nocturne-accent`; `theme.js:68` restates `#9184d9` | CORR §2.5's coupling fix (`accent: "var(--nocturne-accent)"`) **not applied** — the duplication it flagged is still live |
 | Audit coverage | Checks 1, 4, 5, 6 of `CS_DRILL` §7 implemented | Checks 2 (dead anchor) and 3 (excerpt drift) **cannot run** — they need `sources/` files that don't exist. Check 7 (coverage gap) needs `examWeight`, which no topic has. |
-| Item schema adoption | Schema written and exercised | **Zero topic files use it.** `npm run audit:bank` reports **1025 errors / 223 warnings across 205 items** and exits 1. Per CORR §5.4 that failure *is* the work queue, not a regression. |
+| Item schema adoption | Schema written and exercised | **Zero topic files use it.** `npm run audit:bank` reports **1230 errors / 268 warnings across 246 live items, 0 verified for rotation** (re-checked 2026-08-01; item count has grown since this row was first written) and exits 1. Per CORR §5.4 that failure *is* the work queue, not a regression. |
 
 ### Not started
 
@@ -75,7 +77,7 @@ What is actually true in the repo today, against what the docs assume.
 
 ## 4. Decisions
 
-**D1, D2, D5, and D6 were decided on 2026-07-29 and are recorded below. D3, D4, D7, D8, and D9 remain open and block the phases that cite them.**
+**D1, D2, D5, and D6 were decided on 2026-07-29; D10 was decided on 2026-08-01. All are recorded below. D3, D4, D7, D8, and D9 remain open and block the phases that cite them.**
 
 ### D1 — MCQ cap: 5% or 15? — ✅ **RESOLVED: 5%**
 `CS_DRILL_BUILD_SPEC.md` contradicts itself. §0 says "Multiple choice is capped at **15%** of the bank." §6's quota table says `mcq` **≤5%**. README and `itemSchema.js` (`QUOTAS`) both implement **5%**.
@@ -117,6 +119,8 @@ So the axis moved from *who wrote it* to *can it be verified*.
 
 *Consequence:* §6 is reference material for now, not a work queue. D7 and D9 are Track B decisions and are correspondingly parked — do not spend time on them.
 
+**[CORRECTED — 2026-08-01]** The deferral didn't hold: B1 (auth), B2 (schema), and a scoped B3 (Edit Mode) shipped on the `Edit-Mode` branch before Track A reached A4, or even A0. See §6's header note and `docs/PRODUCTION_READINESS.md` §0, which names this directly and argues it's a reason to deliberately resume Track A now, not a reason to keep drifting further into Track B. D7 and D9 are still genuinely open and still gate nothing in Track A — that part of the consequence stands.
+
 ### D6 — Where does the exam simulator live? — ✅ **RESOLVED: in-app, as A5**
 `CS_DRILL` Phase 6 (`cs-drill exam --minutes 50 --weight-by exam`) is a CLI command. The CLI is dead and **no later document re-homes this capability.** It was the only orphaned phase in the set.
 
@@ -128,10 +132,22 @@ The app and all content say **topic**. `PLAN_PLATFORMIZE` §2 says **module** ("
 
 ### D8 — Do the `diagram` items survive?
 `CS_DRILL` §6 specifies a `diagram` variant of `write`: box-and-arrow drawing, ASCII reference in `expected`, self-graded, **"Ethan's known weak point is holding pointer state in working memory — these carry double weight in the scheduler."** `itemSchema.js` has no `DIAGRAM` format and no weighting mechanism.
-*Recommendation:* keep the idea; add `FORMATS.DIAGRAM` in A4 when the scheduler that would honor the double weight exists. **Flagging because it is a concrete idea currently implemented nowhere.**
+*Recommendation:* keep the idea; add `FORMATS.DIAGRAM` in A4. **[UPDATED — 2026-08-01, per D10]** "Double weight" was specced against a Leitner box position, which no longer exists. Under FSRS the equivalent is seeding `diagram` items with a lower initial `stability` (and/or higher initial `difficulty`) than the format default, so they resurface sooner until real review history takes over — a one-time constant in the seeding code, not a scheduler feature. Still flagging because it's a concrete idea implemented nowhere yet.
 
 ### D9 — Platform questions from `PLAN_PLATFORMIZE` §4 (not yet due)
 Supabase vs. alternative · email-password only or OAuth · keep a no-login demo mode · hosted Claude API vs. self-hosted Ollama · where the backend lives. All still open; they gate B0 and nothing in Track A.
+
+### D10 — Scheduling algorithm: Leitner or FSRS? — ✅ **RESOLVED: FSRS (2026-08-01)**
+`CS_DRILL_BUILD_SPEC.md` §12 chose Leitner over SM-2 "deliberately: simpler, debuggable, adequate for one semester" — but FSRS was never in that comparison; it wasn't yet the mainstream default it is now (Anki adopted it in 2023). Revisited on request: FSRS predicts retention more accurately than SM-2, is actively maintained, and — via the `ts-fsrs` reference library — needs no more hand-rolled scheduling math than Leitner did. The simplicity argument that ruled out SM-2 doesn't hold against a library-backed FSRS.
+
+**Decision: FSRS, not Leitner.** `CS_DRILL` §12's reasoning isn't wrong about SM-2, it's just incomplete — it never weighed the alternative that actually got proposed. The A4 "Scheduler" section below is rewritten around this: per-item `difficulty`/`stability` state instead of a box position, continuous due dates instead of fixed 1/2/4/8/16-day multiples, `ts-fsrs` supplying default parameter weights.
+
+*Consequences:*
+- `itemSchema.js`'s eventual scheduling fields are `difficulty`, `stability`, `dueOn`, `reps`, `lapses` — no `box`.
+- Leech detection (`lapses >= 3`) is unchanged: it's a property of review history, independent of which algorithm is deriving the next interval from that history.
+- Don't run `ts-fsrs`'s parameter optimizer this semester — it wants roughly 1,000+ graded reviews to fit reliably, well beyond what one student generates in one term. Ship with the library's default weights; revisit optimization once a full semester of attempt history exists.
+- D8 needed a re-answer in FSRS terms — done above.
+- No other Track A phase depends on the specific algorithm. A5/A6/A8/A9 only ever consume `dueOn`, `lapses`, and `leech`, all of which FSRS still produces.
 
 ---
 
@@ -155,11 +171,11 @@ Weights go **on the topic objects** in `src/data/topics/<course>/<topic>.js`, or
 ### A1 — Finish the hygiene pass
 Nearly complete (§3). Remaining:
 
-1. Apply CORR §2.5: `theme.js` → `accent: "var(--nocturne-accent)"`, and have `ComplexityChart.jsx` read the computed value at runtime if Canvas needs a literal hex.
-2. Add `className="app-chrome"` to `Shell.jsx`'s tab bar so `index.html:59`'s existing rule can actually hide it.
-3. Confirm no copyrighted material is tracked: `git ls-files | grep -Ei '\.pdf$|\.pptx$|^pages/'`. If anything returns, it is in history and needs `git rm -r --cached` plus a history rewrite **before any public push**.
+1. Apply CORR §2.5: `theme.js` → `accent: "var(--nocturne-accent)"`, and have `ComplexityChart.jsx` read the computed value at runtime if Canvas needs a literal hex. **Not yet applied** — `theme.js:68` still hardcodes `#9184d9` (re-checked 2026-08-01).
+2. Add `className="app-chrome"` to `Shell.jsx`'s tab bar so `index.html:59`'s existing rule can actually hide it. **Not yet applied** — `Shell.jsx` carries no such class (re-checked 2026-08-01).
+3. ~~Confirm no copyrighted material is tracked~~ **✅ Done (re-checked 2026-08-01):** `git ls-files | grep -Ei '\.pdf$|\.pptx$|^pages/'` returns nothing.
 
-**Done when:** the accent hex appears in exactly one file, `git ls-files` is clean, and setting `data-drill-active` hides the tab bar.
+**Done when:** the accent hex appears in exactly one file, `git ls-files` is clean, and setting `data-drill-active` hides the tab bar. Two of three sub-items remain — this phase is a five-minute fix, not a gap in understanding.
 
 ### A2 — Read the audit as a work queue
 `itemSchema.js` and `auditBank.js` already exist. Run `npm run audit:bank`; the 1025 errors are the backlog, not a bug. Sort them by topic and cross-reference A0's ranking to decide what gets migrated first.
@@ -188,7 +204,9 @@ The `**bold**` convention is unaffected — `Inline.jsx` and `fill.js` keep work
 ```
 Append-only. Derive the existing best-score display from the log so `QuizView` needn't change. Batch writes at session end — `localStorage` is synchronous and blocks the main thread. **Ship JSON export/import in this phase** (D4).
 
-**Scheduler** (`CS_DRILL` Phase 5) — Leitner 5-box, intervals 1/2/4/8/16 days. Correct advances a box; wrong drops to box 1 and increments `lapses`; `lapses >= 3` sets `leech` and pulls the item from rotation for triage. Leitner over SM-2 deliberately (`CS_DRILL` §12): simpler, debuggable, adequate for one semester. Scheduling state (`box`, `dueOn`, `lapses`, `leech`) has **no home in `itemSchema.js` yet** — add it here.
+**Scheduler** — FSRS, via the `ts-fsrs` library, **not** the Leitner 5-box design `CS_DRILL` Phase 5 originally specced (superseded by **D10**). Each self-graded attempt calls the library with the item's current `difficulty`/`stability` and the grade, and gets back updated state plus a `dueOn` date — no fixed day-multiples, no hand-rolled ease-factor math. `lapses >= 3` still sets `leech` and pulls the item from rotation for triage, same trigger as the original design, just derived from FSRS's review history instead of a box position. Ship with `ts-fsrs`'s default parameter weights; **don't** run its optimizer this semester (D10) — there won't be the review volume to fit it reliably. Scheduling state (`difficulty`, `stability`, `dueOn`, `reps`, `lapses`, `leech`) has **no home in `itemSchema.js` yet** — add it here.
+
+**Rating alignment:** the attempt log's 0–3 self-grade below maps directly onto FSRS's four-button scale (Again/Hard/Good/Easy = 1–4, i.e. `grade + 1`) — nothing about the self-grading UX changes, only the number passed into `ts-fsrs`.
 
 **`DrillView`** (CORR §4.2) — closed-book enforcement by visibility, not by lock:
 - Set `document.body.dataset.drillActive = "true"` on mount, clear on unmount (A1 makes this bite).
@@ -240,9 +258,9 @@ Only after one topic has been migrated by hand. `SKILLTAPE_INTEGRATION` §6.6: *
 
 | Outcome | When | Action |
 | --- | --- | --- |
-| Rewrite the item | question was ambiguous | edit `prompt`/`criteria`, reset box to 1 |
+| Rewrite the item | question was ambiguous | edit `prompt`/`criteria`, reset `stability`/`difficulty` to the format defaults |
 | Split the fact | fact too big — usual culprit when a `recall` item takes 45+ seconds | retire it, write two narrower items |
-| Reset to box 1 | concept landed, item is fine | clear `lapses`, drop the leech flag |
+| Reset scheduling state | concept landed, item is fine | clear `lapses`, drop the leech flag, reset `stability`/`difficulty` to defaults |
 
 **Build order matters:** the handoff needs attempt history to hand over, so it comes after A4 has been running a while.
 
@@ -340,14 +358,16 @@ Every substantive idea in the four documents, and its destination. **Nothing is 
 | §8 Phase 2 ingest + hand-built pilot | A3 |
 | §8 Phase 3 atom-extractor skill | A7 `/extract` (atoms layer dropped, extraction discipline kept) |
 | §8 Phase 4 item-writer skill + C++ house style | A7 (`/extract` + conventions file) |
-| §8 Phase 5 drill loop + Leitner | A4 |
+| §8 Phase 5 drill loop | A4 |
+| §8 Phase 5 Leitner (the specific algorithm) | **D10 — superseded.** FSRS replaces Leitner |
 | §8 Phase 6 exam simulator | **A5 — kept** (D6), re-homed from CLI to in-app |
 | §8 Phase 7 coverage + mastery reporting | A6 |
 | §8 Phase 8 web dashboard over SQLite/Express | **SUPERSEDED** — the app is already React; charts land in A6 |
 | §9 metrics (closed-book first-try; median time; leech count; open/closed delta; ≥85% target) | A6 |
 | §10 operating protocol | §5 "Operating protocol" |
 | §11 kickoff prompt | **SUPERSEDED** — describes CLI Phase 1 |
-| §12 Leitner over SM-2; self-grading with criteria; manual ingestion | A4; §7 rules 6–7 — **kept** |
+| §12 self-grading with criteria; manual ingestion | A4; §7 rules 6–7 — **kept** |
+| §12 Leitner over SM-2 | **D10 — superseded.** FSRS replaces Leitner; see A4 "Scheduler" |
 | §12 CLI-first | **REVERSED** — CORR §0, Integration §3 |
 
 ### From `PLAN_PLATFORMIZE.md`
@@ -402,12 +422,12 @@ Every substantive idea in the four documents, and its destination. **Nothing is 
 
 ## 9. Immediate next steps
 
-D1, D2, D5, and D6 are settled, which unblocks the whole of Track A through A5. The path is now:
+D1, D2, D5, D6, and D10 are settled, which unblocks the whole of Track A through A5. The path is now:
 
 1. **A0 — tally the midterm.** No code, highest value, unblocked right now. Everything downstream (what to migrate, what the exam sim weights by, what the report ranks) depends on those numbers.
 2. **A1 — finish hygiene.** Two small edits: the accent-token coupling, and `className="app-chrome"` on `Shell.jsx`'s tab bar so the drill-mode CSS at `index.html:59` stops being inert.
 3. **A2 — read the audit as a queue**, sorted against A0's ranking.
 4. **A3 — migrate one topic by hand**, the one A0 ranks first. Hand-written, no generation — this phase exists to prove the schema, and a model in the loop would prove less.
-5. **A4 — drill mode.** The phase that addresses the 53%. Ships as one unit: attempt log + scheduler + `DrillView` + JSON export.
+5. **A4 — drill mode.** The phase that addresses the 53%. Ships as one unit: attempt log + FSRS scheduler (D10, via `ts-fsrs`) + `DrillView` + JSON export.
 
-**Still open, each blocking only its own phase:** D3 (React Native — recommend skip), D4 (SessionStart nudge — recommend option 1, but build the export in A4 regardless), D8 (`diagram` items and their double scheduler weight — decide during A4). D7 and D9 are Track B and parked by D5.
+**Still open, each blocking only its own phase:** D3 (React Native — recommend skip), D4 (SessionStart nudge — recommend option 1, but build the export in A4 regardless), D8 (`diagram` items and their initial FSRS stability/difficulty seeding — decide during A4). D7 and D9 are Track B and parked by D5.
