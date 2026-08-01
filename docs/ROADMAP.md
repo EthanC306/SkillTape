@@ -198,12 +198,21 @@ Both `CORRECTIONS` §5.5 and `SKILLTAPE_INTEGRATION` §6.4 insist on **one** top
 
 1. Save the source section to `sources/<course>/<file>.md` in the `CS_DRILL` §4 format — YAML frontmatter (`source_id`, `course`, `title`, `kind`, `citation`, `ingested`) and `{#anchor}` headings. **Never renumber or delete an anchor once items reference it.**
 2. Add a `sources` map and per-card `provenance` to the topic file, per CORR §4.1.
-3. Convert its questions to `itemSchema.js` items, hitting the §6 quotas — target ~8 items, hand-written, no model generation, mirroring `CS_DRILL` Phase 2's pilot.
+3. Convert its questions to `itemSchema.js` items, hitting the §6 quotas — target ~8 items.
 4. Set `verifiedByHuman: true` only after reading each item against its excerpt.
+
+**[UPDATED — 2026-08-01]** Dropped "hand-written, no model generation" as a live constraint on this phase, per explicit request — it predates D2 (2026-07-29), which already settled the broader question this was a narrower echo of: generation is allowed anywhere as long as it's grounded in a real excerpt and passes human sign-off before `verifiedByHuman: true`. `CS_DRILL` Phase 2's original point — proving the schema before scaling it — doesn't actually depend on who phrases the items; the audit and the verification step prove the schema regardless of `origin`. Items generated for this pilot are tagged `origin: GENERATED` honestly (not `MANUAL`) and ship `verifiedByHuman: false` until reviewed against `sources/cpp/dynamic-alloc.md`.
 
 The `**bold**` convention is unaffected — `Inline.jsx` and `fill.js` keep working, and those spans are what the rule-based cloze generator will consume.
 
-**Done when:** one topic round-trips through `npm run audit:bank` with zero errors and every item's answer is checkable in seconds against its excerpt.
+**🟡 Mostly done (2026-08-01)** — pilot topic: `dynamic-alloc`.
+- `sources/cpp/dynamic-alloc.md` created — transcribed from the actual lecture deck (Nasseef Abukamail, CS 2401, Deck 02.1), 13 anchored sections, gitignored (never pushed).
+- `sources/README.md` added (§7 rule 8) — required a gitignore fix along the way: `sources/` as a bare directory ignore silently blocks re-including anything inside it even with `!sources/README.md`; had to become `sources/*` + the negation for the exception to actually take effect.
+- 8 new `items` added to `dynamic-alloc.js` (`origin: GENERATED`, spanning RECALL/TRACE/ERROR/CLOZE/COMPARE/WRITE, zero MCQ), each with real `provenance` pointing at the new source file. The existing `questions` array (13 legacy MCQs) is untouched — `QuizView` still reads it directly, so the live app is unaffected; `auditBank.js` now validates `items` instead for this topic.
+- `npm run audit:bank` shows `dynamic-alloc` at **zero errors** (warnings only: unverified + the novel-tokens tripwire, both expected at this stage).
+- **Not done:** `verifiedByHuman` is `false` on all 8 — nobody has read them against the excerpts yet. That review step is yours; there's no UI for it (that's A7), it's a direct field edit in the topic file. A3 isn't fully closed out until that pass happens.
+
+**Done when:** one topic round-trips through `npm run audit:bank` with zero errors (✅) and every item's answer is checkable in seconds against its excerpt (✅ possible, ❌ not yet actually checked).
 
 ### A4 — Attempt log + scheduler + drill mode
 `SKILLTAPE_INTEGRATION` §6.5: **"Ships as one unit or none of it works."** This is the phase that actually addresses the 53%.
@@ -434,10 +443,10 @@ Every substantive idea in the four documents, and its destination. **Nothing is 
 
 D1, D2, D5, D6, and D10 are settled, which unblocks the whole of Track A through A5. The path is now:
 
-1. **A0 — tally the midterm.** 🟡 Partially done (2026-08-01) — no graded midterm was available, so this ran as a diagnostic quiz + self-report instead of real point tallies. `examWeight` set on all 12 `cpp` topics; `discrete` still has none. Revisit with real numbers whenever any exist.
-2. **A1 — finish hygiene.** ✅ Done (2026-08-01) — accent-token coupling fixed, `className="app-chrome"` added to `Shell.jsx`'s tab bar.
-3. **A2 — read the audit as a queue**, sorted against A0's ranking. **Next up.**
-4. **A3 — migrate one topic by hand**, the one A0 ranks first. Hand-written, no generation — this phase exists to prove the schema, and a model in the loop would prove less.
-5. **A4 — drill mode.** The phase that addresses the 53%. Ships as one unit: attempt log + FSRS scheduler (D10, via `ts-fsrs`) + `DrillView` + JSON export.
+1. **A0 — tally the midterm.** 🟡 Partially done (2026-08-01) — no graded midterm was available, so this ran as a diagnostic quiz + self-report instead of real point tallies. `examWeight` set on all 12 `cpp` topics; `discrete` still has none. Revisit with real numbers whenever any exist, and consider finishing the remaining 7 of 9 diagnostic questions to firm up the ranking.
+2. **A1 — finish hygiene.** ✅ Done (2026-08-01).
+3. **A2 — read the audit as a queue.** ✅ Done (2026-08-01) — ranked table in A2 below; key finding: raw error counts are uninformative (every legacy item fails the same 5 checks uniformly), so the real ranking signal is `examWeight`, not error volume.
+4. **A3 — migrate one topic by hand.** 🟡 Mostly done (2026-08-01) — `dynamic-alloc` has a real source file (`sources/cpp/dynamic-alloc.md`) and 8 new schema-compliant items, audits at zero errors. **Owed:** the human verification pass — read each item in `src/data/topics/cpp/dynamic-alloc.js` against its cited excerpt and flip `verifiedByHuman: false → true` where it holds up. See A3's status block for how.
+5. **A4 — drill mode.** **Not started — next real implementation phase.** The phase that addresses the 53%. Ships as one unit: attempt log + FSRS scheduler (D10, via `ts-fsrs`) + `DrillView` + JSON export. Sizeable enough to want its own sub-scoping pass before writing code.
 
 **Still open, each blocking only its own phase:** D3 (React Native — recommend skip), D4 (SessionStart nudge — recommend option 1, but build the export in A4 regardless), D8 (`diagram` items and their initial FSRS stability/difficulty seeding — decide during A4). D7 and D9 are Track B and parked by D5.

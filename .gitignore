@@ -11,7 +11,8 @@ dist-ssr/
 # --- Copyrighted course materials (see README "Notes") ---
 # Lecture slides, textbook PDFs, zyBooks exports. NEVER commit these.
 pages/
-sources/
+sources/*
+!sources/README.md
 public/figures/private/
 *.pdf
 *.pptx
