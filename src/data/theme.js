@@ -65,7 +65,7 @@ export const PALETTE = {
   dividerRow: DIVIDER_ROW,
   text: "#e9e9ed", // --color-text
   muted: NEUTRAL[500],
-  accent: "#9184d9", // --color-accent
+  accent: "var(--nocturne-accent)", // --color-accent — defined once in index.html, see the TOKEN COUPLING note there
   accentSoft: "rgba(145,132,217,0.12)", // hover tint (accent @ 12%)
   accentSoftStrong: "rgba(145,132,217,0.22)", // pressed tint (accent @ 22%)
   // Keep good/bad functionally distinct from the accent (quiz semantics),

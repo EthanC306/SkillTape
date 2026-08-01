@@ -14,6 +14,38 @@ Summary:
 
 
 --------------------------------------------------------------------------------
+ROADMAP.md: FSRS decision (D10), A0 (exam weighting), A1 (hygiene) done
+--------------------------------------------------------------------------------
+Date:     2026-08-01
+Commit:   uncommitted
+Files:    docs/ROADMAP.md, index.html, src/Shell.jsx, src/data/theme.js,
+          src/data/topics/cpp/*.js (all 12), gaps/inbox.jsonl (new)
+Summary:
+  - docs/ROADMAP.md: added D10 — scheduler algorithm changes from Leitner to
+    FSRS (via the ts-fsrs library), per request. Rewrote A4's "Scheduler"
+    section, D8's diagram-weighting note, and every idea-ledger row that
+    pointed at Leitner to reflect this. Also did a general accuracy pass:
+    re-ran npm run audit:bank and updated stale error/warning counts, fixed a
+    contradiction where D5 read as unchallenged despite Track B already having
+    shipped ahead of Track A, and added a cross-reference to the newer
+    docs/PRODUCTION_READINESS.md.
+  - A0 (calibrate against the midterm): no graded exam was available, so this
+    ran as a live diagnostic quiz + self-reported struggle areas instead of
+    real point tallies (documented as a deliberate deviation in ROADMAP.md).
+    Added `examWeight` to all 12 cpp topic files — 2.0 for dynamic-alloc and
+    1.7 for dynamic-arrays (confirmed gaps from the quiz), 1.5 for four other
+    self-reported-struggle topics, 1.0 default for the rest. discrete topics
+    still have none (different course, no exam data yet). Logged two
+    confirmed gaps to the new gaps/inbox.jsonl.
+  - A1 (hygiene pass): theme.js's PALETTE.accent now reads
+    var(--nocturne-accent) instead of restating the hex (fixes the token
+    duplication CORRECTIONS.md §2.5 flagged). Shell.jsx's tab bar <nav> now
+    carries className="app-chrome", so index.html's existing drill-mode CSS
+    rule can actually hide it. Verified both survive `npx vite build` into
+    the compiled bundle; not click-tested in a live browser (no
+    browser-automation tool was available in this environment).
+
+--------------------------------------------------------------------------------
 Added flashcards
 --------------------------------------------------------------------------------
 Date:     2026-08-01

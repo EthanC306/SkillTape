@@ -4,6 +4,14 @@ export default {
   subtitle: "CS 2401 — pointers & the heap",
   course: "cpp",
   showChart: false,
+  // examWeight (ROADMAP.md A0, 2026-08-01): provisional, not point-derived —
+  // the graded midterm/answers weren't available, so this is ranked from a
+  // 9-question diagnostic quiz + self-reported struggle instead. Confirmed
+  // gaps here: mixing new int(5) [single-value init] with new int[5] [array
+  // alloc], and assuming a dangling pointer still reliably reads its old
+  // value instead of recognizing UB. Revisit with real numbers once graded
+  // work exists (see D-none, just the A0 "Note").
+  examWeight: 2.0,
   cards: [
     {
       heading: "Static vs. dynamic allocation",

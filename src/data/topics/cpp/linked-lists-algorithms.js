@@ -4,6 +4,11 @@ export default {
   subtitle: "CS 2401 — length, search, insert, delete",
   course: "cpp",
   showChart: false,
+  // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js
+  // for the methodology note. Self-reported struggle area; not yet confirmed
+  // by a diagnostic question (the quiz didn't reach the insert-order-of-
+  // operations item).
+  examWeight: 1.5,
   cards: [
     {
       heading: "The cursor pattern",

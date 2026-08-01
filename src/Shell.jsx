@@ -125,8 +125,11 @@ export default function Shell() {
         )}
       </div>
 
-      {/* Bottom tab bar. A fading rule stands in for the old solid border-top. */}
+      {/* Bottom tab bar. A fading rule stands in for the old solid border-top.
+          `.app-chrome` is what index.html's drill-mode rule hides when
+          document.body.dataset.drillActive is set (ROADMAP.md A1/A4). */}
       <nav
+        className="app-chrome"
         style={{
           display: "flex",
           justifyContent: "center",
