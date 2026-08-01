@@ -60,27 +60,37 @@ export default {
     {
       prompt: "What is a pointer?",
       choices: [
-        "A variable that holds a memory address",
         "A function that allocates memory",
-        "A type of array",
+        "A variable that holds a memory address",
         "A loop control variable",
+        "A type of array",
       ],
-      answer: 0,
+      answer: 1,
       explanation:
         "A pointer is a variable whose value is a memory address — the address of some other variable.",
     },
     {
       prompt: "Which operator returns the memory address of a variable?",
-      choices: ["&", "*", "->", "::"],
-      answer: 0,
+      choices: [
+        "::",
+        "->",
+        "&",
+        "*",
+      ],
+      answer: 2,
       explanation:
         "The address-of operator, &, returns a variable's memory address, as in &x.",
     },
     {
       prompt: "Given this declaration, which variable is a pointer?",
       code: "double *dblPtr, value;",
-      choices: ["Only dblPtr", "Only value", "Both dblPtr and value", "Neither"],
-      answer: 0,
+      choices: [
+        "Both dblPtr and value",
+        "Only dblPtr",
+        "Neither",
+        "Only value",
+      ],
+      answer: 1,
       explanation:
         "The * binds to the name it precedes, so only dblPtr is a pointer; value is an ordinary double.",
     },
@@ -88,12 +98,12 @@ export default {
       prompt: "What does *dblPtr do in this code?",
       code: "value = 34.5;\ndblPtr = &value;\n*dblPtr = 12.3;",
       choices: [
-        "Declares a new pointer",
         "Dereferences dblPtr to access/change the memory value refers to",
         "Deletes the pointer",
+        "Declares a new pointer",
         "Compares dblPtr to value",
       ],
-      answer: 1,
+      answer: 0,
       explanation:
         "*dblPtr dereferences the pointer, reaching into the memory it points to (the same memory as value).",
     },
@@ -103,8 +113,8 @@ export default {
       choices: [
         "Allocates memory for an int and initializes it to 99",
         "Declares an int variable named 99",
-        "Deletes intPtr",
         "Copies 99 into an existing int",
+        "Deletes intPtr",
       ],
       answer: 0,
       explanation:
@@ -113,59 +123,59 @@ export default {
     {
       prompt: "Where does memory from the new operator come from?",
       choices: [
-        "The heap",
         "The stack",
         "A static global array",
         "The operating system's registry",
+        "The heap",
       ],
-      answer: 0,
+      answer: 3,
       explanation: "new allocates memory from the heap.",
     },
     {
       prompt: "After intPtr = new int; with no initializer, what does intPtr point to?",
       choices: [
-        "Garbage (an unspecified value)",
         "Always 0",
-        "nullptr",
+        "Garbage (an unspecified value)",
         "A compile error occurs",
+        "nullptr",
       ],
-      answer: 0,
+      answer: 1,
       explanation:
         "Without an initializer, the newly allocated int holds whatever garbage was already in that memory.",
     },
     {
       prompt: "What does the delete operator do?",
       choices: [
-        "Deallocates memory so it can be reused",
+        "Declares a new pointer",
         "Sets the pointer to point at 0",
         "Copies the pointed-to value elsewhere",
-        "Declares a new pointer",
+        "Deallocates memory so it can be reused",
       ],
-      answer: 0,
+      answer: 3,
       explanation: "delete frees memory that new allocated, returning it to the heap.",
     },
     {
       prompt: "In this code, what is intPtr2 after delete intPtr1?",
       code: "int *intPtr1, *intPtr2;\nintPtr1 = new int(99);\nintPtr2 = intPtr1;\ndelete intPtr1;",
       choices: [
-        "A dangling reference, pointing to deallocated memory",
         "A null pointer",
         "Still safely pointing to 99",
+        "A dangling reference, pointing to deallocated memory",
         "A compile error",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "intPtr2 holds the same address intPtr1 had. Deleting through intPtr1 frees that memory, so intPtr2 is left dangling.",
     },
     {
       prompt: "What is nullptr?",
       choices: [
-        "A special constant pointer meaning 'points at nothing'",
-        "A function that frees memory",
         "An integer equal to -1",
         "A reserved variable name for arrays",
+        "A special constant pointer meaning 'points at nothing'",
+        "A function that frees memory",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "nullptr is a special constant used to initialize or reset pointers; it can be assigned to any pointer type.",
     },
@@ -174,8 +184,8 @@ export default {
       choices: [
         "It throws an exception, terminating the program unless handled",
         "It silently returns nullptr",
-        "It waits until memory is available",
         "It reduces the requested size automatically",
+        "It waits until memory is available",
       ],
       answer: 0,
       explanation:
@@ -187,8 +197,8 @@ export default {
       choices: [
         "A static variable",
         "A dynamic variable",
-        "An automatic variable",
         "A pointer variable",
+        "An automatic variable",
       ],
       answer: 0,
       explanation:
@@ -197,12 +207,12 @@ export default {
     {
       prompt: "Which line correctly uses auto?",
       choices: [
-        "auto value = 2.3;",
+        "value = auto(2.3);",
         "auto value;",
         "auto int value = 2.3;",
-        "value = auto(2.3);",
+        "auto value = 2.3;",
       ],
-      answer: 0,
+      answer: 3,
       explanation:
         "auto variables must be initialized at declaration so the compiler can infer the type from the initializer.",
     },

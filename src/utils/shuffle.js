@@ -1,9 +1,10 @@
 /**
  * shuffle — return a NEW array with the same items in random order.
  *
- * Used by the "Master Set" feature: questions from every selected topic are
- * flattened into one pool and shuffled once, so questions from different
- * topics arrive interleaved instead of grouped by module.
+ * Two callers: the "Master Set" feature flattens questions from every selected
+ * topic into one pool and shuffles it, so questions arrive interleaved instead
+ * of grouped by module; and `shuffleChoices` below reorders a single question's
+ * answer options.
  *
  * Implementation: the Fisher–Yates shuffle. Walk the array from the end;
  * at each position i, swap the item there with one chosen uniformly at
@@ -21,4 +22,29 @@ export default function shuffle(items) {
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;
+}
+
+/**
+ * shuffleChoices — a copy of `question` with its `choices` in random order and
+ * `answer` remapped to wherever the correct choice ended up.
+ *
+ * Position is not content: a learner who notices the answer is usually "A" is
+ * being trained on layout rather than material, which inflates scores without
+ * improving recall. Reshuffling per run also means a repeated quiz can't be
+ * passed from memory of the option order.
+ *
+ * The topic file's own array is never mutated — the curriculum is shared,
+ * module-level data, so a mutation would leak into every later run.
+ */
+export function shuffleChoices(question) {
+  if (!Array.isArray(question?.choices)) return question;
+
+  // Shuffle the *indices*, so `order[p]` is the original index now sitting at
+  // position p. The correct answer's new home is therefore order.indexOf(answer).
+  const order = shuffle(question.choices.map((_, i) => i));
+  return {
+    ...question,
+    choices: order.map((i) => question.choices[i]),
+    answer: order.indexOf(question.answer),
+  };
 }

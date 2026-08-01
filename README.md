@@ -101,6 +101,8 @@ its output as the migration to-do list, not a regression.
 
 Course material lives in `src/data/topics/<course>/<topic>.js`, imported by `src/data/curriculum.js`.
 
+**Writing a new topic? Read `docs/AUTHORING.md`** — the full authoring contract: house style for cards and questions, what to bold, answer-index distribution, figures, and the registration steps. The summary below is the short version.
+
 - **Add a course** — add an entry to `src/data/courses.js`, give its topics a matching `course` id, and add a tab in `src/Shell.jsx`.
 - **Add a topic** — create a topic file, import it in `curriculum.js` **with the `.js` extension** (the audit script runs under bare Node, which won't resolve extensionless paths), and add it to the exported array. Each topic has `cards` (Learn notes) and `questions` (MCQs).
 - **Key terms** — wrap in `**double asterisks**` to bold them in Learn mode and turn them into blanks in Fill Mode.
@@ -134,4 +136,4 @@ The MCQ cap is the point, not an accident. Recognizing a correct answer among fo
 - Lecture slides, textbook PDFs, and zyBooks exports (`pages/`, `sources/`) are **not** in this repository — they're copyrighted course materials and are gitignored. Verify with `git ls-files | grep -Ei '\.pdf$|^pages/'` before pushing.
 - There is no backend or account system. Progress is per-browser and clearing site data wipes it. `docs/PLAN_PLATFORMIZE.md` covers the multi-user roadmap; it is planning only, with no implementation yet.
 - `npm run audit:bank` validates structure — anchors, formats, quotas, required fields. It does **not** validate accuracy. Only human sign-off (`verifiedByHuman`) does that.
-- Docs moved under `docs/`: `CORRECTIONS.md` (code review and findings), `CS_DRILL_BUILD_SPEC.md` (the drill-system brief), `SKILLTAPE_INTEGRATION.md` (tutor-skill wiring), `PLAN_PLATFORMIZE.md` (platform roadmap). Several describe the target state — check this README's Features list for what actually runs.
+- Docs moved under `docs/`: `AUTHORING.md` (how to write a topic file — the authoring contract), `CORRECTIONS.md` (code review and findings), `CS_DRILL_BUILD_SPEC.md` (the drill-system brief), `SKILLTAPE_INTEGRATION.md` (tutor-skill wiring), `PLAN_PLATFORMIZE.md` (platform roadmap). Several describe the target state — check this README's Features list for what actually runs. `AUTHORING.md` describes what to do today.

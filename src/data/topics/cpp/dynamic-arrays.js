@@ -55,36 +55,36 @@ export default {
     {
       prompt: "Given int *intPtr; int numbers[10]; intPtr = numbers;, what does intPtr point to?",
       choices: [
-        "The first element of numbers",
+        "Nothing until new is called",
         "The last element of numbers",
         "The size of numbers",
-        "Nothing until new is called",
+        "The first element of numbers",
       ],
-      answer: 0,
+      answer: 3,
       explanation:
         "Assigning an array name to a pointer makes the pointer refer to the array's first element.",
     },
     {
       prompt: "How do you allocate an array of 10 ints on the heap?",
       choices: [
-        "intArray = new int[10];",
         "intArray = new int(10);",
-        "intArray = new int, 10;",
+        "intArray = new int[10];",
         "int intArray[10] = new;",
+        "intArray = new int, 10;",
       ],
-      answer: 0,
+      answer: 1,
       explanation: "new int[10] allocates a dynamic array of 10 ints.",
     },
     {
       prompt: "Which statement correctly frees a dynamically allocated array?",
       code: "int *intArray = new int[10];",
       choices: [
-        "delete [] intArray;",
         "delete intArray;",
-        "free(intArray);",
         "intArray.delete();",
+        "delete [] intArray;",
+        "free(intArray);",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "Arrays allocated with new [...] must be freed with the array form, delete []; plain delete is for single objects.",
     },
@@ -92,12 +92,12 @@ export default {
       prompt: "What goes wrong here?",
       code: "char *chArray = new char[10];\nchArray += 5;\ndelete [] chArray;",
       choices: [
+        "chArray leaks memory but nothing else happens",
         "chArray no longer points at the start of the allocated block, which can corrupt memory",
         "Nothing — delete[] always finds the original block",
-        "chArray leaks memory but nothing else happens",
         "The += operator isn't allowed on pointers",
       ],
-      answer: 0,
+      answer: 1,
       explanation:
         "delete[] expects the pointer to still reference the start of the block new returned; a shifted pointer can corrupt memory or free memory used elsewhere.",
     },
@@ -105,9 +105,9 @@ export default {
       prompt: "Why does void someFunction(int *intPtr); accept an array argument?",
       choices: [
         "Arrays and pointers are compatible — an array name decays to a pointer to its first element",
+        "Because intPtr is declared as int[]",
         "C++ automatically converts arrays to vectors",
         "The function secretly copies the whole array",
-        "Because intPtr is declared as int[]",
       ],
       answer: 0,
       explanation:
@@ -117,18 +117,23 @@ export default {
       prompt: "In this swap function, what does *intPtr1 = *intPtr2; do?",
       code: "void swap(int *intPtr1, int *intPtr2) {\n  int temp = *intPtr1;\n  *intPtr1 = *intPtr2;\n  *intPtr2 = temp;\n}",
       choices: [
-        "Stores the value intPtr2 points to into the memory intPtr1 points to",
-        "Makes intPtr1 point to the same address as intPtr2",
-        "Compares the two pointers",
         "Deletes the memory at intPtr1",
+        "Makes intPtr1 point to the same address as intPtr2",
+        "Stores the value intPtr2 points to into the memory intPtr1 points to",
+        "Compares the two pointers",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "Dereferencing both sides copies the value pointed to by intPtr2 into the memory pointed to by intPtr1.",
     },
     {
       prompt: "To call swap(int *intPtr1, int *intPtr2) on ordinary ints x and y, you write:",
-      choices: ["swap(&x, &y);", "swap(x, y);", "swap(*x, *y);", "swap(x[], y[]);"],
+      choices: [
+        "swap(&x, &y);",
+        "swap(*x, *y);",
+        "swap(x[], y[]);",
+        "swap(x, y);",
+      ],
       answer: 0,
       explanation:
         "swap expects addresses, so the caller passes &x and &y to give it pointers to x and y.",
@@ -136,24 +141,24 @@ export default {
     {
       prompt: "What does strndup(name, 100) return?",
       choices: [
+        "true if name fits in 100 characters",
         "A pointer to a newly allocated copy of name's contents",
         "The length of name",
-        "true if name fits in 100 characters",
         "A reference to name itself",
       ],
-      answer: 0,
+      answer: 1,
       explanation:
         "strndup allocates new memory, copies up to the given number of characters, and returns a pointer to that new copy.",
     },
     {
       prompt: "What's the advantage of strndup over new + strncpy?",
       choices: [
-        "It allocates and copies in a single call",
         "It never allocates on the heap",
         "It works on integers as well as chars",
         "It automatically deletes the original string",
+        "It allocates and copies in a single call",
       ],
-      answer: 0,
+      answer: 3,
       explanation:
         "strndup combines what would otherwise be a separate new char[...] allocation and a strncpy call into one step.",
     },
@@ -161,12 +166,12 @@ export default {
       prompt: "In this loop, what does *(intPtr + i) do?",
       code: "for (i = 0; i < size; i++) {\n  cout << *(intPtr + i) << ' ';\n}",
       choices: [
-        "Accesses the i-th element of the array intPtr points to, same as intPtr[i]",
         "Adds i to the pointer's stored address without reading memory",
         "Multiplies the pointer's address by i",
         "Deletes the element at index i",
+        "Accesses the i-th element of the array intPtr points to, same as intPtr[i]",
       ],
-      answer: 0,
+      answer: 3,
       explanation:
         "Dereferencing intPtr + i reads the value at that offset, equivalent to indexing with intPtr[i].",
     },
@@ -175,8 +180,8 @@ export default {
       choices: [
         "i * sizeof(the pointed-to type)",
         "Just i",
-        "i bytes, regardless of type",
         "sizeof(intPtr)",
+        "i bytes, regardless of type",
       ],
       answer: 0,
       explanation:
@@ -187,12 +192,12 @@ export default {
         "What lets a dynamic array's size be decided while the program runs (unlike a plain declared array)?",
       code: "cin >> size;\nintArray = new int[size];",
       choices: [
+        "new requires a literal size",
+        "size must be a compile-time constant either way",
         "new int[size] allocates based on a run-time value",
         "Plain arrays can also use a variable size",
-        "size must be a compile-time constant either way",
-        "new requires a literal size",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
         "Unlike a plain array declaration, new int[size] can use a size determined at run time, such as user input.",
     },
