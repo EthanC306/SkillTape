@@ -1,13 +1,58 @@
-import React, { useState } from "react";
-import curriculum from "./data/curriculum";
-import { PALETTE, SANS, RADII } from "./data/theme";
+import React, { useMemo, useState } from "react";
+import { PALETTE, SANS, RADII, MONO } from "./data/theme";
 import shuffle from "./utils/shuffle";
 import useProgress from "./hooks/useProgress";
+import useTopics from "./hooks/useTopics";
+import { putCards, putFlashcards } from "./api/client";
 import Header from "./components/Header";
 import Home from "./components/Home";
 import TopicView from "./components/TopicView";
 import MasterQuizView from "./components/MasterQuizView";
 import HistoryModal from "./components/HistoryModal";
+
+/**
+ * Status — the panel shown while the curriculum is loading, or when it can't
+ * be reached. Content arrives over HTTP now, so "no topics yet" is a normal
+ * first render rather than a bug.
+ */
+function Status({ text, tone, onRetry }) {
+  return (
+    <div
+      style={{
+        background: PALETTE.panel,
+        border: `1px solid ${tone === "bad" ? PALETTE.bad : PALETTE.line}`,
+        borderRadius: RADII.lg,
+        padding: "28px 30px",
+        fontFamily: MONO,
+        fontSize: 13,
+        color: tone === "bad" ? PALETTE.bad : PALETTE.muted,
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        flexWrap: "wrap",
+      }}
+    >
+      <span>{text}</span>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          style={{
+            fontFamily: MONO,
+            fontSize: 12,
+            padding: "6px 14px",
+            borderRadius: RADII.md,
+            cursor: "pointer",
+            border: `1px solid ${PALETTE.line}`,
+            background: "transparent",
+            color: PALETTE.text,
+          }}
+        >
+          Retry
+        </button>
+      )}
+    </div>
+  );
+}
 
 /**
  * App — the tutor for a single class.
@@ -18,8 +63,15 @@ import HistoryModal from "./components/HistoryModal";
  */
 export default function App({ course }) {
   const { progress, recordRun } = useProgress();
+  const { topics: allTopics, loading, error, reload } = useTopics();
   const [topicId, setTopicId] = useState(null);
   const [mode, setMode] = useState("learn");
+
+  // Edit mode — when true, Learn/Flashcards render their content as editable
+  // fields instead of read-only text. Scoped to the open topic; reset on the
+  // way into a different one.
+  const [editMode, setEditMode] = useState(false);
+  const [saveState, setSaveState] = useState(null); // null | "saving" | "saved" | error string
 
   // ── Master Set state ──────────────────────────────────────────────────────
   // selectMode  — when true, clicking topic cards on the list SELECTS them
@@ -35,7 +87,10 @@ export default function App({ course }) {
   const [historyTopicId, setHistoryTopicId] = useState(null);
 
   // Only the topics belonging to this class (or all of them if no course given).
-  const topics = course ? curriculum.filter((t) => t.course === course) : curriculum;
+  const topics = useMemo(
+    () => (course ? allTopics.filter((t) => t.course === course) : allTopics),
+    [allTopics, course]
+  );
   const topic = topics.find((t) => t.id === topicId) || null;
 
   // Adjacent lessons in this course's list, used for the Prev/Next controls below.
@@ -46,6 +101,30 @@ export default function App({ course }) {
   function openTopic(id) {
     setTopicId(id);
     setMode("learn");
+    setEditMode(false);
+    setSaveState(null);
+  }
+
+  // ── Edit mode ─────────────────────────────────────────────────────────────
+
+  /**
+   * Persist edited content for the open topic, then refetch so every view —
+   * including the Master Set pool — sees the saved version.
+   *
+   * `patch` is { cards } or { flashcards }. The server validates independently;
+   * this is not the boundary, just the caller.
+   */
+  async function saveContent(patch) {
+    if (!topic) return;
+    setSaveState("saving");
+    try {
+      if (patch.cards) await putCards(topic.id, patch.cards);
+      if (patch.flashcards) await putFlashcards(topic.id, patch.flashcards);
+      await reload();
+      setSaveState("saved");
+    } catch (e) {
+      setSaveState(e.message);
+    }
   }
 
   function goPrev() {
@@ -119,7 +198,11 @@ export default function App({ course }) {
           setTopicId(null);
         }}
       />
-      {masterTopic ? (
+      {loading ? (
+        <Status text="loading curriculum…" />
+      ) : error ? (
+        <Status text={error} tone="bad" onRetry={reload} />
+      ) : masterTopic ? (
         <MasterQuizView topic={masterTopic} onExit={exitMasterSet} />
       ) : !topic ? (
         <Home
@@ -145,6 +228,13 @@ export default function App({ course }) {
           prevTopic={prevTopic}
           nextTopic={nextTopic}
           onSelectMode={toggleSelectMode}
+          editMode={editMode}
+          onToggleEdit={() => {
+            setEditMode((on) => !on);
+            setSaveState(null);
+          }}
+          onSaveContent={saveContent}
+          saveState={saveState}
         />
       )}
       {historyTopicId && (
