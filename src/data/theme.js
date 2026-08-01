@@ -66,8 +66,8 @@ export const PALETTE = {
   text: "#e9e9ed", // --color-text
   muted: NEUTRAL[500],
   accent: "var(--nocturne-accent)", // --color-accent — defined once in index.html, see the TOKEN COUPLING note there
-  accentSoft: "rgba(145,132,217,0.12)", // hover tint (accent @ 12%)
-  accentSoftStrong: "rgba(145,132,217,0.22)", // pressed tint (accent @ 22%)
+  accentSoft: "var(--nocturne-accent-soft)", // hover tint (accent @ 12%, color-mix'd in index.html)
+  accentSoftStrong: "var(--nocturne-accent-soft-strong)", // pressed tint (accent @ 22%)
   // Keep good/bad functionally distinct from the accent (quiz semantics),
   // but desaturate them to sit inside the same tonal-ramp aesthetic.
   good: "#7fb894",
@@ -80,6 +80,21 @@ export const RAMP = {
   neutral: NEUTRAL,
   accent: ACCENT_RAMP,
 };
+
+// Theme presets for the settings menu (src/components/SettingsMenu.jsx). Each
+// swaps the single --nocturne-accent CSS var (index.html), so every element
+// styled from PALETTE.accent/accentSoft/accentSoftStrong repaints at once —
+// no per-component theming needed. Keep `value` in sync with the plain-object
+// mirror in index.html's pre-paint bootstrap script (it can't import this
+// module — see the comment there).
+export const ACCENT_PRESETS = [
+  { id: "purple", label: "Purple", value: "#9184d9" },
+  { id: "blue", label: "Blue", value: "#7aa2d9" },
+  { id: "green", label: "Green", value: "#7fb894" },
+  { id: "amber", label: "Amber", value: "#d9ab6e" },
+  { id: "rose", label: "Rose", value: "#d98a9e" },
+];
+export const DEFAULT_THEME_ID = "purple";
 
 // Syntax-highlighting colors for code listings (src/components/CodeBlock.jsx).
 // Desaturated on purpose: they have to read as one family with the accent

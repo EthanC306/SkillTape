@@ -21,6 +21,8 @@ import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
  *   onToggleSelectMode()    — turn selection mode on/off.
  *   onMasterSet()           — build & start the combined Master Set quiz.
  *   onShowHistory(topicId)  — open the "older quizzes" history modal for a topic.
+ *   onDrill()               — open a closed-book Drill session (ROADMAP.md A4)
+ *                              over this course's due items.
  */
 export default function Home({
   topics,
@@ -32,6 +34,7 @@ export default function Home({
   onToggleSelectMode,
   onMasterSet,
   onShowHistory,
+  onDrill,
 }) {
   const ctrlBtn = (active) => ({
     fontFamily: HEADING,
@@ -55,6 +58,20 @@ export default function Home({
             : "Pick a topic to review the concepts or test yourself."}
         </p>
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+          {!selectMode && (
+            <button
+              onClick={onDrill}
+              title="Closed-book review of items due right now (ROADMAP.md A4)"
+              style={{
+                ...ctrlBtn(false),
+                border: `1px solid ${PALETTE.accent}`,
+                background: PALETTE.accentSoft,
+                color: PALETTE.accent,
+              }}
+            >
+              Drill
+            </button>
+          )}
           <button onClick={onToggleSelectMode} title="Select topics for a combined quiz" style={ctrlBtn(selectMode)}>
             {selectMode ? "Cancel" : "Select"}
           </button>

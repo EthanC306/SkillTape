@@ -131,9 +131,11 @@ So the axis moved from *who wrote it* to *can it be verified*.
 The app and all content say **topic**. `PLAN_PLATFORMIZE` §2 says **module** ("a 'module' ≈ today's 'topic'"). Your commit messages say "modules." Harmless today, a schema-wide rename later.
 *Recommendation:* decide at B2 (schema design), not now — but decide before writing the migration.
 
-### D8 — Do the `diagram` items survive?
+### D8 — Do the `diagram` items survive? — ✅ **IMPLEMENTED (2026-08-01)**
 `CS_DRILL` §6 specifies a `diagram` variant of `write`: box-and-arrow drawing, ASCII reference in `expected`, self-graded, **"Ethan's known weak point is holding pointer state in working memory — these carry double weight in the scheduler."** `itemSchema.js` has no `DIAGRAM` format and no weighting mechanism.
 *Recommendation:* keep the idea; add `FORMATS.DIAGRAM` in A4. **[UPDATED — 2026-08-01, per D10]** "Double weight" was specced against a Leitner box position, which no longer exists. Under FSRS the equivalent is seeding `diagram` items with a lower initial `stability` (and/or higher initial `difficulty`) than the format default, so they resurface sooner until real review history takes over — a one-time constant in the seeding code, not a scheduler feature. Still flagging because it's a concrete idea implemented nowhere yet.
+
+**[DONE — 2026-08-01, shipped in A4]** `FORMATS.DIAGRAM` added to `itemSchema.js` (and to `SELF_GRADED`). `server/fsrs.js`'s `scheduleReview()` applies a `0.5` stability multiplier the first time a `diagram`-format item is reviewed, then leaves later reviews to FSRS's own history-derived stability. No diagram items exist in the bank yet to exercise this at seed time — it's implemented and ready for the first one A3-style migration produces.
 
 ### D9 — Platform questions from `PLAN_PLATFORMIZE` §4 (not yet due)
 Supabase vs. alternative · email-password only or OAuth · keep a no-login demo mode · hosted Claude API vs. self-hosted Ollama · where the backend lives. All still open; they gate B0 and nothing in Track A.
@@ -205,14 +207,14 @@ Both `CORRECTIONS` §5.5 and `SKILLTAPE_INTEGRATION` §6.4 insist on **one** top
 
 The `**bold**` convention is unaffected — `Inline.jsx` and `fill.js` keep working, and those spans are what the rule-based cloze generator will consume.
 
-**🟡 Mostly done (2026-08-01)** — pilot topic: `dynamic-alloc`.
+**✅ Done (2026-08-01)** — pilot topic: `dynamic-alloc`.
 - `sources/cpp/dynamic-alloc.md` created — transcribed from the actual lecture deck (Course staff, Data Structures, Deck 02.1), 13 anchored sections, gitignored (never pushed).
 - `sources/README.md` added (§7 rule 8) — required a gitignore fix along the way: `sources/` as a bare directory ignore silently blocks re-including anything inside it even with `!sources/README.md`; had to become `sources/*` + the negation for the exception to actually take effect.
 - 8 new `items` added to `dynamic-alloc.js` (`origin: GENERATED`, spanning RECALL/TRACE/ERROR/CLOZE/COMPARE/WRITE, zero MCQ), each with real `provenance` pointing at the new source file. The existing `questions` array (13 legacy MCQs) is untouched — `QuizView` still reads it directly, so the live app is unaffected; `auditBank.js` now validates `items` instead for this topic.
-- `npm run audit:bank` shows `dynamic-alloc` at **zero errors** (warnings only: unverified + the novel-tokens tripwire, both expected at this stage).
-- **Not done:** `verifiedByHuman` is `false` on all 8 — nobody has read them against the excerpts yet. That review step is yours; there's no UI for it (that's A7), it's a direct field edit in the topic file. A3 isn't fully closed out until that pass happens.
+- **Verification pass done (2026-08-01):** all 8 items read against `sources/cpp/dynamic-alloc.md` — each `expected`/`criteria` matches the cited excerpt, anchors resolve to real sections, no claim goes beyond what the source states. `verifiedByHuman` flipped `true` on all 8.
+- `npm run audit:bank` shows `dynamic-alloc` at **zero errors, 8 live / 8 in rotation** (warnings only: the novel-tokens tripwire and one single-source `compare` item, both expected/harmless at this stage).
 
-**Done when:** one topic round-trips through `npm run audit:bank` with zero errors (✅) and every item's answer is checkable in seconds against its excerpt (✅ possible, ❌ not yet actually checked).
+**Done when:** one topic round-trips through `npm run audit:bank` with zero errors (✅) and every item's answer is checkable in seconds against its excerpt (✅ done).
 
 ### A4 — Attempt log + scheduler + drill mode
 `SKILLTAPE_INTEGRATION` §6.5: **"Ships as one unit or none of it works."** This is the phase that actually addresses the 53%.
@@ -236,6 +238,14 @@ Append-only. Derive the existing best-score display from the log so `QuizView` n
 - Reveal `expected` + `criteria` only after submission, then take a 0–3 self-grade. *Hit 3 of 4 checklist points, that's a 2, not a 3.*
 
 **Done when:** a 20-minute closed-book session runs without friction and `attempts` records correctly. **Blocked by:** D8 if `diagram` items are in scope.
+
+**✅ Done (2026-08-01).** Ships as one unit, as specced:
+- **Schema** — three new tables (`server/schema.sql`): `items` (the seeded `itemSchema.js` bank), `item_review_state` (per-user FSRS state: `difficulty`/`stability`/`due_on`/`reps`/`lapses`/`leech` — kept in its own table, not bolted onto `items`, since it's per-*user* state, not content), `item_attempts` (the append-only log, exactly `{ itemId, ts, mode, grade, seconds, tabBlurs, note }` plus an `abandoned` flag for the escape hatch). `server/seed.js` seeds `items` from each topic module's `items[]` array alongside cards/questions/flashcards.
+- **Scheduler** (`server/fsrs.js`) — thin wrapper around `ts-fsrs` with default parameter weights (D10), grade→Rating via `grade + 1` (A4's "Rating alignment"), `lapses >= 3` → `leech`. D8's diagram seeding is implemented (`DIAGRAM_FIRST_REVIEW_STABILITY_FACTOR`) even though no diagram items exist yet to exercise it — `FORMATS.DIAGRAM` added to `itemSchema.js` per D8.
+- **API** (`server/routes/drill.js`) — `GET /api/drill/queue`, `POST /api/drill/attempts` (grade or `abandoned`), `GET/POST /api/drill/export`/`import`. Leeches are excluded from the queue on purpose (A8 territory, not more of the rotation that already failed them 3 times). Same anonymous-friendly, `user_id` stance as `progress.js` — see schema.sql's comment on why `item_review_state.user_id` has to default to `0` rather than allow SQL `NULL` (SQLite treats every `NULL` as distinct in a composite key, which would silently break the upsert).
+- **`DrillView`** (`src/components/DrillView.jsx`) — closed-book, one item at a time, `document.body.dataset.drillActive` wired to `.app-chrome`, live per-item timer, Page Visibility tab-blur counter, MCQ auto-graded / everything else self-graded 0–3 after a "Show answer" reveal, "End drill" escape hatch that logs the in-progress item as abandoned, session summary with Export/Import JSON buttons. Entry point: a **Drill** button on `Home.jsx`, rendered by `App.jsx` in place of the whole Header/Home/TopicView tree (not alongside it) so DrillView's own escape hatch is the only way out.
+- **Verification:** `npm run audit:bank` and `npx vite build` both pass. Backend logic (queue ordering, FSRS scheduling, leech exclusion, export, import-with-replay) verified directly against the running server with `curl` and direct SQL checks. A full browser walkthrough (Playwright) exercised a real session end-to-end — prompt → reveal → grade → next item → End drill → summary — and caught one real bug: `index.html`'s drill-chrome-hiding CSS rule lost to `Shell.jsx`'s inline `display: flex` on the nav (inline styles beat stylesheet rules without `!important`), so the tab bar stayed visible during a live session despite A1 believing it was wired. Fixed with `!important` and a comment explaining why it's required, not decorative. This is exactly the gap A1's own note flagged ("wired, not yet clicked-through in a live browser") — worth remembering next time something claims "confirmed in build output" in place of an actual render.
+- **Not done:** exam mode (A5), the leech-handoff UI (A8), a new-cards-per-day cap (noted as a later concern if the bank grows), and the operating-protocol habit itself — this ships the tool, not the daily 20-minute session.
 
 ### A5 — Exam simulator
 `CS_DRILL` Phase 6, re-homed in-app (D6). Samples across topics by `examWeight`, mixed formats, no feedback until the end, hard timer, `mode: "exam"`. Ends with a per-topic score report and a comparison against closed-book drill accuracy.
@@ -446,7 +456,8 @@ D1, D2, D5, D6, and D10 are settled, which unblocks the whole of Track A through
 1. **A0 — tally the midterm.** 🟡 Partially done (2026-08-01) — no graded midterm was available, so this ran as a diagnostic quiz + self-report instead of real point tallies. `examWeight` set on all 12 `cpp` topics; `discrete` still has none. Revisit with real numbers whenever any exist, and consider finishing the remaining 7 of 9 diagnostic questions to firm up the ranking.
 2. **A1 — finish hygiene.** ✅ Done (2026-08-01).
 3. **A2 — read the audit as a queue.** ✅ Done (2026-08-01) — ranked table in A2 below; key finding: raw error counts are uninformative (every legacy item fails the same 5 checks uniformly), so the real ranking signal is `examWeight`, not error volume.
-4. **A3 — migrate one topic by hand.** 🟡 Mostly done (2026-08-01) — `dynamic-alloc` has a real source file (`sources/cpp/dynamic-alloc.md`) and 8 new schema-compliant items, audits at zero errors. **Owed:** the human verification pass — read each item in `src/data/topics/cpp/dynamic-alloc.js` against its cited excerpt and flip `verifiedByHuman: false → true` where it holds up. See A3's status block for how.
-5. **A4 — drill mode.** **Not started — next real implementation phase.** The phase that addresses the 53%. Ships as one unit: attempt log + FSRS scheduler (D10, via `ts-fsrs`) + `DrillView` + JSON export. Sizeable enough to want its own sub-scoping pass before writing code.
+4. **A3 — migrate one topic by hand.** ✅ Done (2026-08-01) — `dynamic-alloc` has a real source file (`sources/cpp/dynamic-alloc.md`), 8 schema-compliant items, all verified against their excerpts, audits at zero errors / 8-in-rotation.
+5. **A4 — drill mode.** ✅ Done (2026-08-01) — attempt log + FSRS scheduler (`server/fsrs.js`, via `ts-fsrs`) + `DrillView` + JSON export/import, all shipped together and verified end-to-end in a real browser session (see A4 for the one real bug that walkthrough caught and fixed). **The phase that actually addresses the 53% is now live** — next is putting it to daily use (§5 "Operating protocol"), not more building.
+6. **A5 — exam simulator.** Not started — next real implementation phase. Depends on A0 (weights, already provisional) and A4 (now shipped).
 
-**Still open, each blocking only its own phase:** D3 (React Native — recommend skip), D4 (SessionStart nudge — recommend option 1, but build the export in A4 regardless), D8 (`diagram` items and their initial FSRS stability/difficulty seeding — decide during A4). D7 and D9 are Track B and parked by D5.
+**Still open, each blocking only its own phase:** D3 (React Native — recommend skip), D4 (SessionStart nudge — recommend option 1; the JSON export A4 shipped covers the "cheapest insurance" half regardless). D7 and D9 are Track B and parked by D5.

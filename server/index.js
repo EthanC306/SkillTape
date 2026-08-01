@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import topics from "./routes/topics.js";
 import progress from "./routes/progress.js";
 import auth from "./routes/auth.js";
+import drill from "./routes/drill.js";
 
 //Returns an application object. Think of app as your servers rulebook, every route is a rule saying run that function if this happens
 const app = express();
@@ -25,6 +26,7 @@ app.use("/api/topics", topics);
 // mounted at the bare /api prefix rather than one fixed sub-path.
 app.use("/api", progress);
 app.use("/api/auth", auth);
+app.use("/api/drill", drill);
 
 // 404 for anything under /api that matched no route above. Without this, an
 // unknown /api path falls through and returns Express's HTML error page, which

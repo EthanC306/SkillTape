@@ -269,6 +269,7 @@ export default {
         promptedFrom: "sources/cpp/dynamic-alloc.md",
       },
       difficulty: 2,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "dynamic-alloc-02",
@@ -297,6 +298,7 @@ export default {
         promptedFrom: "sources/cpp/dynamic-alloc.md",
       },
       difficulty: 2,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "dynamic-alloc-03",
@@ -326,6 +328,7 @@ export default {
         promptedFrom: "sources/cpp/dynamic-alloc.md",
       },
       difficulty: 3,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "dynamic-alloc-04",
@@ -355,6 +358,7 @@ export default {
         promptedFrom: "sources/cpp/dynamic-alloc.md",
       },
       difficulty: 2,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "dynamic-alloc-05",
@@ -384,6 +388,7 @@ export default {
         promptedFrom: "sources/cpp/dynamic-alloc.md",
       },
       difficulty: 3,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "dynamic-alloc-06",
@@ -408,6 +413,7 @@ export default {
         promptedFrom: "sources/cpp/dynamic-alloc.md",
       },
       difficulty: 1,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "dynamic-alloc-07",
@@ -437,6 +443,7 @@ export default {
         promptedFrom: "sources/cpp/dynamic-alloc.md",
       },
       difficulty: 2,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "dynamic-alloc-08",
@@ -466,6 +473,7 @@ export default {
         promptedFrom: "sources/cpp/dynamic-alloc.md",
       },
       difficulty: 1,
+      verifiedByHuman: true,
     }),
   ],
 };

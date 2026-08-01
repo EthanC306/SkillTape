@@ -10,6 +10,7 @@ import Home from "./components/Home";
 import TopicView from "./components/TopicView";
 import MasterQuizView from "./components/MasterQuizView";
 import HistoryModal from "./components/HistoryModal";
+import DrillView from "./components/DrillView";
 
 /**
  * Status — the panel shown while the curriculum is loading, or when it can't
@@ -87,6 +88,13 @@ export default function App({ course }) {
 
   // id of the topic whose "older quizzes" history log is currently open (or null)
   const [historyTopicId, setHistoryTopicId] = useState(null);
+
+  // Whether a Drill session (ROADMAP.md A4) is open. Rendered in place of the
+  // whole Header/Home/TopicView tree below, not alongside it — DrillView's
+  // own "End drill" button is meant to be the only way out while it's open,
+  // and leaving Header's home-logo link on screen would give a second, less
+  // honest one.
+  const [drilling, setDrilling] = useState(false);
 
   // Only the topics belonging to this class (or all of them if no course given).
   const topics = useMemo(
@@ -193,59 +201,66 @@ export default function App({ course }) {
         padding: 20,
       }}
     >
-      <Header
-        topic={masterTopic || topic}
-        onHome={() => {
-          setMasterTopic(null);
-          setTopicId(null);
-        }}
-        auth={auth}
-      />
-      {loading ? (
-        <Status text="loading curriculum…" />
-      ) : error ? (
-        <Status text={error} tone="bad" onRetry={reload} />
-      ) : masterTopic ? (
-        <MasterQuizView topic={masterTopic} onExit={exitMasterSet} />
-      ) : !topic ? (
-        <Home
-          topics={topics}
-          progress={progress}
-          onOpen={openTopic}
-          selectMode={selectMode}
-          selectedIds={selectedIds}
-          onToggleSelect={toggleSelected}
-          onToggleSelectMode={toggleSelectMode}
-          onMasterSet={buildMasterSet}
-          onShowHistory={setHistoryTopicId}
-        />
+      {drilling ? (
+        <DrillView course={course} onExit={() => setDrilling(false)} />
       ) : (
-        <TopicView
-          topic={topic}
-          mode={mode}
-          setMode={setMode}
-          onFinish={recordRun}
-          best={progress[topic.id]}
-          onPrev={goPrev}
-          onNext={goNext}
-          prevTopic={prevTopic}
-          nextTopic={nextTopic}
-          onSelectMode={toggleSelectMode}
-          editMode={editMode}
-          onToggleEdit={() => {
-            setEditMode((on) => !on);
-            setSaveState(null);
-          }}
-          onSaveContent={saveContent}
-          saveState={saveState}
-        />
-      )}
-      {historyTopicId && (
-        <HistoryModal
-          topic={topics.find((t) => t.id === historyTopicId)}
-          history={progress[historyTopicId]?.history ?? []}
-          onClose={() => setHistoryTopicId(null)}
-        />
+        <>
+          <Header
+            topic={masterTopic || topic}
+            onHome={() => {
+              setMasterTopic(null);
+              setTopicId(null);
+            }}
+            auth={auth}
+          />
+          {loading ? (
+            <Status text="loading curriculum…" />
+          ) : error ? (
+            <Status text={error} tone="bad" onRetry={reload} />
+          ) : masterTopic ? (
+            <MasterQuizView topic={masterTopic} onExit={exitMasterSet} />
+          ) : !topic ? (
+            <Home
+              topics={topics}
+              progress={progress}
+              onOpen={openTopic}
+              selectMode={selectMode}
+              selectedIds={selectedIds}
+              onToggleSelect={toggleSelected}
+              onToggleSelectMode={toggleSelectMode}
+              onMasterSet={buildMasterSet}
+              onShowHistory={setHistoryTopicId}
+              onDrill={() => setDrilling(true)}
+            />
+          ) : (
+            <TopicView
+              topic={topic}
+              mode={mode}
+              setMode={setMode}
+              onFinish={recordRun}
+              best={progress[topic.id]}
+              onPrev={goPrev}
+              onNext={goNext}
+              prevTopic={prevTopic}
+              nextTopic={nextTopic}
+              onSelectMode={toggleSelectMode}
+              editMode={editMode}
+              onToggleEdit={() => {
+                setEditMode((on) => !on);
+                setSaveState(null);
+              }}
+              onSaveContent={saveContent}
+              saveState={saveState}
+            />
+          )}
+          {historyTopicId && (
+            <HistoryModal
+              topic={topics.find((t) => t.id === historyTopicId)}
+              history={progress[historyTopicId]?.history ?? []}
+              onClose={() => setHistoryTopicId(null)}
+            />
+          )}
+        </>
       )}
     </div>
   );

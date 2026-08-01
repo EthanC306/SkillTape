@@ -22,6 +22,13 @@ export const FORMATS = {
   COMPARE: "compare", // state the discriminating difference between two concepts
   COMPLEXITY: "complexity", // Big-O plus the justification
   MCQ: "mcq", // selection — capped, see QUOTAS
+  // Box-and-arrow drawing, self-graded against an ASCII reference in
+  // `expected` (ROADMAP.md D8). Deliberately absent from QUOTAS — this isn't
+  // a format the bank aims for a fixed share of, it's seeded where a topic's
+  // content specifically calls for a diagram. The scheduler gives it a lower
+  // initial stability than a fresh item of any other format (server/fsrs.js),
+  // since D8 flags box-and-arrow pointer diagrams as a known weak point.
+  DIAGRAM: "diagram",
 };
 
 /**
@@ -49,6 +56,7 @@ export const SELF_GRADED = new Set([
   FORMATS.ERROR,
   FORMATS.COMPARE,
   FORMATS.COMPLEXITY,
+  FORMATS.DIAGRAM,
 ]);
 
 // ---------------------------------------------------------------------------
