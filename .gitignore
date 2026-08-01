@@ -21,6 +21,7 @@ public/figures/private/
 db/*.db
 db/*.db-journal
 db/*.db-wal
+db/*.db-shm
 *.sqlite
 *.sqlite3
 progress-export-*.json

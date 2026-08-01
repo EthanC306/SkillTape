@@ -14,6 +14,17 @@ export default defineConfig({
     open: false,
     // Vite's dev server is HTTP and binds localhost only by default. Leave it
     // that way — `host: true` exposes the server (and `fs` reads) to your LAN.
+
+    // Everything under /api is forwarded to the Express API on 3001, so the
+    // browser only ever talks to one origin and CORS never comes up. It also
+    // means frontend code writes fetch("/api/…") with no hostname to change
+    // when this stops being localhost.
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:3001",
+        changeOrigin: true,
+      },
+    },
   },
 
   build: {
