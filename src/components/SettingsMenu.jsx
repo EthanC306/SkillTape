@@ -4,12 +4,16 @@ import useTheme from "../hooks/useTheme";
 import AuthBar from "./AuthBar";
 
 /**
- * SettingsMenu — the gear button fixed to the top of the page (same corner
+ * SettingsMenu — the gear button at the end of Header's top bar (same spot
  * in both c++ and cs3000, since Header renders it for either course).
  *
  * Opens a panel with two sections: a theme-preset swatch row (see
  * ACCENT_PRESETS/useTheme) and the account control that used to sit inline
  * in Header — AuthBar itself is unchanged, just relocated in here.
+ *
+ * Renders as a normal flex item in Header's row (not `position: fixed`) so
+ * it never overlaps Header's own right-aligned text — it just sits after it
+ * with a gap, however long that text gets.
  */
 export default function SettingsMenu({ auth }) {
   const [open, setOpen] = useState(false);
@@ -32,7 +36,7 @@ export default function SettingsMenu({ auth }) {
           style={{ position: "fixed", inset: 0, zIndex: 1900 }}
         />
       )}
-      <div style={{ position: "fixed", top: 16, right: 16, zIndex: 2000 }}>
+      <div style={{ position: "relative", flexShrink: 0, zIndex: 2000 }}>
         <button
           onClick={() => setOpen((o) => !o)}
           aria-label="Settings"
