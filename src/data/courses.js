@@ -15,6 +15,6 @@
  *   subtitle — short context line (e.g., course code or textbook) under the title.
  */
 export const COURSES = [
-  { id: "cpp", title: "C++", subtitle: "data structures & algorithms" },
-  { id: "discrete", title: "CS3000 Discrete Structures", subtitle: "Epp — Discrete Mathematics 5e" },
+  { id: "cpp", title: "C++", subtitle: "Computer Science Intro" },
+  { id: "discrete", title: "Discrete Structures", subtitle: "Epp — Discrete Mathematics 5e" },
 ];

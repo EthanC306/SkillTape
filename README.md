@@ -61,6 +61,100 @@ planned item schema, which the existing MCQ content predates. Every legacy quest
 missing `id`, `format`, and `provenance`. It will pass once the bank is migrated; until then treat
 its output as the migration to-do list, not a regression.
 
+## Running with Docker
+
+```bash
+docker compose up -d --build   # build both images and start the containers
+docker compose ps              # check status
+docker compose logs -f api     # tail one service's logs (or `web`)
+docker compose down            # stop and remove the containers
+```
+
+The app is served on `http://localhost:8080` (nginx, proxying `/api` to the
+Express API container internally — see `nginx.conf`). `./db` is the only
+bind mount (`docker-compose.yml`); everything else is baked into the image
+at build time via `COPY . .` in the `Dockerfile`.
+
+**Two different things need two different fixes — don't confuse them:**
+
+- **Code changes** (a component, a route, `index.html`, anything under
+  `src/` or `server/` that isn't content) — the image has to be rebuilt:
+  ```bash
+  docker compose up -d --build
+  ```
+  There's no live reload and no bind mount of the source, so a plain
+  `docker compose up -d` (no `--build`) will keep serving the old code even
+  after you save a file.
+
+- **Content changes** (editing a topic's `title`/`subtitle`/`cards`/
+  `questions`/`flashcards` in `src/data/topics/**`) — these are read from
+  the **database**, not from the `.js` files at request time. Reseed
+  instead of rebuilding:
+  ```bash
+  npm run db:seed
+  ```
+  Run this on the host, *not* inside the container. `./db/skilltape.db` is
+  bind-mounted, so it's the exact same file the `api` container reads —
+  reseeding on the host updates it immediately, no rebuild or restart
+  needed. (`--reset` also wipes and reseeds `courses`/`topics` themselves;
+  plain `npm run db:seed` is enough for editing existing topics' content.)
+
+**If the containers are up but the site 502s, or a container is just gone**
+(`docker compose ps` shows nothing, or `docker ps -a` shows `Exited`): this
+has happened repeatedly in local testing under **Docker Desktop** on WSL2 —
+`api` killed with exit `137`, `web` exiting cleanly right after, with no
+error in either container's own logs and no OOM. It doesn't correlate with
+anything the app itself does. `docker compose up -d` brings both back and
+they've held afterward each time, so treat a bounce as Docker Desktop's
+WSL2 integration doing something in the background, not an app bug — if it
+becomes frequent, check Docker Desktop's own Settings → Resources and its
+troubleshoot/logs panel rather than this repo's code.
+
+## Desktop app (Electron, Linux)
+
+A real installable desktop app — its own window and icon, no terminal, no
+Docker, works offline. Wraps the same frontend and Express+SQLite backend
+used everywhere else in this repo; `electron/main.cjs` spawns the existing
+`server/index.js`/`server/seed.js` as child processes rather than
+reimplementing anything.
+
+```bash
+npm run electron:dev     # build + launch locally, without packaging
+npm run electron:build   # produce a real .AppImage and .deb in dist-electron/
+```
+
+**Electron version is pinned to >=35 for a real reason, not just "latest":**
+`better-sqlite3`'s prebuilt native addon needs Node 22's N-API surface
+(`process.versions.napi === 10`). Electron <=34 bundles Node 20
+(`napi === 9`) — loading the addon there doesn't error, it **segfaults**
+the instant the addon initializes, inside `better-sqlite3`'s own native
+code. Confirmed with `strace`: clean crash right after the addon's shared
+libs resolve, on both Electron 32 and 34; a working DB round-trip on
+Electron 36. This is the same "Node 22, not 20" constraint the `Dockerfile`
+already documents for the plain-Node path — it's just not obvious it also
+applies to picking an Electron version, since Electron's own `package.json`
+version number doesn't tell you which Node it bundles.
+
+If you ever bump the `electron` devDependency, sanity-check the new
+version bundles Node >=22 before assuming a hang or crash is this repo's
+bug: `ELECTRON_RUN_AS_NODE=1 node_modules/electron/dist/electron -e
+"console.log(process.versions.napi)"` — needs to print `10`, not `9`.
+
+The packaged app's SQLite database lives in Electron's real per-OS
+user-data directory (`~/.config/SkillTape` on Linux via
+`app.getPath("userData")`), not this repo's `./db/` — there is no "repo"
+once it's installed. `server/seed.js` runs on every launch (idempotent
+upserts) since a packaged app has no terminal to run `npm run db:seed`
+from by hand.
+
+No app icon is set yet — `electron-builder`'s default Electron icon is
+used. Windows/macOS builds aren't configured; `electron-builder.yml` only
+targets `linux: [AppImage, deb]`, built and tested from this same
+environment. Packaging for another OS means cross-compiling, and
+`better-sqlite3`'s prebuilt binary has to match the *target* platform, not
+the build machine — worth re-verifying with the same `strace` approach
+above rather than assuming it "just works" if that's ever attempted.
+
 ## Project structure
 
 ```

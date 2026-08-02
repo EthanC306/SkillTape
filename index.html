@@ -63,6 +63,19 @@
         -webkit-tap-highlight-color: transparent;
       }
       /*
+       * Uniform hover state for every clickable block (buttons, topic
+       * cards, anything using role="button") — border and text tint to the
+       * accent color on hover. !important for the same reason as the
+       * app-chrome rule below: these elements set their own border/color
+       * inline (topic cards, control buttons), and an inline style always
+       * wins over a stylesheet rule unless it's marked important.
+       */
+      button:not(:disabled):hover,
+      [role="button"]:hover {
+        border-color: var(--nocturne-accent) !important;
+        color: var(--nocturne-accent) !important;
+      }
+      /*
        * Drill mode hides all navigation chrome; see CORRECTIONS.md §4.2.
        *
        * !important is required, not optional here: Shell.jsx's <nav

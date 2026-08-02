@@ -1,0 +1,33 @@
+# electron-builder packaging config. Split from package.json since the file
+# list here is long enough to hurt package.json's readability.
+appId: com.skilltape.app
+productName: SkillTape
+
+# Only what the packaged app actually needs at runtime:
+#   dist/       — built frontend, served by server/index.js's static fallback
+#   server/     — the Express API, spawned as a child process by electron/main.cjs
+#   src/data/   — server/seed.js imports curriculum.js, which imports every
+#                 topic file; needed at runtime for seeding, not just the build
+# node_modules is included by electron-builder automatically (production
+# deps only) — no need to list it here.
+files:
+  - dist/**/*
+  - server/**/*
+  - src/data/**/*
+  - electron/**/*
+  - package.json
+  - "!**/*.map"
+
+directories:
+  output: dist-electron
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Education
+  # Required for the .deb target specifically (Debian's maintainer field) —
+  # package.json has no "author", so electron-builder has nothing to fall
+  # back to. Set here rather than adding an author to package.json, since
+  # that's a repo-wide change this doesn't need to make.
+  maintainer: SkillTape <skilltape@localhost>
