@@ -69,12 +69,7 @@ export default function Home({
               <button
                 onClick={onDrill}
                 title="Closed-book review of items due right now (ROADMAP.md A4)"
-                style={{
-                  ...ctrlBtn(false),
-                  border: `1px solid ${PALETTE.accent}`,
-                  background: PALETTE.accentSoft,
-                  color: PALETTE.accent,
-                }}
+                style={ctrlBtn(false)}
               >
                 Drill
               </button>

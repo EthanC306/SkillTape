@@ -1,10 +1,14 @@
 //Express is a library that handles the tedious parts of HTTP.
 import express from "express";
 import cookieParser from "cookie-parser";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import topics from "./routes/topics.js";
 import progress from "./routes/progress.js";
 import auth from "./routes/auth.js";
 import drill from "./routes/drill.js";
+
+const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 //Returns an application object. Think of app as your servers rulebook, every route is a rule saying run that function if this happens
 const app = express();
@@ -33,6 +37,20 @@ app.use("/api/drill", drill);
 // makes res.json() blow up in the client with a confusing parse error.
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "not found" });
+});
+
+// Serves the built frontend (dist/) when it exists — needed for the Electron
+// desktop build, which has no separate Vite dev server or nginx in front of
+// it. Harmless everywhere else: in dev there's usually no dist/ yet, and in
+// Docker nginx already serves the frontend and never reaches this process
+// for non-/api paths, so this simply goes unused there. The catch-all comes
+// after every /api route above, so an API 404 is never shadowed by it.
+app.use(express.static(path.join(ROOT, "dist")));
+// Express 5's router (path-to-regexp v8) rejects a bare "*" — it needs a
+// named wildcard or, as here, a real RegExp — so this isn't the Express 4
+// catch-all pattern this codebase's older docs/examples might suggest.
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(ROOT, "dist", "index.html"));
 });
 
 // Error handler. Express identifies it by its four arguments — dropping `next`

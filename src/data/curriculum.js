@@ -42,7 +42,7 @@
  * Rendered by src/components/Figure.jsx.
  */
 
-// c++ — C++
+// C++
 import bigo from "./topics/cpp/bigo.js";
 import cstrings from "./topics/cpp/cstrings.js";
 import containers from "./topics/cpp/containers.js";
