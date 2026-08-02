@@ -110,7 +110,7 @@ WSL2 integration doing something in the background, not an app bug — if it
 becomes frequent, check Docker Desktop's own Settings → Resources and its
 troubleshoot/logs panel rather than this repo's code.
 
-## Desktop app (Electron, Linux)
+## Desktop app (Electron)
 
 A real installable desktop app — its own window and icon, no terminal, no
 Docker, works offline. Wraps the same frontend and Express+SQLite backend
@@ -119,9 +119,51 @@ used everywhere else in this repo; `electron/main.cjs` spawns the existing
 reimplementing anything.
 
 ```bash
-npm run electron:dev     # build + launch locally, without packaging
-npm run electron:build   # produce a real .AppImage and .deb in dist-electron/
+npm run electron:dev       # build + launch locally, without packaging
+npm run electron:build     # Linux: rebuilds native modules for this host, then .AppImage + .deb
+npm run electron:build:win # Windows: cross-built .exe (NSIS installer) from this Linux shell
 ```
+
+**Linux vs. Windows packaging are NOT the same recipe — don't run
+`electron:build`'s steps for the Windows target.** `electron:build` calls
+`electron:rebuild` (`electron-rebuild -f -w better-sqlite3,bcrypt`), which
+runs a real `node-gyp` compile **for the host you're running it on**. That's
+correct for the Linux target — this shell IS the target. It is wrong for
+Windows: there's no cross-compiler here, so `electron-rebuild` silently
+produces a **Linux** `node_modules/bcrypt/build/Release/bcrypt_lib.node`
+regardless of which platform you're packaging for, and `bcrypt`'s loader
+(`node-gyp-build`) prefers that `build/Release/` file over the correct
+`node_modules/bcrypt/prebuilds/win32-x64/bcrypt.node` that's already bundled
+in the package. The app packages and installs fine either way — it only
+breaks at runtime, the first time something calls into `bcrypt`, with
+`Error: ... bcrypt_lib.node is not a valid Win32 application`. Caught this
+by actually running the packaged app on real Windows, not just from the
+build log.
+
+`electron:build:win` avoids it by never running a local rebuild at all:
+`electron-builder.yml` sets `npmRebuild: false`, and the script's own
+`electron:clean-native` step (`rm -rf node_modules/{bcrypt,better-sqlite3}/build`)
+deletes any stale compiled artifact first, so both native modules fall back
+to their bundled prebuilt binaries — `better-sqlite3` and `bcrypt` both ship
+a genuine `win32-x64` N-API prebuild in the npm package itself, no compile
+or network fetch needed. If you ever add `electron:rebuild` back into the
+Windows path, or run it by hand before `electron:build:win`, you'll
+reintroduce this exact bug — verify with `file
+dist-electron/win-unpacked/resources/app.asar.unpacked/node_modules/bcrypt/prebuilds/win32-x64/bcrypt.node`
+and confirm it says `PE32+ ... for MS Windows`, and separately confirm
+`find dist-electron/win-unpacked -path '*bcrypt*build*'` comes back empty.
+
+Cross-building the Windows target from Linux also needs Wine — specifically
+**both** `wine64` and the 32-bit `wine32:i386` (electron-builder's bundled
+`rcedit.exe`, used to embed the icon/version info into the `.exe`, is a
+32-bit tool even when packaging for x64):
+```bash
+sudo apt-get install -y wine64
+sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install -y wine32:i386
+```
+If Wine was installed *after* a first failed attempt, delete `~/.wine`
+before retrying — a Wine prefix created before `wine32:i386` was available
+is missing base DLLs (`kernel32.dll` fails to load) and won't fix itself.
 
 **Electron version is pinned to >=35 for a real reason, not just "latest":**
 `better-sqlite3`'s prebuilt native addon needs Node 22's N-API surface
@@ -148,12 +190,16 @@ upserts) since a packaged app has no terminal to run `npm run db:seed`
 from by hand.
 
 No app icon is set yet — `electron-builder`'s default Electron icon is
-used. Windows/macOS builds aren't configured; `electron-builder.yml` only
-targets `linux: [AppImage, deb]`, built and tested from this same
-environment. Packaging for another OS means cross-compiling, and
-`better-sqlite3`'s prebuilt binary has to match the *target* platform, not
-the build machine — worth re-verifying with the same `strace` approach
-above rather than assuming it "just works" if that's ever attempted.
+used on both platforms. macOS isn't configured (`electron-builder.yml` has
+`linux` and `win` targets only) and hasn't been attempted — the same
+native-module-must-match-target-platform caveat above would apply there
+too, and it can't be verified from this Linux shell at all.
+
+The Windows `.exe` is unsigned (no code-signing cert configured — expected
+for now, `electron-builder`'s log says "no signing info identified, signing
+is skipped" for each binary). Windows SmartScreen/Defender may flag or
+silently quarantine an unsigned installer on first run; that's a Windows
+policy reaction, not a sign the build itself is broken.
 
 ## Project structure
 
