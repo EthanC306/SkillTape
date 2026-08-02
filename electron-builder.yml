@@ -3,6 +3,18 @@
 appId: com.skilltape.app
 productName: SkillTape
 
+# electron-builder's own automatic native-module rebuild is disabled on
+# purpose. It runs node-gyp for the HOST platform regardless of which
+# target you're packaging for — cross-compiling a real Windows/macOS
+# binary from this Linux shell isn't possible anyway. Running it while
+# packaging for Windows produced a Linux ELF `bcrypt_lib.node` under
+# node_modules/bcrypt/build/Release/, which node-gyp-build's loader
+# prioritizes over the correct bundled node_modules/bcrypt/prebuilds/
+# win32-x64/bcrypt.node — the app shipped, but crashed on launch with
+# "not a valid Win32 application" the moment it required bcrypt. Native
+# module prep is handled explicitly instead, per target — see README.
+npmRebuild: false
+
 # Only what the packaged app actually needs at runtime:
 #   dist/       — built frontend, served by server/index.js's static fallback
 #   server/     — the Express API, spawned as a child process by electron/main.cjs
@@ -31,3 +43,14 @@ linux:
   # back to. Set here rather than adding an author to package.json, since
   # that's a repo-wide change this doesn't need to make.
   maintainer: SkillTape <skilltape@localhost>
+
+win:
+  target:
+    - nsis
+  # better-sqlite3 and bcrypt both ship a win32-x64 N-API prebuild bundled
+  # directly in their npm packages (no compile, no network fetch needed) —
+  # confirmed present under node_modules/{better-sqlite3,bcrypt}/prebuilds/
+  # win32-x64/. That derisks the native-module side of a cross-build from
+  # Linux. What's NOT yet verified from this shell: whether electron-builder
+  # can actually produce the NSIS installer itself without Wine, which isn't
+  # installed here — see the README note on this.
