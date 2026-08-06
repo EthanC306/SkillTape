@@ -5,7 +5,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "stacks",
   title: "Stacks",
-  subtitle: "c++ — LIFO, array and linked-list implementations",
+  subtitle: "LIFO, array and linked-list implementations",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the

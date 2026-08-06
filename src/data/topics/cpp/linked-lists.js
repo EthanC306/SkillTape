@@ -3,7 +3,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "linked-lists",
   title: "Linked Lists",
-  subtitle: "c++ — nodes, pointers & the Node class",
+  subtitle: "Nodes, pointers & the Node class",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js

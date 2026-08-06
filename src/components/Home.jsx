@@ -25,6 +25,9 @@ import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
  *                              over this course's due items.
  *   onExam()                — open the timed Exam simulator (ROADMAP.md A5)
  *                              over this course's item bank.
+ *   onPractice()             — open Practice mode (docs/OLLAMA_GRADING.md):
+ *                              a custom topic/difficulty/format session,
+ *                              batch-graded at the end by a local Ollama model.
  *   onReport()              — open the reporting dashboard (ROADMAP.md A6):
  *                              coverage, accuracy, and leeches for this course.
  */
@@ -40,6 +43,7 @@ export default function Home({
   onShowHistory,
   onDrill,
   onExam,
+  onPractice,
   onReport,
 }) {
   const ctrlBtn = (active) => ({
@@ -79,6 +83,13 @@ export default function Home({
                 style={ctrlBtn(false)}
               >
                 Exam
+              </button>
+              <button
+                onClick={onPractice}
+                title="Pick topics, difficulty, and format for a custom closed-book session, auto-graded by a local Ollama model"
+                style={ctrlBtn(false)}
+              >
+                Practice
               </button>
               <button onClick={onReport} title="Coverage, accuracy, and leeches (ROADMAP.md A6)" style={ctrlBtn(false)}>
                 Report

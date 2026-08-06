@@ -97,10 +97,22 @@ async function startBackend() {
   await waitForServer(`http://${HOST}:${PORT}/api/health`);
 }
 
+// The same PNG electron-builder packages from (see electron-builder.yml).
+// ROOT resolves inside the asar when packaged and to the repo in dev, so one
+// path covers both. This is what the WINDOW and its taskbar entry show while
+// the app is running — on Windows and macOS that's cosmetic (the shell takes
+// its icon from the .exe / .app bundle, which electron-builder stamps at
+// package time), but on Linux nothing sets a window icon for you, so without
+// this the running app falls back to Electron's own default logo.
+// 256 rather than the 1254x1254 master: it is the largest size any window
+// manager actually asks for, and it is 39 kB instead of 850 kB.
+const ICON_PATH = path.join(ROOT, "build", "icons", "256x256.png");
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    icon: ICON_PATH,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,

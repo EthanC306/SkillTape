@@ -3,7 +3,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "linked-lists-algorithms",
   title: "Linked List Algorithms",
-  subtitle: "c++ — length, search, insert, delete",
+  subtitle: "Length, search, insert, delete",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js

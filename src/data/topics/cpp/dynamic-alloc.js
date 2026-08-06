@@ -3,7 +3,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "dynamic-alloc",
   title: "Dynamic Allocation",
-  subtitle: "c++ — pointers & the heap",
+  subtitle: "Pointers & the heap",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): provisional, not point-derived —

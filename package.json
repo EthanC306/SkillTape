@@ -10,8 +10,10 @@
   },
   "scripts": {
     "dev": "vite",
+    "test": "node --test \"test/**/*.test.js\"",
     "dev:server": "node server/index.js",
     "db:seed": "node server/seed.js",
+    "icons": "node scripts/makeIcons.js",
     "build": "vite build",
     "preview": "vite preview",
     "audit:bank": "node scripts/auditBank.js",

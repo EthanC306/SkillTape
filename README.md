@@ -28,17 +28,13 @@ Shipped:
 - **Diagrams** — optional captioned figures on cards and questions.
 - **Big-O visuals** — C++ topics can render a complexity-growth chart and reference table, with the relevant curve highlighted when you answer.
 - **Progress tracking** — per topic: best score, run count, and the last 50 runs, persisted server-side (one row per question answered) and readable across browsers once logged in. See `docs/BACKEND.md`.
-- **Edit Mode** — an Edit toggle on any topic makes Learn cards and flashcards editable in place (add/delete/reorder, a bold-toggle button that doubles as the Fill Mode blank marker). Requires an account. Quiz questions are not editable this way — see `docs/AUTHORING.md`.
-
-Planned — designed but **not built**. Nothing below exists in `src/` yet:
-
+- **Edit Mode** — an Edit toggle on any topic makes Learn cards and flashcards editable in place (add/delete/reorder, a bold-toggle button that doubles as the Fill Mode blank marker). Requires an account. Quiz questions are not editable this way — see `docs/AUTHORING.md`
 - **Drill mode** — closed-book, timed, navigation hidden, self-graded against an explicit criteria checklist. This is the mode that targets exam conditions; see `docs/CORRECTIONS.md` §4.2. The `body[data-drill-active]` CSS hook in `index.html` is groundwork for it; nothing sets that attribute today.
 - **Mixed-format items** — the polymorphic item shape in `src/data/itemSchema.js` (recall / write / trace / error / cloze / compare / complexity, with MCQ capped). The module is written and exercised by `npm run audit:bank`, but no topic file uses it — every question in the bank is still a legacy MCQ.
 - **Provenance on every item** — `sourceId` + anchor + verbatim excerpt, gated by `verifiedByHuman`. Enforced by the audit script, not yet present in the content.
 - **Per-item attempt log** — grade, elapsed seconds, open vs. closed book. Requires reworking `useProgress.js`, which currently records per-quiz-run, not per-item.
 - **Spaced repetition** — a Leitner 5-box scheduler: correct advances a box, wrong drops to box 1 and increments `lapses`, with intervals of 1/2/4/8/16 days. An item at `lapses >= 3` is flagged a **leech** and pulled from rotation for triage — a leech means the item or the explanation is broken, not that you are, so it gets rewritten rather than ground. Chosen over SM-2 for being simpler and debuggable; see `docs/CS_DRILL_BUILD_SPEC.md` §Phase 5. Scheduling state (`box`, `dueOn`, `lapses`, `leech`) has no home in `src/data/itemSchema.js` yet.
 
-These four ship together or not at all. The scheduler needs per-item history to schedule against, drill mode is what produces closed-book grades worth scheduling on, and neither works while the bank is undifferentiated MCQ.
 
 ## Getting started
 

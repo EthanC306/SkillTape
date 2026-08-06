@@ -18,6 +18,11 @@ public/figures/private/
 *.pdf
 *.pptx
 *.docx
+# Lecture screenshots dropped at the repo root while authoring topics
+# (set_identities.png, N-ary_relations.png, ...). Root-anchored with the
+# leading slash on purpose: build/icons/*.png are real project assets and
+# have to stay committed, so a bare *.png would be wrong here.
+/*.png
 
 # --- Drill data / local progress ---
 db/*.db

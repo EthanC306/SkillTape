@@ -27,16 +27,33 @@ files:
   - server/**/*
   - src/data/**/*
   - electron/**/*
+  # electron/main.cjs loads build/icons/256x256.png at runtime for the window's
+  # own icon, and buildResources (build/) is not packaged by default — so the
+  # generated set has to be listed here to make it inside the app bundle. The
+  # 1254x1254 master is deliberately NOT included: nothing reads it at runtime,
+  # and it is 850 kB.
+  - build/icons/**/*
   - package.json
   - "!**/*.map"
 
 directories:
   output: dist-electron
 
+# Icons come from build/icons/, generated from the build/icon.png master by
+# `npm run icons` (scripts/makeIcons.js). To change the logo: drop a new square
+# PNG at build/icon.png, run that script, rebuild.
+#
+# linux.icon MUST point at the directory, not a single file. Given one file,
+# electron-builder does not resize — it installs it under a hicolor directory
+# named after its literal dimensions, so a 1254x1254 master ends up in
+# hicolor/1254x1254/, which is not a freedesktop standard size and is therefore
+# ignored by every desktop environment. The app then installs with no icon at
+# all. Pointing at a directory of NxN.png files is what avoids that.
 linux:
   target:
     - AppImage
     - deb
+  icon: build/icons
   category: Education
   # Required for the .deb target specifically (Debian's maintainer field) —
   # package.json has no "author", so electron-builder has nothing to fall
@@ -47,6 +64,12 @@ linux:
 win:
   target:
     - nsis
+  # A pre-built multi-size .ico from `npm run icons`, used verbatim. Handed a
+  # PNG instead, electron-builder generates an .ico holding a single 256x256
+  # image, and Windows then downscales that for the 16px taskbar and 32px
+  # Explorer icons — visibly soft on a logo with strokes this thin. The
+  # generated .ico embeds a purpose-rendered bitmap at each of those sizes.
+  icon: build/icon.ico
   # better-sqlite3 and bcrypt both ship a win32-x64 N-API prebuild bundled
   # directly in their npm packages (no compile, no network fetch needed) —
   # confirmed present under node_modules/{better-sqlite3,bcrypt}/prebuilds/

@@ -144,6 +144,22 @@ export function getDrillStats(course) {
   return api(`/api/drill/stats?course=${encodeURIComponent(course)}`);
 }
 
+// ── Practice mode (Ollama-graded, additive to Drill mode) ───────────────────
+
+/** Grade a chunk of free-text Practice answers (PracticeView sends one at a time) via the configured local Ollama model. */
+export function postPracticeGradeBatch(body) {
+  return api("/api/drill/grade-batch", { method: "POST", body });
+}
+
+/** Ollama reachability + whether `model` is pulled, for SettingsMenu's test-connection button. */
+export function getOllamaStatus({ host, model } = {}) {
+  const params = new URLSearchParams();
+  if (host) params.set("host", host);
+  if (model) params.set("model", model);
+  const qs = params.toString();
+  return api(`/api/drill/ollama-status${qs ? `?${qs}` : ""}`);
+}
+
 // ── Reporting + leech handoff (ROADMAP.md A6 / A8) ──────────────────────────
 
 /** The standing dashboard for `course`: topics x formats grid, first-try accuracy, leeches, weakest-topic ranking. */
