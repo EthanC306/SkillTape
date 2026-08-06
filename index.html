@@ -8,6 +8,21 @@
       content="Source-grounded study app for CS coursework: learn, fill from memory, and drill."
     />
     <title>SkillTape</title>
+    <!--
+      Favicon. Generated from build/icon.png by `npm run icons`, which writes
+      the web sizes into public/icons/ — Vite copies public/ into dist/ as-is,
+      and server/index.js serves dist/ statically, so these same paths resolve
+      in dev, in Docker, and inside the packaged Electron app (whose window
+      chrome reads the favicon too, separately from the desktop icon that
+      electron-builder stamps onto the executable).
+
+      Two sizes rather than one: browsers pick the closest match, and letting a
+      256px image be squeezed into a 16px tab renders the logo's thin diagonal
+      strokes as mush.
+    -->
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/32x32.png" />
+    <link rel="apple-touch-icon" href="/icons/256x256.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

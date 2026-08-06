@@ -55,6 +55,9 @@ import doublyLinkedLists from "./topics/cpp/doubly-linked-lists.js";
 import templates from "./topics/cpp/templates.js";
 import iterators from "./topics/cpp/iterators.js";
 import stacks from "./topics/cpp/stacks.js";
+import queues from "./topics/cpp/queues.js";
+import derivedClasses from "./topics/cpp/derived-classes.js";
+import multidimArrays from "./topics/cpp/multidim-arrays.js";
 
 // CS 3000 — Discrete Structures (Epp, 5e)
 import discrete11Variables from "./topics/discrete/1-1-variables.js";
@@ -81,6 +84,9 @@ const curriculum = [
   templates,
   iterators,
   stacks,
+  queues,
+  derivedClasses,
+  multidimArrays,
 
   discrete11Variables,
   discrete12Sets,

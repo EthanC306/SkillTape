@@ -12,12 +12,22 @@ import { Router } from "express";
 import db from "../db.js";
 import { getSessionUser } from "../auth.js";
 import { scheduleReview } from "../fsrs.js";
+import {
+  chatJSON,
+  listModels,
+  resolveHost,
+  DEFAULT_MODEL,
+  OllamaUnavailableError,
+  OllamaBadResponseError,
+  OllamaHostNotAllowedError,
+} from "../ollama.js";
 
 const router = Router();
 const ANON_USER_ID = 0;
 
 const MAX_ITEMS = 200;
 const MAX_STRING = 2000;
+const MAX_GRADE_BATCH_ITEMS = 12;
 
 class BadRequest extends Error {}
 function fail(message) {
@@ -33,6 +43,23 @@ function requiredString(value, where) {
   if (!value.trim()) fail(`${where} must not be blank`);
   if (value.length > MAX_STRING) fail(`${where} exceeds ${MAX_STRING} characters`);
   return value;
+}
+
+/** Validates POST /grade-batch's `items` array. Reuses this file's existing string/object checks. */
+function requireArrayOfAnswers(items) {
+  if (!Array.isArray(items)) fail('body must contain an "items" array');
+  if (items.length === 0) fail("items must not be empty");
+  if (items.length > MAX_GRADE_BATCH_ITEMS) {
+    fail(`items may contain at most ${MAX_GRADE_BATCH_ITEMS} (got ${items.length})`);
+  }
+  return items.map((it, i) => {
+    const where = `items[${i}]`;
+    if (!isPlainObject(it)) fail(`${where} must be an object`);
+    const itemId = requiredString(it.itemId, `${where}.itemId`);
+    if (typeof it.answer !== "string") fail(`${where}.answer must be a string`);
+    if (it.answer.length > MAX_STRING) fail(`${where}.answer exceeds ${MAX_STRING} characters`);
+    return { itemId, answer: it.answer };
+  });
 }
 
 const VALID_MODES = new Set(["closed", "open", "exam"]);
@@ -70,6 +97,15 @@ function shuffled(arr) {
 
 const getItemForScheduling = db.prepare(
   "SELECT id, format, retired FROM items WHERE id = ?"
+);
+
+// Separate from getItemForScheduling on purpose — that query is also used by
+// /leeches/:itemId/reset, /attempts, and /import, none of which need the
+// extra columns. Practice mode's grading route looks the rubric up here by
+// itemId rather than trusting anything the client sends, same stance as
+// every other route in this file.
+const getItemForGrading = db.prepare(
+  "SELECT id, format, prompt, expected, criteria, retired FROM items WHERE id = ?"
 );
 
 const getReviewState = db.prepare(
@@ -128,6 +164,261 @@ function applyReview({ userId, item, grade, ts, mode, seconds, tabBlurs, note })
 
   return next;
 }
+
+// ── Practice mode grading (Ollama) ──────────────────────────────────────
+//
+// Grading happens server-side only (server/ollama.js) — the browser never
+// talks to Ollama directly, same "only src/api/client.js knows HTTP exists"
+// boundary the rest of this app follows.
+
+// Small local models grade free text badly by default: confident, specific,
+// wrong. This prompt exists to counter that failure mode specifically, not
+// just to describe the task. Every rule below is here because a 7B model was
+// observed breaking it against this bank's own items:
+//   - Evidence BEFORE verdict, per criterion. Asking for a bare boolean lets
+//     the model commit to a verdict with no intermediate reasoning tokens;
+//     asking for {criterion, searched_for, met} in that key order forces it
+//     to name the span it's judging before it judges, which is where the
+//     accuracy actually comes from in JSON-mode generation.
+//   - And make that span load-bearing, not decorative: met:false is only
+//     allowed with a real quote from the student's answer attached, and "I
+//     can't produce the quote" resolves to met:true. A model asked to
+//     justify an omission it invented tends to notice it can't, which
+//     catches far more false negatives than a bare "be lenient" does.
+//     Observed: without an explicit ban, the model quotes the *reference
+//     answer* here instead, which satisfies the rule vacuously and defeats
+//     the whole mechanism — hence the "student's own words" rule, stated
+//     twice, and "no relevant content" as the single sanctioned escape.
+//   - Judge each span against the criterion, never against the reference
+//     answer's phrasing. Both remaining failures in testing were the model
+//     marking a claim unmet because the student wrote NULL for nullptr or
+//     said it informally — it had found the right words and rejected them
+//     for not matching the reference's vocabulary. The worked example is
+//     deliberately from a different topic than anything in this bank, so
+//     it teaches the equivalence rule rather than one item's answer.
+//   - Echo the criterion, and state criteriaCount in the payload. The
+//     response validation below drops any item whose criteria array doesn't
+//     match the rubric length; merging two related criteria into one entry
+//     was the most common way a 7B response got rejected outright.
+//   - Bias uncertain judgments toward met:true. The deterministic scoring
+//     below already treats partial coverage more gently than a wrong answer
+//     (criteriaToGrade), so a wrongly-generous "met" costs little; a
+//     wrongly-strict "unmet" is what turns a correct answer into
+//     "incorrect" — the exact bug this prompt is tuned against.
+//
+// The criteria array is the reference answer already decomposed into its
+// distinct required claims, by the human who authored the item — so the
+// model never does that decomposition itself, and can't quietly grade
+// against a stricter rubric than the one the results card shows the user.
+const GRADE_SYSTEM_PROMPT =
+  "You grade one or more student answers for a closed-book CS study app. For each item you are given the prompt, the reference answer, a rubric of criteria, and the student's own answer. Each criterion is one distinct required claim, already decomposed for you by a human — judge exactly those criteria, never claims you decomposed yourself.\n\n" +
+  "Ground every judgment ONLY in the reference answer and criteria given to you — never in outside knowledge of the topic. You are not the authority on the subject; the reference answer is. Do not require a detail, number, or range the reference answer itself never states. If the student's answer names a constant, variable, or identifier from the prompt (e.g. CAPACITY, N), assume it holds whatever value makes the answer correct unless the reference explicitly contradicts it — do not penalize for not restating it literally.\n\n" +
+  "GRADING PROCEDURE — for each criterion, in this order:\n" +
+  "1. Copy the criterion verbatim into criterion.\n" +
+  "2. Scan the whole student answer for the span that comes closest to satisfying it, and copy that span word-for-word into searched_for. Copy the shortest span that bears on the criterion — a phrase or a clause, not the student's whole answer.\n" +
+  "3. Only then set met, judged from the span you just copied.\n\n" +
+  "HARD RULES:\n" +
+  "- searched_for must be text copied out of studentAnswer. NEVER put the reference answer, the item prompt, or the criterion itself there — quoting anything other than the student's own words is always wrong and makes your verdict invalid.\n" +
+  "- Set met:false only when searched_for holds a real span of the student's answer that you have read and found lacking. If the student's answer says nothing at all on the subject of that criterion, write exactly \"no relevant content\" in searched_for; that is the only case in which searched_for may hold anything other than the student's own words.\n" +
+  "- Judge that span against THIS CRITERION ONLY. The reference answer is background, never a template the student has to match: never withhold met because the span words the claim differently than the reference does, and never require a detail the criterion itself does not ask for.\n" +
+  "- The criterion is satisfied if the span conveys the same idea in ANY wording: synonyms (NULL for nullptr, link or address for pointer, struct or record for node), equivalent notation, informal phrasing, a more technical restatement, or a worked example that only holds if the claim is true. met:false is the burden-of-proof verdict — set it only if the span, read as generously as it can honestly be read, still cannot be expressing the criterion's claim.\n" +
+  "- WORKED EXAMPLE of that rule. Criterion: \"States that lookup by index is constant time\". Span: \"you can jump straight to any slot, doesn't matter how big it is\". Verdict: met:true — the student never wrote \"constant time\" or \"O(1)\", but the span asserts exactly that fact in their own words. Judge every criterion this way.\n" +
+  "- Before writing met:false, read the span in searched_for once more, on its own. If that span already asserts the criterion's claim — even partially, even in different words — set met:true. Contradicting your own quoted span is the worst error you can make here.\n" +
+  "- If you are genuinely unsure whether a criterion is satisfied, set met:true — do not guess unmet.\n" +
+  "- Only treat something as wrong if it contradicts the reference answer. If the student states something the reference does not cover, and the reference does not contradict it, treat it as extra credit, not an error.\n" +
+  "- If the student's answer is correct under a standard interpretation the reference answer does not use, set met:true and note the framing difference in the rationale instead of penalizing it.\n" +
+  "- Extra detail, caveats, and alternate interpretations never lower a grade.\n" +
+  "- met must agree with what you say in the rationale: if the rationale credits the student with something, the criterion covering it is met:true.\n\n" +
+  "Then write a rationale: 1-2 sentences addressed directly to the student in the second person, naming what was right or missing. Do not restate the question.\n\n" +
+  "Respond with ONLY this JSON shape, one entry per item given, using the same itemIds. criteria must hold exactly criteriaCount entries, one per criterion, in the order given — never merge two criteria into one entry, skip one, or reorder them: " +
+  '{"results":[{"itemId":"...","criteria":[{"criterion":"...","searched_for":"...","met":true},{"criterion":"...","searched_for":"...","met":false}],"rationale":"..."}]}';
+
+/** Deterministic criteria-met -> 0-3 grade, matching DrillView.jsx's own UI copy ("3 of 4 = Good, not Easy"). Computed here, never trusted from the model. Exported for test/criteriaToGrade.test.js. */
+export function criteriaToGrade(met, total) {
+  if (total === 0) return null;
+  if (met === total) return 3;
+  if (met >= Math.ceil(total * 0.75)) return 2;
+  if (met > 0) return 1;
+  return 0;
+}
+
+/** grade >= 2 ("correct") matches /stats' existing "grade >= 2 (Good/Easy) counts as a pass" convention. */
+function gradeToVerdict(grade) {
+  if (grade == null) return "ungraded";
+  return grade >= 2 ? "correct" : grade === 1 ? "partial" : "incorrect";
+}
+
+function fallbackResult(itemId) {
+  return { itemId, grade: null, verdict: "ungraded", criteriaMet: [], rationale: null, gradedBy: "fallback" };
+}
+
+// POST /api/drill/grade-batch — grade up to MAX_GRADE_BATCH_ITEMS free-text
+// Practice answers in one call to the configured local Ollama model.
+// Body: { items: [{ itemId, answer }], model?, host? }
+//
+// Stateless: no DB writes here. Practice logs the resulting grades through
+// the existing, unmodified POST /api/drill/attempts, exactly like a
+// self-graded Drill/Exam item would — server/fsrs.js's scheduleReview takes
+// a bare 0-3 int and has no idea where it came from.
+//
+// Fails open at two levels, both required so one bad chunk or one malformed
+// item never blocks the rest of a Practice session: if Ollama is
+// unreachable or never returns usable JSON even after chatJSON's internal
+// retry, every item in the request falls back to "ungraded". If the
+// response parses but is missing an item, or that item's criteriaMet length
+// doesn't match its real criteria count, only THAT item falls back — its
+// siblings still grade normally.
+router.post("/grade-batch", async (req, res) => {
+  const body = req.body ?? {};
+
+  let requested;
+  try {
+    requested = requireArrayOfAnswers(body.items);
+  } catch (err) {
+    if (err instanceof BadRequest) return res.status(400).json({ error: err.message });
+    throw err;
+  }
+
+  // Not fail-open like the Ollama errors below: a host outside the
+  // allowlist (server/ollama.js) is a bad request or an SSRF probe, not an
+  // outage, and answering it with a plausible "ungraded" would hand the
+  // caller a working oracle anyway.
+  let host;
+  try {
+    host = resolveHost(body.host);
+  } catch (err) {
+    if (err instanceof OllamaHostNotAllowedError) return res.status(400).json({ error: err.message });
+    throw err;
+  }
+  const model = typeof body.model === "string" && body.model.trim() ? body.model.trim() : DEFAULT_MODEL;
+
+  const items = [];
+  for (const { itemId, answer } of requested) {
+    const row = getItemForGrading.get(itemId);
+    if (!row) return res.status(400).json({ error: `itemId "${itemId}" does not exist` });
+    if (row.retired) return res.status(400).json({ error: `item "${itemId}" is retired` });
+    if (row.format === "mcq") {
+      return res
+        .status(400)
+        .json({ error: `item "${itemId}" is mcq — grade it client-side, it never needs this route` });
+    }
+    items.push({
+      itemId,
+      answer,
+      prompt: row.prompt,
+      expected: row.expected,
+      criteria: row.criteria ? JSON.parse(row.criteria) : [],
+    });
+  }
+
+  const criteriaCountById = new Map(items.map((it) => [it.itemId, it.criteria.length]));
+
+  let parsed;
+  try {
+    parsed = await chatJSON({
+      host,
+      model,
+      system: GRADE_SYSTEM_PROMPT,
+      user: JSON.stringify(
+        items.map((it) => ({
+          itemId: it.itemId,
+          prompt: it.prompt,
+          expected: it.expected,
+          criteria: it.criteria,
+          // Stated explicitly, not left implicit in criteria.length: the
+          // one-entry-per-criterion contract the response validation below
+          // enforces is the single most common way a 7B model's output gets
+          // rejected (it merges two related criteria into one entry), and a
+          // number it can echo holds it to the count far better than the
+          // array alone does.
+          criteriaCount: it.criteria.length,
+          studentAnswer: it.answer,
+        }))
+      ),
+      // Observed directly against this machine's RTX 2070 Super: a cold
+      // model load (not yet resident in VRAM, or evicted after
+      // OLLAMA_GRADING.md's keep_alive window) can take 20s+ on its own,
+      // before a single token of the actual response. chatJSON's 30s
+      // default is tuned for an already-warm model; grading needs more
+      // headroom for the first call of a session.
+      timeoutMs: 60000,
+      // Grading isn't creative — chatJSON's 0.15 default is for general use,
+      // this call wants the same criteria judged the same way every time.
+      temperature: 0,
+    });
+  } catch (err) {
+    if (err instanceof OllamaUnavailableError || err instanceof OllamaBadResponseError) {
+      return res.json({ modelUsed: model, results: items.map((it) => fallbackResult(it.itemId)) });
+    }
+    throw err;
+  }
+
+  const byId = new Map();
+  if (Array.isArray(parsed?.results)) {
+    for (const r of parsed.results) {
+      if (r && typeof r.itemId === "string") byId.set(r.itemId, r);
+    }
+  }
+
+  const results = items.map((it) => {
+    const total = criteriaCountById.get(it.itemId) ?? 0;
+    const r = byId.get(it.itemId);
+    // criteria is [{ criterion, searched_for, met }, ...] — the "evidence
+    // first" shape the prompt asks for, forcing the model to quote the span
+    // it's judging before committing to the boolean. criteriaMet (sent to
+    // the client, and used for the deterministic grade below) is just the
+    // extracted booleans; the echoed criterion and the quote are reasoning
+    // scaffolding, server-side only, never shown. Nothing here validates
+    // that a met:false actually carries a student quote — the quote's job is
+    // to change what the model generates next, and a wrongly-graded item is
+    // already a recoverable one-attempt error (docs/OLLAMA_GRADING.md §3).
+    const criteriaArr = Array.isArray(r?.criteria) ? r.criteria : null;
+    if (!r || !criteriaArr || criteriaArr.length !== total) {
+      return fallbackResult(it.itemId);
+    }
+    const criteriaMet = criteriaArr.map((c) => Boolean(c?.met));
+    const met = criteriaMet.filter(Boolean).length;
+    const grade = criteriaToGrade(met, total);
+    return {
+      itemId: it.itemId,
+      grade,
+      verdict: gradeToVerdict(grade),
+      criteriaMet,
+      rationale: typeof r.rationale === "string" ? r.rationale : null,
+      gradedBy: "ollama",
+    };
+  });
+
+  res.json({ modelUsed: model, results });
+});
+
+// GET /api/drill/ollama-status?host=&model= — reachability + whether `model`
+// is pulled, for SettingsMenu's "test connection" button. Always 200, even
+// when Ollama is unreachable: this is a status probe, not a failed request,
+// and src/api/client.js's api() throws on any non-2xx — a 4xx/5xx here would
+// force the ordinary "not running yet" case into a try/catch instead of a
+// plain `reachable: false` field.
+router.get("/ollama-status", async (req, res) => {
+  const model =
+    typeof req.query.model === "string" && req.query.model.trim() ? req.query.model.trim() : DEFAULT_MODEL;
+  try {
+    // Inside the try on purpose: a disallowed host is reported through the
+    // same always-200 shape rather than as a thrown 400, flagged with
+    // hostAllowed:false so SettingsMenu can say "that host isn't allowed"
+    // instead of the misleading "Ollama unreachable".
+    const host = resolveHost(req.query.host);
+    const models = await listModels({ host });
+    res.json({ reachable: true, hostAllowed: true, models, modelAvailable: models.includes(model) });
+  } catch (err) {
+    if (err instanceof OllamaHostNotAllowedError) {
+      return res.json({ reachable: false, hostAllowed: false, models: [], modelAvailable: false, error: err.message });
+    }
+    if (err instanceof OllamaUnavailableError) {
+      return res.json({ reachable: false, hostAllowed: true, models: [], modelAvailable: false, error: err.message });
+    }
+    throw err;
+  }
+});
 
 // GET /api/drill/queue?course=cpp&limit=20
 //

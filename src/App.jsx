@@ -12,6 +12,7 @@ import MasterQuizView from "./components/MasterQuizView";
 import HistoryModal from "./components/HistoryModal";
 import DrillView from "./components/DrillView";
 import ExamView from "./components/ExamView";
+import PracticeView from "./components/PracticeView";
 import ReportView from "./components/ReportView";
 
 /**
@@ -100,6 +101,14 @@ export default function App({ course }) {
 
   // Same rationale as `drilling`, for the exam simulator (ROADMAP.md A5).
   const [examining, setExamining] = useState(false);
+
+  // Practice mode (docs/OLLAMA_GRADING.md): a selective, batch-graded
+  // companion to Drill — pick topics/difficulty/format/count, answer freely,
+  // get graded at the end by a local Ollama model. Chrome-hidden like
+  // drilling/examining, not chrome-visible like reporting: it's a live
+  // closed-book session with its own submit-ends-everything mechanic, not a
+  // standing dashboard.
+  const [practicing, setPracticing] = useState(false);
 
   // The reporting dashboard (ROADMAP.md A6). Not closed-book, so — unlike
   // drilling/examining — it keeps Header/nav chrome visible; it's rendered
@@ -216,6 +225,8 @@ export default function App({ course }) {
         <DrillView course={course} onExit={() => setDrilling(false)} />
       ) : examining ? (
         <ExamView course={course} onExit={() => setExamining(false)} />
+      ) : practicing ? (
+        <PracticeView course={course} onExit={() => setPracticing(false)} />
       ) : (
         <>
           <Header
@@ -247,6 +258,7 @@ export default function App({ course }) {
               onShowHistory={setHistoryTopicId}
               onDrill={() => setDrilling(true)}
               onExam={() => setExamining(true)}
+              onPractice={() => setPracticing(true)}
               onReport={() => setReporting(true)}
             />
           ) : (

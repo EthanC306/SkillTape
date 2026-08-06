@@ -3,7 +3,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "dynamic-classes",
   title: "Dynamic Memory with Classes & Structures",
-  subtitle: "c++ — destructors, copy constructors & operator=",
+  subtitle: "Destructors, copy constructors & operator=",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js

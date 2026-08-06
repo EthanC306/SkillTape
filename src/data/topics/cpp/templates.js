@@ -5,7 +5,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "templates",
   title: "Function & Class Templates",
-  subtitle: "c++ — writing one version that works for every type",
+  subtitle: "Writing one version that works for every type",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the

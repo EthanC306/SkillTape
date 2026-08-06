@@ -9,7 +9,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "iterators",
   title: "STL Containers & Iterators",
-  subtitle: "c++ — this, multiset, and writing your own iterator",
+  subtitle: "This, multiset, and writing your own iterator",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the

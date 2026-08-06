@@ -49,6 +49,17 @@ export const QUOTAS = {
   [FORMATS.MCQ]: 0.05,
 };
 
+/**
+ * Human-readable labels for the authored 1..3 difficulty rating, for any UI
+ * that needs Easy/Medium/Hard chips (e.g. PracticeView's setup screen)
+ * instead of the raw integer.
+ */
+export const DIFFICULTY_LEVELS = [
+  [1, "Easy"],
+  [2, "Medium"],
+  [3, "Hard"],
+];
+
 /** Formats that are self-graded free text rather than machine-checked. */
 export const SELF_GRADED = new Set([
   FORMATS.RECALL,
@@ -58,6 +69,17 @@ export const SELF_GRADED = new Set([
   FORMATS.COMPLEXITY,
   FORMATS.DIAGRAM,
 ]);
+
+/**
+ * Formats whose expected answer IS code, or requires actually tracing code,
+ * rather than prose (docs/OLLAMA_GRADING.md). Worth routing to a coder-tuned
+ * model for Ollama grading: verified directly against this bank — a 7B
+ * generalist model (qwen2.5:7b-instruct) misjudged a byte-for-byte-correct
+ * `stacks-03` WRITE answer as wrong (twice, at temperature 0), while the
+ * same-size coder model (qwen2.5-coder:7b) got it right — a real capability
+ * gap at equal parameter count, not prompt noise.
+ */
+export const CODE_FORMATS = new Set([FORMATS.WRITE, FORMATS.TRACE, FORMATS.ERROR]);
 
 // ---------------------------------------------------------------------------
 // Content policy

@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { PALETTE, HEADING, RADII, SHADOWS } from "../data/theme";
 import useTheme from "../hooks/useTheme";
+import useOllamaSettings from "../hooks/useOllamaSettings";
+import { getOllamaStatus } from "../api/client";
 import AuthBar from "./AuthBar";
 
 /**
  * SettingsMenu — the gear button at the end of Header's top bar (same spot
  * in both c++ and cs3000, since Header renders it for either course).
  *
- * Opens a panel with two sections: a theme-preset swatch row (see
- * ACCENT_PRESETS/useTheme) and the account control that used to sit inline
- * in Header — AuthBar itself is unchanged, just relocated in here.
+ * Opens a panel with three sections: a theme-preset swatch row (see
+ * ACCENT_PRESETS/useTheme), the local Ollama host/model Practice mode's
+ * grading uses (docs/OLLAMA_GRADING.md), and the account control that used
+ * to sit inline in Header — AuthBar itself is unchanged, just relocated in
+ * here.
  *
  * Renders as a normal flex item in Header's row (not `position: fixed`) so
  * it never overlaps Header's own right-aligned text — it just sits after it
@@ -18,6 +22,21 @@ import AuthBar from "./AuthBar";
 export default function SettingsMenu({ auth }) {
   const [open, setOpen] = useState(false);
   const { themeId, setThemeId, presets } = useTheme();
+  const { host, model, codeModel, setHost, setModel, setCodeModel } = useOllamaSettings();
+  const [ollamaStatus, setOllamaStatus] = useState(null); // null | "checking" | { reachable, models, modelAvailable, error? }
+  const [ollamaCodeStatus, setOllamaCodeStatus] = useState(null); // same shape, for codeModel
+
+  async function testOllamaConnection() {
+    setOllamaStatus("checking");
+    setOllamaCodeStatus("checking");
+    const fallback = (err) => ({ reachable: false, models: [], modelAvailable: false, error: err.message });
+    const [general, code] = await Promise.all([
+      getOllamaStatus({ host, model }).catch(fallback),
+      getOllamaStatus({ host, model: codeModel }).catch(fallback),
+    ]);
+    setOllamaStatus(general);
+    setOllamaCodeStatus(code);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -138,9 +157,113 @@ export default function SettingsMenu({ auth }) {
                 onLogout={auth.logout}
               />
             </div>
+
+            <div style={{ height: 1, background: PALETTE.line }} />
+
+            <div>
+              <div
+                style={{
+                  fontFamily: HEADING,
+                  fontSize: 11,
+                  fontWeight: 500,
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                  color: PALETTE.muted,
+                  marginBottom: 10,
+                }}
+              >
+                Auto-grade (Ollama)
+              </div>
+              <div style={{ display: "grid", gap: 6, marginBottom: 8 }}>
+                <div style={fieldLabelStyle}>Host</div>
+                <input
+                  value={host}
+                  onChange={(e) => setHost(e.target.value)}
+                  placeholder="http://127.0.0.1:11434"
+                  style={inputStyle}
+                />
+                <div style={fieldLabelStyle}>General model</div>
+                <input
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder="qwen2.5:7b-instruct"
+                  style={inputStyle}
+                />
+                <div style={fieldLabelStyle} title="Used for WRITE/TRACE/ERROR items — a same-size generalist model judges code correctness noticeably worse than a coder-tuned one (verified directly, see itemSchema.js's CODE_FORMATS comment)">
+                  Code model (write/trace/error)
+                </div>
+                <input
+                  value={codeModel}
+                  onChange={(e) => setCodeModel(e.target.value)}
+                  placeholder="qwen2.5-coder:7b"
+                  style={inputStyle}
+                />
+              </div>
+              <button
+                onClick={testOllamaConnection}
+                style={{
+                  fontFamily: HEADING,
+                  fontSize: 11,
+                  padding: "6px 12px",
+                  borderRadius: RADII.md,
+                  cursor: "pointer",
+                  border: `1px solid ${PALETTE.line}`,
+                  background: "transparent",
+                  color: PALETTE.text,
+                }}
+              >
+                Test connection
+              </button>
+              {ollamaStatus && (
+                <div style={{ fontSize: 11, marginTop: 8, lineHeight: 1.5, color: ollamaStatusColor(ollamaStatus) }}>
+                  general: {ollamaStatusText(ollamaStatus, host, model)}
+                </div>
+              )}
+              {ollamaCodeStatus && (
+                <div style={{ fontSize: 11, marginTop: 4, lineHeight: 1.5, color: ollamaStatusColor(ollamaCodeStatus) }}>
+                  code: {ollamaStatusText(ollamaCodeStatus, host, codeModel)}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
     </>
   );
+}
+
+const inputStyle = {
+  width: "100%",
+  boxSizing: "border-box",
+  fontFamily: HEADING,
+  fontSize: 12,
+  padding: "7px 10px",
+  borderRadius: RADII.md,
+  border: `1px solid ${PALETTE.line}`,
+  background: PALETTE.panel2,
+  color: PALETTE.text,
+};
+
+const fieldLabelStyle = {
+  fontFamily: HEADING,
+  fontSize: 10,
+  color: PALETTE.muted,
+  marginTop: 2,
+};
+
+function ollamaStatusColor(status) {
+  if (status === "checking") return PALETTE.muted;
+  if (!status.reachable) return PALETTE.bad;
+  return status.modelAvailable ? PALETTE.good : PALETTE.accent;
+}
+
+function ollamaStatusText(status, host, model) {
+  if (status === "checking") return "checking…";
+  // hostAllowed:false means the server refused to fetch this host at all
+  // (server/ollama.js's allowlist) — "start it and try again" would send the
+  // user chasing a process that was never contacted.
+  if (status.hostAllowed === false) return status.error ?? `Host ${host} is not allowed.`;
+  if (!status.reachable) return `Ollama unreachable at ${host} — start it and try again.`;
+  if (!status.modelAvailable) return `Ollama reachable, but ${model} isn't pulled — run: ollama pull ${model}`;
+  return `Auto-grade: ${model} ready`;
 }

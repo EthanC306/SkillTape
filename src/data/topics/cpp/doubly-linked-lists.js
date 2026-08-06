@@ -3,7 +3,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "doubly-linked-lists",
   title: "Doubly Linked Lists",
-  subtitle: "c++ — DNode, insert & delete with two pointers",
+  subtitle: "DNode, insert & delete with two pointers",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js
