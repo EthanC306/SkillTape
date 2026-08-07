@@ -200,6 +200,9 @@ is skipped" for each binary). Windows SmartScreen/Defender may flag or
 silently quarantine an unsigned installer on first run; that's a Windows
 policy reaction, not a sign the build itself is broken.
 
+
+
+__________________________
 ### Releasing an update
 
 Installed copies check GitHub Releases on launch and every 6 hours
@@ -213,10 +216,7 @@ export GH_TOKEN=…        # classic: `repo` scope. Fine-grained: Contents → R
 npm run release:win
 ```
 
-`scripts/release.mjs` refuses to start unless the token is set, the version is
-valid semver *and* newer than the published latest, no release already exists
-for `v<version>`, and the git tree is clean. Then it builds, verifies the
-uploaded assets, and only then makes the release visible.
+`scripts/release.mjs'' refuses to start unless the token is set, the ver
 
 **Why there's a script here at all, instead of just `--publish always`.** The
 update path has one trap that costs a full release cycle to discover, because

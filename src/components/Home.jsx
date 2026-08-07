@@ -65,7 +65,7 @@ export default function Home({
         <p style={{ color: PALETTE.muted, fontSize: 14, margin: 0, maxWidth: 560 }}>
           {selectMode
             ? "Click topics to add them to your set, then hit MASTER SET."
-            : "Pick a topic to review the concepts or test yourself. (v1.0.2)"}
+            : "Pick a topic to review the concepts or test yourself. (v1.0.3)"}
         </p>
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           {!selectMode && (
