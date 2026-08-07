@@ -213,6 +213,8 @@ it on quit. To ship a change to them:
 # 1. bump "version" in package.json (plain x.y.z), commit
 # 2. a token with permission to write releases:
 export GH_TOKEN=…        # classic: `repo` scope. Fine-grained: Contents → Read and write.
+git add . && git commit -m " "
+git push
 npm run release:win
 ```
 
