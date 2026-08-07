@@ -66,10 +66,6 @@ docker compose logs -f api     # tail one service's logs (or `web`)
 docker compose down            # stop and remove the containers
 ```
 
-The app is served on `http://localhost:8080` (nginx, proxying `/api` to the
-Express API container internally — see `nginx.conf`). `./db` is the only
-bind mount (`docker-compose.yml`); everything else is baked into the image
-at build time via `COPY . .` in the `Dockerfile`.
 
 **Two different things need two different fixes — don't confuse them:**
 
@@ -110,15 +106,22 @@ troubleshoot/logs panel rather than this repo's code.
 
 A real installable desktop app — its own window and icon, no terminal, no
 Docker, works offline. Wraps the same frontend and Express+SQLite backend
-used everywhere else in this repo; `electron/main.cjs` spawns the existing
-`server/index.js`/`server/seed.js` as child processes rather than
+used everywhere else in this repo; 
+
+`electron/main.cjs` spawns the existing`server/index.js`/`server/seed.js` as child processes rather than
 reimplementing anything.
 
 ```bash
 npm run electron:dev       # build + launch locally, without packaging
 npm run electron:build     # Linux: rebuilds native modules for this host, then .AppImage + .deb
 npm run electron:build:win # Windows: cross-built .exe (NSIS installer) from this Linux shell
+npm run all:electron       # runs the tests and everything needed for electron to repackage.
+npm run release:win        # publishes a new version to installed apps — see "Releasing an update" below
 ```
+
+Those first four build an installer *for you*. Getting a change onto a machine
+that already has SkillTape installed is a different job — that's
+`release:win`, documented under [Releasing an update](#releasing-an-update).
 
 **Linux vs. Windows packaging are NOT the same recipe — don't run
 `electron:build`'s steps for the Windows target.** `electron:build` calls
@@ -197,6 +200,70 @@ is skipped" for each binary). Windows SmartScreen/Defender may flag or
 silently quarantine an unsigned installer on first run; that's a Windows
 policy reaction, not a sign the build itself is broken.
 
+### Releasing an update
+
+Installed copies check GitHub Releases on launch and every 6 hours
+(`electron/main.cjs`), download anything newer in the background, and install
+it on quit. To ship a change to them:
+
+```bash
+# 1. bump "version" in package.json (plain x.y.z), commit
+# 2. a token with permission to write releases:
+export GH_TOKEN=…        # classic: `repo` scope. Fine-grained: Contents → Read and write.
+npm run release:win
+```
+
+`scripts/release.mjs` refuses to start unless the token is set, the version is
+valid semver *and* newer than the published latest, no release already exists
+for `v<version>`, and the git tree is clean. Then it builds, verifies the
+uploaded assets, and only then makes the release visible.
+
+**Why there's a script here at all, instead of just `--publish always`.** The
+update path has one trap that costs a full release cycle to discover, because
+every symptom of it looks like success:
+
+- `electron-updater` finds versions through `releases.atom`, and **GitHub omits
+  drafts from that feed** (and from unauthenticated API reads). A draft release
+  is, to the installed app, identical to no release. The release page looks
+  completely correct while you're logged in.
+- `electron-builder` creates releases as drafts by default — and setting
+  `releaseType: release` does **not** fix an existing one. `electron-publish`'s
+  `gitHubPublisher.js` does `if (release.draft) { return release }`: it reuses
+  whatever draft is already on that tag and never flips it. So a single stale
+  draft poisons its tag permanently; the only ways out are deleting the draft or
+  bumping the version. The preflight checks for exactly this and tells you
+  which.
+
+`release.mjs` therefore leans *into* drafts rather than avoiding them: it
+uploads into a draft (invisible to the feed), asserts `latest.yml`, the `.exe`,
+and the `.blockmap` are all present and non-zero, asserts `latest.yml`'s
+`path:` matches the real asset name, and only then flips `draft: false`. The
+atom feed can never advertise a release that isn't fully uploaded, so an app
+checking mid-upload sees the old version rather than a broken download.
+
+Relatedly, `nsis.artifactName` in `electron-builder.yml` is set to a
+**space-free** `SkillTape-Setup-${version}.exe`. Spaces are handled
+inconsistently across the three layers involved (electron-publish uploads them
+raw, GitHub rewrites them, `electron-updater`'s `resolveFiles` rewrites them
+differently), and the failure mode is a 404 at download time on every client
+while the release page looks fine.
+
+**Watching it work.** The app shows `Downloading update X… n%` and then
+`Update X ready — Restart now` in a banner at the top
+(`src/components/UpdateBanner.jsx`); the installed version is the `v1.0.1`
+badge next to the "View on GitHub" link. If something goes wrong, the updater
+logs to `%APPDATA%\SkillTape\logs\main.log` on Windows
+(`~/.config/SkillTape/logs/main.log` on Linux) — a packaged app has no console,
+so this is the only diagnostic that survives, and its absence is why the
+earlier broken cycles were invisible.
+
+**Security note.** Because the `.exe` is unsigned (above), SmartScreen warns on
+first install. Updates themselves are not unverified, though:
+`electron-updater` checks every download's sha512 against the hash in
+`latest.yml`, which is served over HTTPS from the release. What's missing
+versus an enterprise setup is publisher identity — code signing — which would
+also remove the SmartScreen prompt. That's the remaining gap here.
+
 ## Project structure
 
 ```
@@ -204,7 +271,11 @@ policy reaction, not a sign the build itself is broken.
 ├── main.jsx                    # React root; renders <Shell />
 ├── vite.config.js              # React plugin, sourcemaps, @ → src alias
 ├── scripts/
-│   └── auditBank.js            # question-bank validator (npm run audit:bank)
+│   ├── auditBank.js            # question-bank validator (npm run audit:bank)
+│   └── release.mjs             # publishes a GitHub release apps can see (npm run release:win)
+├── electron/
+│   ├── main.cjs                # Main process: backend child processes, window, auto-update
+│   └── preload.cjs             # contextBridge: version + updater state, nothing else
 ├── src/
 │   ├── Shell.jsx               # Home page + bottom course tab bar
 │   ├── App.jsx                 # Per-course tutor: topic list + view routing
@@ -229,9 +300,11 @@ policy reaction, not a sign the build itself is broken.
 │   │   ├── FillBody.jsx        # Fill-in-the-blank rendering
 │   │   ├── Figure.jsx          # Captioned diagram/image
 │   │   ├── ComplexityChart.jsx # Big-O growth-rate chart
-│   │   └── ReferenceTable.jsx  # Big-O reference table
+│   │   ├── ReferenceTable.jsx  # Big-O reference table
+│   │   └── UpdateBanner.jsx    # Auto-update progress / "Restart now" (Electron only)
 │   ├── hooks/
-│   │   └── useProgress.js      # Per-topic best score, run count, run history
+│   │   ├── useProgress.js      # Per-topic best score, run count, run history
+│   │   └── useUpdater.js       # Auto-update state from the Electron preload bridge
 │   └── utils/
 │       └── fill.js             # Fill Mode blank parsing + lenient grading
 └── public/

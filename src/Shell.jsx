@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import App from "./App";
+import UpdateBanner from "./components/UpdateBanner";
+import useUpdater from "./hooks/useUpdater";
 import { PALETTE, MONO, HEADING, RADII, fadeDivider } from "./data/theme";
 
 /**
@@ -7,7 +9,7 @@ import { PALETTE, MONO, HEADING, RADII, fadeDivider } from "./data/theme";
  *
  * A single page with a tab bar pinned to the bottom. Three tabs:
  *   • "Home"   → the landing page with a link to the GitHub repo (tab === null).
- *   • "c++" → the tutor showing the C++ class topics.
+ *   • "C++" → the tutor showing the C++ class topics.
  *   • "CS3000" → the tutor showing the Discrete Structures topics.
  *
  * The tab bar is rendered here, outside of <App>, so it stays on screen no matter
@@ -20,6 +22,10 @@ export default function Shell() {
   // Which bottom tab is active. `null` = the plain home page (nothing selected).
   const [tab, setTab] = useState(null); // "c++" | "cs3000" | null
 
+  // Only for the version badge below — the update banner subscribes on its own.
+  // `appVersion` is null outside Electron, which is what hides the badge there.
+  const { appVersion } = useUpdater();
+
   return (
     <div
       style={{
@@ -30,6 +36,12 @@ export default function Shell() {
         color: PALETTE.text,
       }}
     >
+      {/* Auto-update notice. Renders null unless the Electron shell is actually
+          downloading or has staged an update, so it costs nothing in the
+          browser/Docker paths. Above the content div so it displaces the page
+          rather than covering it. */}
+      <UpdateBanner />
+
       {/* Active view fills the space above the tab bar. Each class tab renders
           the tutor filtered to that course; no tab yet = the blank home page. */}
       <div style={{ flex: 1, minHeight: 0 }}>
@@ -65,7 +77,7 @@ export default function Shell() {
                 maxWidth: 480,
               }}
             >
-              <div style={{ fontFamily: HEADING, fontSize: 12, fontWeight: 600, color: PALETTE.text }}>
+              <div style={{ fontFamily: HEADING, fontSize: 12, fontWeight: 600, color: PALETTE.accent }}>
                 Question what you know
               </div>
                 <div>
@@ -86,7 +98,13 @@ export default function Shell() {
                 Pick a class below to read through topic notes, drill yourself with fill-in-the-blank recall, or run a multiple-choice quiz.
               </div>
             </div>
-            {/* Link to the project's GitHub repo, styled like the tab buttons. */}
+            {/* GitHub link + the installed version. The version is the permanent
+                replacement for the temporary purple smoke-test bar index.html
+                used to carry: after an update installs, this number changing is
+                the proof the loop closed. Hidden outside Electron, where
+                `appVersion` is null — a browser tab has no "installed version"
+                to speak of. */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <a
               href="https://github.com/EthanC306/SkillTape"
               target="_blank"
@@ -121,6 +139,12 @@ export default function Shell() {
               </svg>
               View on GitHub
             </a>
+              {appVersion && (
+                <span style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted }}>
+                  v{appVersion}
+                </span>
+              )}
+            </div>
           </div>
         )}
       </div>

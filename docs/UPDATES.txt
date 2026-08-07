@@ -14,6 +14,82 @@ Summary:
 
 
 --------------------------------------------------------------------------------
+Auto-update implemented end to end (docs/AUTO_UPDATE_TODO.md Changes 1-9)
+--------------------------------------------------------------------------------
+Date:     2026-08-07
+Commit:   uncommitted
+Files:    electron-builder.yml, scripts/release.mjs (new), package.json,
+          electron/main.cjs, electron/preload.cjs, src/hooks/useUpdater.js
+          (new), src/components/UpdateBanner.jsx (new), src/Shell.jsx,
+          index.html, README.md, docs/AUTO_UPDATE_TODO.md
+Summary:
+  - Worked docs/AUTO_UPDATE_TODO.md's Changes 1-9 in order. The plan's
+    diagnosis was already verified against the live API and the vendored
+    electron-updater source, so this was implementation, not re-diagnosis.
+  - Release side: electron-builder.yml keeps releaseType at the default
+    `draft` (NOT `release` — gitHubPublisher.js's `if (release.draft) return
+    release` reuses an existing draft and never flips it, so releaseType only
+    ever applies at creation time and one stale draft poisons its tag
+    permanently). scripts/release.mjs owns the flip instead: preflight
+    (GH_TOKEN present, plain x.y.z semver, strictly newer than the published
+    latest, NO existing release for the tag — authenticated, since that's the
+    only way drafts are visible — clean git tree), then
+    `npm run electron:publish:win`, then asset verification (latest.yml,
+    SkillTape-Setup-<v>.exe, .blockmap all present and non-zero, plus
+    latest.yml's `path:` matching the real asset name), then PATCH
+    draft:false. Uploading into a draft and publishing last means
+    releases.atom — the feed electron-updater actually reads — can never
+    advertise a half-uploaded release. nsis.artifactName set to the
+    space-free ${productName}-Setup-${version}.${ext} to delete the
+    upload/download filename-normalization mismatch class outright.
+  - App side: main.cjs replaces checkForUpdatesAndNotify() with a single
+    module-level `updateState` (idle|checking|available|downloading|ready|
+    error|unsupported) that every event handler mutates and pushes over
+    "updater:state". Both existing failure guards were kept and are still
+    load-bearing (offline launch is the ordinary case, and electron-updater
+    reports it twice — an "error" event AND a rejected promise). Added
+    electron-log so a packaged Windows app has any diagnostic at all
+    (%APPDATA%\SkillTape\logs\main.log); the absence of one is half of why
+    this stayed broken unnoticed. ipcMain.handle("updater:getState") exists
+    specifically for the mount race — on a fast check the events fire before
+    React mounts, so a subscribe-only banner sits empty through a live
+    download. stopBackend() is now deterministic (await exit, SIGKILL after
+    2s) and before-quit preventDefaults once to await it, because
+    autoInstallOnAppQuit runs NSIS on the `quit` event and a still-running
+    forked SkillTape.exe holds file handles in the install dir.
+  - UI: preload.cjs went from "intentionally empty" to a narrow contextBridge
+    (getVersion + updater.getState/onState/quitAndInstall — no ipcRenderer
+    exposure; the window loads http://127.0.0.1:3001/, so a generic invoke
+    would hand every handler to whatever runs in that page).
+    useUpdater.js pull-then-subscribes and reports "unsupported" when
+    window.skilltape is absent, so UpdateBanner.jsx can be mounted
+    unconditionally in Shell.jsx and renders null in browser/Docker/dev.
+    Banner carries className="app-chrome" so drill/exam mode hides it —
+    an update notice is exactly what closed-book mode exists to suppress,
+    and the install happens on quit regardless of whether anyone saw it.
+    index.html's purple AUTO-UPDATE SMOKE TEST MARKER deleted, replaced
+    permanently by the muted v{version} badge next to "View on GitHub".
+  - Fixed two crashers in the pre-existing uncommitted working tree along the
+    way, both in Shell.jsx and both blocking any verification of the above:
+    an undefined bare identifier `purple` used as a style value (immediate
+    ReferenceError on render of the home page), and a tab id mismatch where
+    the nav emitted "c++"/"cs3000" while the render branch compared against
+    "C++"/"Discrete", so neither course tab did anything.
+  - Verified here: preflight aborts by name with GH_TOKEN unset; a real
+    Chromium load of the served app renders no banner and no badge with zero
+    page errors and no purple bar, and both course tabs now switch; unpacked
+    `npx electron .` boots the backend and logs "[updater] unpacked run —
+    update checks are skipped" through electron-log, then exits clean;
+    npm test (68 pass) and npx vite build unchanged; audit:bank at its
+    existing baseline (no content files touched).
+  - NOT verified, and not verifiable from this Linux shell: the actual update
+    cycle. Nothing has been released yet. AUTO_UPDATE_TODO.md's Verification
+    steps 2-8 still need the one-time manual deletion of the existing v1.0.0/
+    v1.0.1 drafts on GitHub, a GH_TOKEN, and a Windows machine to install on.
+    Until someone walks those, this is written-but-unproven.
+
+
+--------------------------------------------------------------------------------
 A9 unblocked: 8 more cpp topics extracted, verified, and in rotation
 --------------------------------------------------------------------------------
 Date:     2026-08-01

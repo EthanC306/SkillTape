@@ -75,7 +75,7 @@ export default function Home({
                 title="Closed-book review of items due right now (ROADMAP.md A4)"
                 style={ctrlBtn(false)}
               >
-                Drill
+                Drill 
               </button>
               <button
                 onClick={onExam}
