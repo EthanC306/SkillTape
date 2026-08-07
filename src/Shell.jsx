@@ -164,8 +164,8 @@ export default function Shell() {
       >
         {[
           [null, "Home"],
-          ["c++", "c++"],
-          ["cs3000", "CS3000"],
+          ["c++", "C++"],
+          ["cs3000", "Discrete"],
         ].map(([id, label]) => {
           const active = tab === id;
           return (
