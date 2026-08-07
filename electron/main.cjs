@@ -21,8 +21,9 @@
 // 32 and 34; clean load and a working DB round-trip on Electron 36. Same
 // constraint the Dockerfile already documents for plain Node ("Node 22,
 // not 20") — this is that same requirement showing up again here.
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const { autoUpdater } = require("electron-updater");
+const log = require("electron-log");
 const { fork } = require("node:child_process");
 const path = require("node:path");
 const http = require("node:http");
@@ -123,33 +124,144 @@ function createWindow() {
   mainWindow.loadURL(`http://${HOST}:${PORT}/`);
 }
 
-function stopBackend() {
-  if (serverProcess && !serverProcess.killed) {
-    serverProcess.kill();
-    serverProcess = null;
-  }
+// Deterministic, not fire-and-forget — and that matters specifically because of
+// the updater. autoInstallOnAppQuit hands off to the NSIS installer on
+// Electron's `quit` event, which fires AFTER `before-quit`. If the forked
+// SkillTape.exe (running server/index.js under ELECTRON_RUN_AS_NODE) is still
+// alive at that moment it holds open file handles inside the install directory,
+// and NSIS either fails or silently leaves a half-replaced install behind.
+// So: signal, wait for the actual `exit`, and escalate to SIGKILL rather than
+// assuming .kill() took effect.
+function stopBackend({ timeoutMs = 2000 } = {}) {
+  const proc = serverProcess;
+  serverProcess = null;
+  if (!proc || proc.killed || proc.exitCode !== null) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      log.warn("[shutdown] backend did not exit in time — SIGKILL");
+      try {
+        proc.kill("SIGKILL");
+      } catch {
+        /* already gone */
+      }
+      resolve();
+    }, timeoutMs);
+    proc.once("exit", done);
+    try {
+      proc.kill();
+    } catch {
+      done();
+    }
+  });
 }
 
+// ---------------------------------------------------------------------------
+// Auto-update
+// ---------------------------------------------------------------------------
+//
 // Polls the GitHub release feed named by the `publish` block in
 // electron-builder.yml, downloads anything newer in the background, and
 // installs it on quit. Unpacked runs (npm run electron:dev) skip the check
-// entirely — app.isPackaged is false, so it logs "Skip checkForUpdates" and
-// returns null. Seeing nothing happen in dev is correct, not a broken config.
+// entirely — app.isPackaged is false, so electron-updater logs "Skip
+// checkForUpdates" and returns null. Seeing nothing happen in dev is correct,
+// not a broken config; the state below reports that as "unsupported" so it
+// reads as a deliberate skip instead of a silent no-op.
 //
-// Both guards below are load-bearing, and a failed update check is the
-// ordinary case here, not an exotic one — launching offline is enough to
-// trigger it. electron-updater reports that failure twice: it emits "error"
-// AND rejects the returned promise. An EventEmitter with no "error" listener
-// rethrows, and an unhandled rejection can take down the main process, so
-// without both of these a launch with no network could kill a working app.
-function checkForUpdates() {
+// One object is the single source of truth for the whole feature. Every event
+// handler mutates it and then pushes the same shape to the renderer, so the
+// banner can never disagree with the main process about what's happening.
+const RECHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
+
+// status: idle | checking | available | downloading | ready | error | unsupported
+const updateState = {
+  status: "idle",
+  version: null,
+  percent: 0,
+  error: null,
+};
+
+function pushState(patch) {
+  Object.assign(updateState, patch);
+  // `?.` throughout: an update event can land after the window is gone (quit
+  // races the final download), and a destroyed webContents throws on send.
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("updater:state", { ...updateState });
+  }
+}
+
+function initUpdater() {
+  // Writes to %APPDATA%\SkillTape\logs\main.log (~/.config/SkillTape/logs on
+  // Linux). Non-negotiable for a packaged Windows app: there is no console to
+  // read, so without this a failed update is completely undiagnosable — which
+  // is half of why this feature went unnoticed-broken for as long as it did.
+  log.transports.file.level = "info";
+  autoUpdater.logger = log;
+
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  if (!app.isPackaged) {
+    pushState({ status: "unsupported" });
+    log.info("[updater] unpacked run — update checks are skipped");
+    return;
+  }
+
+  autoUpdater.on("checking-for-update", () => pushState({ status: "checking", error: null }));
+  autoUpdater.on("update-available", (info) =>
+    pushState({ status: "available", version: info?.version ?? null, percent: 0 })
+  );
+  autoUpdater.on("update-not-available", () => pushState({ status: "idle", percent: 0 }));
+  autoUpdater.on("download-progress", (p) =>
+    pushState({ status: "downloading", percent: Math.round(p?.percent ?? 0) })
+  );
+  autoUpdater.on("update-downloaded", (info) =>
+    pushState({ status: "ready", version: info?.version ?? updateState.version, percent: 100 })
+  );
+
+  // A failed update check is the ORDINARY case here, not an exotic one —
+  // launching offline is enough to trigger it. electron-updater reports the
+  // failure twice: it emits "error" AND rejects the promise returned by
+  // checkForUpdates(). An EventEmitter with no "error" listener rethrows, and
+  // an unhandled rejection can take down the main process, so both this
+  // listener and the .catch() in runCheck() are load-bearing — without them a
+  // launch with no network could kill an otherwise working app.
   autoUpdater.on("error", (err) => {
-    console.error("[updater] check failed:", err.message);
+    pushState({ status: "error", error: err?.message ?? String(err) });
   });
-  autoUpdater.checkForUpdatesAndNotify().catch(() => {
-    // Already logged by the "error" listener above; swallowed here only so
+
+  runCheck();
+  setInterval(runCheck, RECHECK_INTERVAL_MS);
+}
+
+function runCheck() {
+  // Re-checking mid-download restarts the differential download from scratch,
+  // and re-checking after "ready" would drop a staged install on the floor.
+  if (updateState.status === "downloading" || updateState.status === "ready") return;
+  autoUpdater.checkForUpdates().catch(() => {
+    // Already surfaced by the "error" listener above; swallowed here only so
     // the rejection doesn't surface as an unhandled one.
   });
+}
+
+function registerUpdaterIpc() {
+  // RACE FIX, not a convenience: on a fast check the "update-available" and
+  // "download-progress" events fire before the renderer has even finished
+  // mounting, so a subscribe-only banner would sit silently empty through the
+  // entire download. The renderer pulls current state on mount and subscribes
+  // for everything after it.
+  ipcMain.handle("updater:getState", () => ({ ...updateState }));
+
+  ipcMain.handle("updater:quitAndInstall", async () => {
+    await stopBackend();
+    autoUpdater.quitAndInstall();
+  });
+
+  ipcMain.handle("app:getVersion", () => app.getVersion());
 }
 
 // Two copies of this app fighting over one SQLite file is a real failure
@@ -159,6 +271,12 @@ const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
 } else {
+  // Must be set before whenReady. On Windows this is what ties the running
+  // process to the Start-menu shortcut electron-builder's NSIS installer
+  // creates; without it the taskbar treats a relaunched-after-update app as a
+  // different application and update notifications lose their identity.
+  app.setAppUserModelId("com.skilltape.app");
+
   app.on("second-instance", () => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
@@ -166,13 +284,15 @@ if (!gotLock) {
     }
   });
 
+  registerUpdaterIpc();
+
   app.whenReady().then(async () => {
     try {
       await startBackend();
       createWindow();
-      checkForUpdates();
+      initUpdater();
     } catch (err) {
-      console.error("Failed to start backend:", err);
+      log.error("Failed to start backend:", err);
       app.quit();
     }
 
@@ -182,9 +302,22 @@ if (!gotLock) {
   });
 
   app.on("window-all-closed", () => {
-    stopBackend();
+    // No stopBackend() here — app.quit() fires before-quit, which owns the
+    // shutdown. On macOS the app stays resident with its backend alive, so the
+    // "activate" handler above can reopen a window against a running server.
     if (process.platform !== "darwin") app.quit();
   });
 
-  app.on("before-quit", stopBackend);
+  // The backend shutdown has to actually COMPLETE before Electron emits `quit`,
+  // because that is when electron-updater runs the NSIS installer
+  // (autoInstallOnAppQuit). before-quit is synchronous, so the only way to wait
+  // is to cancel this quit, stop the backend, and quit again — `quitting`
+  // guards against the loop that would otherwise create.
+  let quitting = false;
+  app.on("before-quit", (event) => {
+    if (quitting) return;
+    quitting = true;
+    event.preventDefault();
+    stopBackend().finally(() => app.quit());
+  });
 }

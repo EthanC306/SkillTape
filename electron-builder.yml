@@ -47,13 +47,24 @@ publish:
   provider: github
   owner: EthanC306
   repo: SkillTape
-  # electron-builder defaults this to `draft`, which silently breaks the whole
-  # update path: electron-updater finds releases through releases.atom, and
-  # GitHub omits drafts from that feed. The upload succeeds, the release page
-  # looks right when you're logged in, and the app still reports "No published
-  # versions on GitHub" forever. Publishing straight to `release` is the only
-  # way the installed app ever sees the upload.
-  releaseType: release
+  # releaseType is deliberately left at electron-builder's default (`draft`),
+  # and `npm run release:win` (scripts/release.mjs) flips the draft to
+  # published once every asset is verified uploaded. Two things make that the
+  # right shape rather than just setting `releaseType: release` here:
+  #
+  #   1. Drafts are invisible to the update path, so a half-uploaded release
+  #      can never be advertised. electron-updater resolves versions through
+  #      releases.atom (GitHubProvider.getLatestVersion), and GitHub omits
+  #      drafts from that feed and from unauthenticated API reads. Uploading
+  #      into a draft and flipping last means the feed only ever gains an
+  #      entry that already has latest.yml + .exe + .blockmap behind it.
+  #   2. `releaseType: release` would not have helped anyway. It only applies
+  #      when electron-builder *creates* a release; gitHubPublisher.js's
+  #      `if (release.draft) return release` reuses any existing draft for the
+  #      tag untouched. One stale draft therefore poisons its tag forever —
+  #      which is exactly why the earlier attempts at this shipped nothing
+  #      the installed app could see. release.mjs preflights for that case.
+  releaseType: draft
 
 # Icons come from build/icons/, generated from the build/icon.png master by
 # `npm run icons` (scripts/makeIcons.js). To change the logo: drop a new square
@@ -80,7 +91,7 @@ linux:
 win:
   target:
     - nsis
-  
+
   icon: build/icon.ico
   # better-sqlite3 and bcrypt both ship a win32-x64 N-API prebuild bundled
   # directly in their npm packages (no compile, no network fetch needed) —
@@ -89,3 +100,15 @@ win:
   # Linux. What's NOT yet verified from this shell: whether electron-builder
   # can actually produce the NSIS installer itself without Wine, which isn't
   # installed here — see the README note on this.
+
+nsis:
+  # Default is `${productName} Setup ${version}.${ext}` — "SkillTape Setup
+  # 1.0.1.exe", with spaces. Spaces are the one thing both halves of the
+  # update path handle *differently*: electron-updater's resolveFiles
+  # (GitHubProvider.js) rewrites spaces to `-` when it builds the download
+  # URL, GitHub's upload API turns them into `.` on its own, and
+  # electron-publish uploads with the raw spaced name. Any one of those alone
+  # is fine; together they can disagree about what the asset is called and
+  # the download 404s. A name with no spaces in it removes the whole class of
+  # mismatch rather than trying to reason about which layer normalizes what.
+  artifactName: ${productName}-Setup-${version}.${ext}

@@ -5,7 +5,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "derived-classes",
   title: "Derived Classes",
-  subtitle: "C++ — inheritance, virtual functions, polymorphism",
+  subtitle: "inheritance, virtual functions, polymorphism",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the

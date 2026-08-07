@@ -5,7 +5,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "multidim-arrays",
   title: "Multi-Dimensional Arrays",
-  subtitle: "c++ — 2D/3D arrays, array parameters",
+  subtitle: "2D/3D arrays, array parameters",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0, 2026-08-01): default — not covered by the

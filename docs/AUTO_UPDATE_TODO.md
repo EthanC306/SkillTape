@@ -1,15 +1,27 @@
 # TODO: Working auto-update for SkillTape (Electron + GitHub releases)
 
-> **Status: planned, not implemented.** Written 2026-08-06. Diagnosis below is
-> verified against the live GitHub API and against the vendored
-> `electron-updater` / `electron-publish` source — it is not speculation. Nothing
-> in "Changes" has been written yet; `electron/main.cjs`, `electron/preload.cjs`,
-> `electron-builder.yml`, and `index.html` are still in the pre-fix state
-> described here. Pick this up by working through "Changes" 1-9 in order.
+> **Status: Changes 1-9 implemented 2026-08-07.** Written 2026-08-06. The
+> diagnosis below was verified against the live GitHub API and the vendored
+> `electron-updater` / `electron-publish` source, and the code now matches the
+> plan: `electron-builder.yml` (space-free `nsis.artifactName`, `releaseType`
+> back to `draft`), `scripts/release.mjs` + `npm run release:win`,
+> `electron/main.cjs` (`updateState` machine, `electron-log`, IPC, deterministic
+> `stopBackend`), `electron/preload.cjs`, `src/hooks/useUpdater.js`,
+> `src/components/UpdateBanner.jsx`, `src/Shell.jsx` (banner + `v{version}`
+> badge), `index.html` (purple smoke-test bar deleted), `package.json`
+> (`electron-log`, `release:win`), and README's "Releasing an update".
 >
-> The uncommitted working-tree edits at the time of writing (version bump to
-> `1.0.1`, `releaseType: release` in `electron-builder.yml`, the purple smoke-test
-> bar in `index.html`) are **superseded** by this plan — see Changes 1 and 7.
+> **What is NOT done, and cannot be from this shell:** the whole of
+> "Verification" below except steps 1 and 9. Nothing has been released, so the
+> loop has still never completed end to end. Steps 2-8 need the manual GitHub
+> draft cleanup, a `GH_TOKEN`, and a real Windows machine. Treat the feature as
+> written-but-unproven until someone walks those.
+>
+> Confirmed here: preflight aborts by name with no token (step 1); a browser
+> load renders no banner and no version badge with zero page errors, and the
+> purple bar is gone (step 9); `npx electron .` unpacked logs
+> `[updater] unpacked run — update checks are skipped` through `electron-log`
+> and exits cleanly; `npm test` (68 passing) and `npx vite build` unchanged.
 
 ## Context
 
