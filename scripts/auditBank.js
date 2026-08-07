@@ -157,34 +157,68 @@ let totalLive = 0;
 let totalEligible = 0;
 
 for (const topic of topics) {
-  // Accept both the new `items` array and the legacy `questions` array.
-  const items = topic.items ?? topic.questions ?? [];
-  if (!items.length) {
-    console.log(`${YEL}⚠${OFF}  ${topic.id} — no items`);
+  let items;
+
+  if (topic.items) {
+    items = topic.items;
+  }
+  else if (topic.questions) {
+    items = topic.questions;   // older topics still use this name
+  }
+  else {
+    items = [];
+  }
+
+  if (items.length === 0) {
+    console.log(YEL + "⚠" + OFF + "  " + topic.id + " — no items");
     totalWarnings++;
     continue;
   }
 
-  const result = auditBank(items, {
-    policy: policyFor(topic),
-    allowlist: ALLOWLIST[topic.course] ?? [],
-  });
+ // Figure out the two settings first, so the call below is plain.
+  const policy = policyFor(topic);
+  const allowlist = ALLOWLIST[topic.course] ?? [];
+
+// Run the schema audit.
+  const result = auditBank(items, { policy: policy, allowlist: allowlist });
+
+// Run the source-file checks separately.
   const integrity = checkSourceIntegrity(items, sourceIndex);
-  result.errors.push(...integrity.errors);
+
+// Merge the second set of errors into the first.
+  for (const err of integrity.errors) {
+    result.errors.push(err);
+  }
 
   totalErrors += result.errors.length;
   totalWarnings += result.warnings.length;
   totalLive += result.live;
   totalEligible += result.rotationEligible;
 
-  const mark = result.errors.length === 0 ? `${GRN}✓${OFF}` : `${RED}✗${OFF}`;
+  // Green check if nothing failed, red X otherwise.
+  let mark;
+  if (result.errors.length === 0) {
+    mark = GRN + "✓" + OFF;
+  }
+  else {
+    mark = RED + "✗" + OFF;
+  }
+
+  // Summary line for this topic.
   console.log(
-    `${mark}  ${topic.id} ${DIM}— ${result.live} live, ` +
-      `${result.rotationEligible} in rotation${OFF}`
+    mark + "  " + topic.id + " " + DIM +
+    "— " + result.live + " live, " +
+    result.rotationEligible + " in rotation" + OFF
   );
 
-  for (const e of result.errors) console.log(`   ${RED}error${OFF}  ${e}`);
-  for (const w of result.warnings) console.log(`   ${YEL}warn ${OFF}  ${w}`);
+  // Then every error, then every warning, one per line.
+  for (const e of result.errors) {
+    console.log("   " + RED + "error" + OFF + "  " + e);
+  }
+
+  for (const w of result.warnings) {
+    console.log("   " + YEL + "warn " + OFF + "  " + w);
+  }
 }
 
 console.log(

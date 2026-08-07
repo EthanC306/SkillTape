@@ -21,12 +21,18 @@
     "electron:rebuild": "electron-rebuild -f -w better-sqlite3,bcrypt",
     "electron:clean-native": "rm -rf node_modules/bcrypt/build node_modules/better-sqlite3/build",
     "electron:build": "npm run build && npm run electron:rebuild && electron-builder --linux",
-    "electron:build:win": "npm run build && npm run electron:clean-native && electron-builder --win --x64"
+    "electron:build:win": "npm run build && npm run electron:clean-native && electron-builder --win --x64",
+    "electron:publish:win": "npm run build && npm run electron:clean-native && electron-builder --win --x64 --publish always",
+    "docker:build": "docker build -t skilltape",
+    "docker:run": "docker run --rm -p 3000:3000 skilltape",
+    "all:electron": "npm test && npm run electron:build:win",
+    "all:docker": "npm test && npm run docker:build"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^13.0.2",
     "cookie-parser": "^1.4.7",
+    "electron-updater": "^6.8.9",
     "express": "^5.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

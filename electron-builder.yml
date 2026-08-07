@@ -39,6 +39,15 @@ files:
 directories:
   output: dist-electron
 
+# Where built installers get uploaded, and — more importantly — the URL that
+# gets baked into the app so electron-updater knows which release feed to poll
+# at runtime. Both halves come from this one block: drop it and `--publish`
+# has no destination AND the installed app has no idea where to check.
+publish:
+  provider: github
+  owner: EthanC306
+  repo: SkillTape
+
 # Icons come from build/icons/, generated from the build/icon.png master by
 # `npm run icons` (scripts/makeIcons.js). To change the logo: drop a new square
 # PNG at build/icon.png, run that script, rebuild.
@@ -64,11 +73,7 @@ linux:
 win:
   target:
     - nsis
-  # A pre-built multi-size .ico from `npm run icons`, used verbatim. Handed a
-  # PNG instead, electron-builder generates an .ico holding a single 256x256
-  # image, and Windows then downscales that for the 16px taskbar and 32px
-  # Explorer icons — visibly soft on a logo with strokes this thin. The
-  # generated .ico embeds a purpose-rendered bitmap at each of those sizes.
+  
   icon: build/icon.ico
   # better-sqlite3 and bcrypt both ship a win32-x64 N-API prebuild bundled
   # directly in their npm packages (no compile, no network fetch needed) —
