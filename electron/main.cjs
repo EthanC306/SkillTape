@@ -99,30 +99,23 @@ async function startBackend() {
   await waitForServer(`http://${HOST}:${PORT}/api/health`);
 }
 
-// The same PNG electron-builder packages from (see electron-builder.yml).
-// ROOT resolves inside the asar when packaged and to the repo in dev, so one
-// path covers both. This is what the WINDOW and its taskbar entry show while
-// the app is running — on Windows and macOS that's cosmetic (the shell takes
-// its icon from the .exe / .app bundle, which electron-builder stamps at
-// package time), but on Linux nothing sets a window icon for you, so without
-// this the running app falls back to Electron's own default logo.
-// 256 rather than the 1254x1254 master: it is the largest size any window
-// manager actually asks for, and it is 39 kB instead of 850 kB.
+// Icon shown in the app window and taskbar while the app is running.
+// Same file electron-builder uses, so dev and packaged builds match.
+// Windows and macOS pull their icon from the installed app itself, but
+// Linux doesn't set one automatically and without this you'd see the
+// default Electron logo instead.
+// Using the 256px version: biggest size anything actually requests,
+// and 39 kB instead of 850 kB.
 const ICON_PATH = path.join(ROOT, "build", "icons", "256x256.png");
 
-// RECOVERY PATH for caches that are already poisoned. server/index.js now
-// sends `no-store` on index.html, which stops this happening again — but that
-// header only helps a client that actually asks. An install carrying a
-// heuristically-cached 1.0.1 index.html from BEFORE the fix will keep serving
-// it from disk without ever hitting the server, so the fix alone would never
-// reach the machines that need it. Clearing on launch guarantees the first
-// request after an update is a real one.
+// Clears the cached page on every launch.
 //
-// Unconditional rather than version-gated on purpose: the whole frontend is
-// served from 127.0.0.1 off the local disk, so a cold cache costs a few
-// milliseconds of re-read and nothing else. There is no network fetch to
-// re-pay for, which is what would normally make clearing every launch a bad
-// trade.
+// The server now tells the browser not to cache index.html, but that only
+// helps if the browser bothers to ask. An install that already cached the
+// old page will keep loading it from disk and never see the fix.
+//
+// Done every launch, not just once: everything is served locally, so a
+// fresh load costs a few milliseconds and nothing else.
 async function createWindow() {
   try {
     await session.defaultSession.clearCache();

@@ -47,23 +47,6 @@ publish:
   provider: github
   owner: EthanC306
   repo: SkillTape
-  # releaseType is deliberately left at electron-builder's default (`draft`),
-  # and `npm run release:win` (scripts/release.mjs) flips the draft to
-  # published once every asset is verified uploaded. Two things make that the
-  # right shape rather than just setting `releaseType: release` here:
-  #
-  #   1. Drafts are invisible to the update path, so a half-uploaded release
-  #      can never be advertised. electron-updater resolves versions through
-  #      releases.atom (GitHubProvider.getLatestVersion), and GitHub omits
-  #      drafts from that feed and from unauthenticated API reads. Uploading
-  #      into a draft and flipping last means the feed only ever gains an
-  #      entry that already has latest.yml + .exe + .blockmap behind it.
-  #   2. `releaseType: release` would not have helped anyway. It only applies
-  #      when electron-builder *creates* a release; gitHubPublisher.js's
-  #      `if (release.draft) return release` reuses any existing draft for the
-  #      tag untouched. One stale draft therefore poisons its tag forever —
-  #      which is exactly why the earlier attempts at this shipped nothing
-  #      the installed app could see. release.mjs preflights for that case.
   releaseType: draft
 
 # Icons come from build/icons/, generated from the build/icon.png master by
