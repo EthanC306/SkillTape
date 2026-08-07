@@ -45,11 +45,45 @@ app.use("/api", (req, res) => {
 // Docker nginx already serves the frontend and never reaches this process
 // for non-/api paths, so this simply goes unused there. The catch-all comes
 // after every /api route above, so an API 404 is never shadowed by it.
-app.use(express.static(path.join(ROOT, "dist")));
+//
+// CACHING IS NOT OPTIONAL TO GET RIGHT HERE — it broke a shipped update.
+// express.static sends ETag/Last-Modified but no Cache-Control, and with no
+// explicit directive Chromium falls back to HEURISTIC freshness (RFC 9111
+// §4.2.2: ~10% of the age since Last-Modified) and will serve index.html from
+// its own disk cache WITHOUT revalidating. In the browser that's invisible;
+// in Electron the cache lives in the user-data dir and OUTLIVES the update,
+// so after installing 1.0.2 the window still rendered 1.0.1's index.html,
+// whose <script src="/assets/index-<oldhash>.js"> no longer existed in the
+// new dist — 404, React never mounted, blank window. Confirmed by finding the
+// stale HTML in AppData/Roaming/SkillTape/Cache/Cache_Data.
+//
+// The split below is the standard fix, and it works precisely because Vite
+// content-hashes asset filenames:
+//   /assets/*  — the hash IS the version, so a given URL's bytes can never
+//                change. Cache hard, forever, no revalidation.
+//   index.html — the one unhashed, mutable entry point, and the file that
+//                names the current asset hashes. Never cache it.
+const NO_STORE = "no-store, no-cache, must-revalidate";
+app.use(
+  express.static(path.join(ROOT, "dist"), {
+    setHeaders(res, filePath) {
+      if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      } else {
+        res.setHeader("Cache-Control", NO_STORE);
+      }
+    },
+  })
+);
 // Express 5's router (path-to-regexp v8) rejects a bare "*" — it needs a
 // named wildcard or, as here, a real RegExp — so this isn't the Express 4
 // catch-all pattern this codebase's older docs/examples might suggest.
+//
+// sendFile does NOT go through the setHeaders hook above (that's static's
+// own), so the shell's no-store has to be repeated here — this path serves
+// the very same index.html for every client-side route.
 app.get(/.*/, (req, res) => {
+  res.setHeader("Cache-Control", NO_STORE);
   res.sendFile(path.join(ROOT, "dist", "index.html"));
 });
 

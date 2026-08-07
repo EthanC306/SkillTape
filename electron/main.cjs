@@ -21,7 +21,7 @@
 // 32 and 34; clean load and a working DB round-trip on Electron 36. Same
 // constraint the Dockerfile already documents for plain Node ("Node 22,
 // not 20") — this is that same requirement showing up again here.
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, session } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
 const { fork } = require("node:child_process");
@@ -110,7 +110,29 @@ async function startBackend() {
 // manager actually asks for, and it is 39 kB instead of 850 kB.
 const ICON_PATH = path.join(ROOT, "build", "icons", "256x256.png");
 
-function createWindow() {
+// RECOVERY PATH for caches that are already poisoned. server/index.js now
+// sends `no-store` on index.html, which stops this happening again — but that
+// header only helps a client that actually asks. An install carrying a
+// heuristically-cached 1.0.1 index.html from BEFORE the fix will keep serving
+// it from disk without ever hitting the server, so the fix alone would never
+// reach the machines that need it. Clearing on launch guarantees the first
+// request after an update is a real one.
+//
+// Unconditional rather than version-gated on purpose: the whole frontend is
+// served from 127.0.0.1 off the local disk, so a cold cache costs a few
+// milliseconds of re-read and nothing else. There is no network fetch to
+// re-pay for, which is what would normally make clearing every launch a bad
+// trade.
+async function createWindow() {
+  try {
+    await session.defaultSession.clearCache();
+  } catch (err) {
+    // Never fatal: a window with a cold cache is strictly better than no
+    // window, and the no-store headers make the stale-shell bug unreachable
+    // on any client that does reach the server.
+    log.warn("[startup] could not clear HTTP cache:", err);
+  }
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -289,7 +311,7 @@ if (!gotLock) {
   app.whenReady().then(async () => {
     try {
       await startBackend();
-      createWindow();
+      await createWindow();
       initUpdater();
     } catch (err) {
       log.error("Failed to start backend:", err);
@@ -297,7 +319,9 @@ if (!gotLock) {
     }
 
     app.on("activate", () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+      // Floating promise by design — "activate" handlers can't be awaited,
+      // and createWindow swallows its own cache-clear failure.
+      if (BrowserWindow.getAllWindows().length === 0) void createWindow();
     });
   });
 
