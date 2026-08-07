@@ -22,6 +22,7 @@
 // constraint the Dockerfile already documents for plain Node ("Node 22,
 // not 20") — this is that same requirement showing up again here.
 const { app, BrowserWindow } = require("electron");
+const { autoUpdater } = require("electron-updater");
 const { fork } = require("node:child_process");
 const path = require("node:path");
 const http = require("node:http");
@@ -129,6 +130,28 @@ function stopBackend() {
   }
 }
 
+// Polls the GitHub release feed named by the `publish` block in
+// electron-builder.yml, downloads anything newer in the background, and
+// installs it on quit. Unpacked runs (npm run electron:dev) skip the check
+// entirely — app.isPackaged is false, so it logs "Skip checkForUpdates" and
+// returns null. Seeing nothing happen in dev is correct, not a broken config.
+//
+// Both guards below are load-bearing, and a failed update check is the
+// ordinary case here, not an exotic one — launching offline is enough to
+// trigger it. electron-updater reports that failure twice: it emits "error"
+// AND rejects the returned promise. An EventEmitter with no "error" listener
+// rethrows, and an unhandled rejection can take down the main process, so
+// without both of these a launch with no network could kill a working app.
+function checkForUpdates() {
+  autoUpdater.on("error", (err) => {
+    console.error("[updater] check failed:", err.message);
+  });
+  autoUpdater.checkForUpdatesAndNotify().catch(() => {
+    // Already logged by the "error" listener above; swallowed here only so
+    // the rejection doesn't surface as an unhandled one.
+  });
+}
+
 // Two copies of this app fighting over one SQLite file is a real failure
 // mode a browser tab never had — refuse a second instance outright and just
 // focus the existing window instead.
@@ -147,6 +170,7 @@ if (!gotLock) {
     try {
       await startBackend();
       createWindow();
+      checkForUpdates();
     } catch (err) {
       console.error("Failed to start backend:", err);
       app.quit();
