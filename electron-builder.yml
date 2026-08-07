@@ -47,6 +47,13 @@ publish:
   provider: github
   owner: EthanC306
   repo: SkillTape
+  # electron-builder defaults this to `draft`, which silently breaks the whole
+  # update path: electron-updater finds releases through releases.atom, and
+  # GitHub omits drafts from that feed. The upload succeeds, the release page
+  # looks right when you're logged in, and the app still reports "No published
+  # versions on GitHub" forever. Publishing straight to `release` is the only
+  # way the installed app ever sees the upload.
+  releaseType: release
 
 # Icons come from build/icons/, generated from the build/icon.png master by
 # `npm run icons` (scripts/makeIcons.js). To change the logo: drop a new square

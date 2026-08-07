@@ -128,6 +128,27 @@
     </script>
   </head>
   <body>
+    <!--
+      AUTO-UPDATE SMOKE TEST MARKER — delete once the update cycle is confirmed.
+      Deliberately crude, inline, and outside #root: it touches no app logic and
+      no React state, so if this shows up after a restart, the updater is the
+      only thing that can have put it there. pointer-events:none so it can't
+      swallow clicks on whatever it covers.
+    -->
+    <div
+      style="
+        position: fixed;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 100vh;
+        background: #a855f7;
+        box-shadow: 0 0 80px 30px #a855f7;
+        z-index: 99999;
+        pointer-events: none;
+      "
+    ></div>
     <div id="root"></div>
     <script type="module" src="/main.jsx"></script>
   </body>
