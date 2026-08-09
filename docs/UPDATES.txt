@@ -14,6 +14,69 @@ Summary:
 
 
 --------------------------------------------------------------------------------
+WRITE coverage across the cpp bank, and a 3-per-session cap on WRITE items
+--------------------------------------------------------------------------------
+Date:     2026-08-09
+Commit:   94d87bb (released as 1.0.12)
+Files:    src/data/itemSchema.js, src/components/PracticeView.jsx,
+          server/routes/drill.js, test/applyWriteCap.test.js (new),
+          src/data/topics/cpp/{stacks,queues,iterators,doubly-linked-lists,
+          templates,linked-lists-algorithms,recursion}.js,
+          sources/cpp/{doubly-linked-lists,iterators}.md
+Summary:
+  - Item bank: added WRITE items until every code segment in the stacks,
+    queues, iterators, doubly-linked-list and templates decks had one. Stacks
+    went 1 WRITE -> 7 (array pop/peek, linked-list ctor/push/pop/peek), queues
+    1 -> 5 (class declaration incl. nextIndex, ctor, pop, peek), iterators
+    gained one item per operator (*, ->, prefix ++, postfix ++, ==, !=) plus
+    the ConstIterator ctor, doubly linked lists gained outputForward/
+    outputBackward/length/clear/copy/search and the List destructor, and
+    templates gained the Pair class declaration.
+  - Two sources/ gaps closed rather than papered over with invented citations:
+    Deck 03.3's algorithm slides (output forward/backward, length, clear, copy,
+    search) and Deck 04.2's ConstIterator constructor were never ingested, so
+    the items citing them had nothing to point at. Both were transcribed into
+    sources/ under new anchors, with a dated comment marking them as hand-
+    transcribed, and the items re-pointed from provenance:null to EXTRACTED.
+  - Three transcription bugs were corrected on the way in, since an `expected`
+    answer teaches whatever it contains: copy() walked `head` instead of
+    `source.head` (it clear()s first, so the loop would exit immediately and
+    leave an empty list), outputBackward called getPrev() where the deck's
+    DNode declares getPrevious(), and the lecture's List destructor reads
+    cursor->getNext() AFTER deleteNode(cursor) has freed it. The destructor was
+    left verbatim — it's what the slide shows and what an exam would mark — but
+    the use-after-free is now an explicit grading criterion rather than a
+    silent rewrite.
+  - Session composition: WRITE is the most expensive format to answer (90-300s
+    budgets, all self-graded free text), and the additions above made it easy
+    for a 20-item deck to sample eight of them. applyWriteCap() in
+    itemSchema.js — the one module both the client and server already import,
+    so there is a single definition — caps a MIXED deck at
+    MAX_WRITE_PER_SESSION (3) and returns a WRITE-ONLY deck untouched, on the
+    grounds that asking for nothing but WRITE is a deliberate choice to sit
+    down and write code.
+  - "WRITE-only" is read off the deck itself, not off a format picker, which is
+    what lets the same function serve the exam route (no picker exists there)
+    and still behave correctly when topic/difficulty filters happen to leave
+    only WRITE items.
+  - Wired into exactly the two places a mixed deck is built:
+    PracticeView.startPractice, where the cap runs BEFORE the slice so the
+    session still fills to the requested length with other formats instead of
+    coming back short; and GET /api/drill/exam, which always caps and now
+    recomputes topicMeta.sampled so the exam report can't count items the cap
+    removed. The FSRS due queue (GET /api/drill/queue) is deliberately NOT
+    capped — dropping due WRITEs there would defer scheduled reviews rather
+    than reduce work.
+  - Practice's setup screen states the cap when it applies ("max 3 WRITE per
+    session (N available) — deselect every other format to drill WRITE on its
+    own") and the Start button counts the capped pool, so a shortened deck is
+    never a surprise.
+  - test/applyWriteCap.test.js covers both rules plus the boundaries (limit
+    override, limit 0 still exempting a write-only deck, empty/non-array
+    input). Suite: 85 passing.
+
+
+--------------------------------------------------------------------------------
 Auto-update implemented end to end (docs/AUTO_UPDATE_TODO.md Changes 1-9)
 --------------------------------------------------------------------------------
 Date:     2026-08-07
