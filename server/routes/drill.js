@@ -248,8 +248,52 @@ function gradeToVerdict(grade) {
   return grade >= 2 ? "correct" : grade === 1 ? "partial" : "incorrect";
 }
 
-function fallbackResult(itemId) {
-  return { itemId, grade: null, verdict: "ungraded", criteriaMet: [], rationale: null, gradedBy: "fallback" };
+function fallbackResult(itemId, reason = null) {
+  return { itemId, grade: null, verdict: "ungraded", criteriaMet: [], rationale: null, gradedBy: "fallback", reason };
+}
+
+/**
+ * Turn a grading failure into one sentence a user can act on, and carry it to
+ * the results card (`reason` on each ungraded result).
+ *
+ * This exists because the UI used to say "Ollama didn't respond" for EVERY
+ * fail-open path, including the one where Ollama responded immediately and
+ * clearly to say the model wasn't pulled. The two cases have opposite fixes —
+ * "start Ollama" vs "pull the model" — and a real session was spent chasing
+ * the wrong one. G4's fail-open (docs/OLLAMA_GRADING.md) is about not
+ * BLOCKING on a dead grader; it was never a reason to hide why.
+ *
+ * Exported for test/gradingFailureReason.test.js.
+ *
+ * @param {Error} err the error the grading call failed with
+ * @param {{model: string, host: string}} ctx what that call was actually asking for
+ * @returns {string} one plain sentence, safe to render as-is
+ */
+export function gradingFailureReason(err, { model, host }) {
+  if (err instanceof OllamaBadResponseError) {
+    return `${model} replied with something that wasn't valid JSON. Try again, or switch models in Settings.`;
+  }
+  if (err instanceof OllamaUnavailableError) {
+    switch (err.code) {
+      case "ECONNREFUSED":
+      case "ENOTFOUND":
+        return `Couldn't reach Ollama at ${host} — it doesn't look like it's running.`;
+      case "TIMEOUT":
+        // Distinguished from "down" on purpose: the usual cause is a cold model
+        // load on a card that has to evict something first, and the fix is to
+        // simply run it again, not to go restart a server that's already up.
+        return `Ollama at ${host} didn't answer in time. ${model} may still be loading — try again.`;
+      case "HTTP_404":
+        // The exact failure that motivated this whole function: Ollama is up
+        // and answering, it just doesn't have this model. Name the fix.
+        return `Ollama at ${host} has no model named "${model}". Pull it first: ollama pull ${model}`;
+      default:
+        return err.detail
+          ? `Ollama at ${host} rejected the request: ${err.detail}`
+          : `Ollama at ${host} returned an error (${err.code}).`;
+    }
+  }
+  return `Grading failed: ${err?.message ?? String(err)}`;
 }
 
 // POST /api/drill/grade-batch — grade up to MAX_GRADE_BATCH_ITEMS free-text
@@ -348,7 +392,17 @@ router.post("/grade-batch", async (req, res) => {
     });
   } catch (err) {
     if (err instanceof OllamaUnavailableError || err instanceof OllamaBadResponseError) {
-      return res.json({ modelUsed: model, results: items.map((it) => fallbackResult(it.itemId)) });
+      const reason = gradingFailureReason(err, { model, host });
+      // Logged as well as returned: the packaged app has no console, and this
+      // is the line that says which of the fail-open causes actually fired.
+      console.warn(`[grade-batch] failing open — ${reason}`);
+      return res.json({
+        modelUsed: model,
+        // Also top-level: every item shares this one cause, and the client
+        // shows it once above the results rather than N times.
+        error: reason,
+        results: items.map((it) => fallbackResult(it.itemId, reason)),
+      });
     }
     throw err;
   }
@@ -374,7 +428,14 @@ router.post("/grade-batch", async (req, res) => {
     // already a recoverable one-attempt error (docs/OLLAMA_GRADING.md §3).
     const criteriaArr = Array.isArray(r?.criteria) ? r.criteria : null;
     if (!r || !criteriaArr || criteriaArr.length !== total) {
-      return fallbackResult(it.itemId);
+      // A different failure from the ones above, and it says so: Ollama is up,
+      // the model answered, and the answer just didn't fit the contract for
+      // this item. Nothing to restart or pull — retrying, or a bigger model,
+      // is the actual fix.
+      return fallbackResult(
+        it.itemId,
+        `${model} returned an answer that didn't match this item's ${total} criteria. Try again, or switch models in Settings.`
+      );
     }
     const criteriaMet = criteriaArr.map((c) => Boolean(c?.met));
     const met = criteriaMet.filter(Boolean).length;

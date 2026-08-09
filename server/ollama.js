@@ -112,10 +112,40 @@ const KEEP_ALIVE_SEC = 600;
 
 /** Ollama isn't reachable (down, wrong host, model missing, timed out). Callers must fail open on this. */
 export class OllamaUnavailableError extends Error {
-  constructor(message, code) {
+  constructor(message, code, detail = null) {
     super(message);
     this.name = "OllamaUnavailableError";
     this.code = code; // "ECONNREFUSED" | "ENOTFOUND" | "TIMEOUT" | "HTTP_<status>" | "UNKNOWN"
+    // Ollama's own explanation, when it gave one — see readErrorDetail.
+    this.detail = detail;
+  }
+}
+
+/**
+ * Ollama's error responses carry a real explanation in the body
+ * ({"error":"model \"x\" not found, try pulling it first"}), and it is the
+ * only thing that separates the two failures this app confuses constantly:
+ * a server that's down and a server that's up but missing the model. The
+ * status code alone can't tell them apart from the user's side, so it gets
+ * read here and carried on the error rather than dropped.
+ *
+ * Never throws — a body we couldn't read just means no detail to show.
+ */
+async function readErrorDetail(res) {
+  try {
+    const body = await res.text();
+    if (!body) return null;
+    try {
+      const parsed = JSON.parse(body);
+      if (typeof parsed?.error === "string" && parsed.error.trim()) return parsed.error.trim();
+    } catch {
+      /* not JSON — fall through to the raw text below */
+    }
+    // Truncated: this reaches a UI card, and an HTML error page from something
+    // that isn't Ollama would otherwise land there in full.
+    return body.trim().slice(0, 200) || null;
+  } catch {
+    return null;
   }
 }
 
@@ -170,7 +200,12 @@ async function postChat({ host, model, system, user, temperature, timeoutMs }) {
   }
 
   if (!res.ok) {
-    throw new OllamaUnavailableError(`Ollama responded ${res.status} ${res.statusText}`, `HTTP_${res.status}`);
+    const detail = await readErrorDetail(res);
+    throw new OllamaUnavailableError(
+      `Ollama responded ${res.status} ${res.statusText}${detail ? `: ${detail}` : ""}`,
+      `HTTP_${res.status}`,
+      detail
+    );
   }
 
   let envelope;

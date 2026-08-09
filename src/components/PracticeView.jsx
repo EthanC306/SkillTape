@@ -254,15 +254,34 @@ export default function PracticeView({ course, onExit }) {
           host,
         });
         chunkResults = res.results;
-      } catch {
+      } catch (err) {
         // Whole request failed (not just a graded-as-ungraded response from
         // the server, which already fails open on its own) — every item in
-        // this chunk falls back the same way.
-        chunkResults = chunk.map((c) => ({ itemId: c.item.id, grade: null, verdict: "ungraded", criteriaMet: [], rationale: null }));
+        // this chunk falls back the same way. Distinct from the server's own
+        // fail-open reasons: this one never reached the server at all, so it
+        // says so rather than blaming Ollama for something upstream of it.
+        const reason = `Couldn't reach SkillTape's own server${err?.message ? ` (${err.message})` : ""}.`;
+        chunkResults = chunk.map((c) => ({ itemId: c.item.id, grade: null, verdict: "ungraded", criteriaMet: [], rationale: null, reason }));
       }
       const merged = chunk.map((c) => {
-        const r = chunkResults.find((x) => x.itemId === c.item.id) ?? { grade: null, verdict: "ungraded", criteriaMet: [], rationale: null };
-        return { item: c.item, answerText: c.answerText, grade: r.grade, verdict: r.verdict, criteriaMet: r.criteriaMet ?? [], rationale: r.rationale ?? null };
+        const r = chunkResults.find((x) => x.itemId === c.item.id) ?? {
+          grade: null,
+          verdict: "ungraded",
+          criteriaMet: [],
+          rationale: null,
+          // Only reachable if the server answered without this item at all —
+          // no server-supplied reason exists to pass through here.
+          reason: "The grader didn't return a result for this item.",
+        };
+        return {
+          item: c.item,
+          answerText: c.answerText,
+          grade: r.grade,
+          verdict: r.verdict,
+          criteriaMet: r.criteriaMet ?? [],
+          rationale: r.rationale ?? null,
+          reason: r.reason ?? null,
+        };
       });
       collected.push(...merged);
       setResults([...collected]);
@@ -536,6 +555,15 @@ export default function PracticeView({ course, onExit }) {
   const scoreSum = correctCount + partialCount * 0.5;
   const scoreLabel = Number.isInteger(scoreSum) ? String(scoreSum) : scoreSum.toFixed(1);
 
+  // When a whole session fails to grade it's one cause, not N — every item
+  // carries the same reason string. Surfaced once here, at the top, because
+  // the per-card copy is easy to read past when EVERY card says it, which is
+  // exactly the case where the reason matters most. Distinct reasons across
+  // items (a per-item contract miss alongside a real outage) leave this out
+  // and let the cards speak for themselves.
+  const ungradedReasons = new Set(orderedResults.filter((r) => r.verdict === "ungraded" && r.reason).map((r) => r.reason));
+  const sharedUngradedReason = ungradedReasons.size === 1 ? [...ungradedReasons][0] : null;
+
   return (
     <div>
       <div style={{ background: PALETTE.panel, border: `1px solid ${PALETTE.line}`, borderRadius: RADII.lg, padding: 24, textAlign: "center", maxWidth: 680, margin: "0 auto 16px" }}>
@@ -549,6 +577,26 @@ export default function PracticeView({ course, onExit }) {
           <span>incorrect {orderedResults.length - correctCount - partialCount - ungradedCount}</span>
           {ungradedCount > 0 && <span style={{ color: PALETTE.bad }}>ungraded {ungradedCount}</span>}
         </div>
+        {ungradedCount > 0 && sharedUngradedReason && (
+          <div
+            style={{
+              border: `1px solid ${PALETTE.bad}`,
+              borderRadius: RADII.md,
+              padding: "10px 14px",
+              margin: "0 0 16px",
+              fontFamily: MONO,
+              fontSize: 12,
+              lineHeight: 1.5,
+              color: PALETTE.bad,
+              textAlign: "left",
+              // A pull command or a host URL must stay copyable and unwrapped
+              // mid-token, but the sentence around it still has to wrap.
+              wordBreak: "break-word",
+            }}
+          >
+            {ungradedCount} {ungradedCount === 1 ? "answer" : "answers"} couldn't be graded — {sharedUngradedReason}
+          </div>
+        )}
         <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
           {missedCount > 0 && (
             <button onClick={retryMissed} style={primaryBtn}>
@@ -670,7 +718,7 @@ function Chip({ active, onClick, children, title }) {
 /** One graded-result card: verdict color/badge, the question, what was typed, feedback, and a collapsible reference answer with criteria annotated from the model's own per-criterion judgments. */
 function ResultCard({ result }) {
   const [showRef, setShowRef] = useState(false);
-  const { item, verdict, rationale, criteriaMet, answerText, choiceIndex } = result;
+  const { item, verdict, rationale, criteriaMet, answerText, choiceIndex, reason } = result;
 
   const color =
     verdict === "correct" ? PALETTE.good : verdict === "partial" ? PALETTE.accent : verdict === "ungraded" ? PALETTE.line : PALETTE.bad;
@@ -692,7 +740,12 @@ function ResultCard({ result }) {
         ? "No option selected."
         : `Incorrect — the correct answer was "${item.choices[item.answerIndex]}".`
       : verdict === "ungraded"
-      ? "Auto-grade unavailable — Ollama didn't respond. Compare against the reference answer below."
+      ? // The reason comes from the server (gradingFailureReason in
+        // server/routes/drill.js) and names the actual cause — "Ollama isn't
+        // running" and "Ollama has no model named X" have opposite fixes, and
+        // this card used to claim the first one for both. The generic fallback
+        // only applies to results from a build older than that field.
+        `Auto-grade unavailable — ${reason ?? "Ollama didn't respond."} Compare against the reference answer below.`
       : rationale || "";
 
   return (
