@@ -95,6 +95,55 @@ export const SELF_GRADED = new Set([
  */
 export const CODE_FORMATS = new Set([FORMATS.WRITE, FORMATS.TRACE, FORMATS.ERROR]);
 
+/**
+ * How many WRITE items may appear in a single mixed-format session.
+ *
+ * WRITE is the most expensive format in the bank to answer: the items added on
+ * 2026-08-09 carry 90–300s time budgets, and every one is self-graded free text
+ * rather than a click. A 20-item deck that happens to sample eight of them is
+ * closer to an hour of typing than a study session, and the usual response is
+ * to abandon it — which costs the schedule far more than the items were worth.
+ *
+ * Enforced by applyWriteCap() below, in exactly the two places a mixed deck is
+ * built: PracticeView.startPractice and GET /api/drill/exam.
+ */
+export const MAX_WRITE_PER_SESSION = 3;
+
+/**
+ * applyWriteCap — drop WRITE items beyond `limit` from a session deck.
+ *
+ * Two rules, matching how sessions are actually chosen:
+ *
+ *   - **Mixed deck** (WRITE alongside any other format): keep at most `limit`
+ *     WRITE items and drop the rest, so the long-form work can't crowd out the
+ *     recall/MCQ/trace items the deck was supposed to also cover.
+ *   - **WRITE-only deck** (every item is WRITE): returned untouched. Asking for
+ *     nothing but WRITE is a deliberate choice to sit down and write code, and
+ *     capping it at 3 would make that mode useless.
+ *
+ * "WRITE-only" is read off the deck itself rather than from a format picker, so
+ * this works for callers that have no picker at all (the exam route) and still
+ * does the right thing when a filter happens to leave only WRITE items.
+ *
+ * Input order is preserved, and which WRITE items survive is just the first
+ * `limit` in the array — pass an already-shuffled deck if that should be
+ * random, which both callers do.
+ *
+ * @param {Array<{id: string, format: string}>} items
+ * @param {{limit?: number}} [options]
+ * @returns {Array} a new array, or `items` itself when nothing had to be cut
+ */
+export function applyWriteCap(items, { limit = MAX_WRITE_PER_SESSION } = {}) {
+  if (!Array.isArray(items)) return items;
+
+  const writes = items.filter((it) => it?.format === FORMATS.WRITE);
+  if (writes.length <= limit) return items; // already within the cap
+  if (writes.length === items.length) return items; // WRITE-only: deliberate, leave it alone
+
+  const kept = new Set(writes.slice(0, limit).map((it) => it.id));
+  return items.filter((it) => it?.format !== FORMATS.WRITE || kept.has(it.id));
+}
+
 // ---------------------------------------------------------------------------
 // Content policy
 // ---------------------------------------------------------------------------

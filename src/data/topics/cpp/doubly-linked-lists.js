@@ -328,6 +328,186 @@ export default {
       verifiedByHuman: true,
     }),
     makeItem({
+      id: "doubly-linked-lists-07",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Write the List destructor — deallocate every node in the list.",
+      // Transcribed verbatim from the lecture slide (also quoted in the
+      // "List destructor" card in linked-lists-algorithms.js). Note the slide's
+      // version reads cursor->getNext() AFTER deleteNode(cursor) has freed it —
+      // see the last criterion.
+      expected:
+        "List::~List()\n{\n//deallocate all the nodes\nNode *cursor = head;\nwhile(cursor != nullptr){\ndeleteNode(cursor);\ncursor = cursor->getNext();\n}\n}",
+      criteria: [
+        "Starts a cursor at head and loops while cursor != nullptr",
+        "Frees each node on the way through — deleteNode(cursor)",
+        "Advances with cursor = cursor->getNext() so every node is visited",
+        "Worth noting: reading cursor->getNext() after deleteNode(cursor) has freed that node is a use-after-free; a safe version saves next (or the doomed node) before deleting",
+      ],
+      timeBudgetSec: 150,
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-08",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt: "Write List::outputForward() — output a doubly linked list from head to tail.",
+      expected:
+        "void List::outputForward() const{\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        cout << cursor->getData() << \" \";\n        cursor = cursor->getNext();\n    }\n    cout << endl;\n}",
+      criteria: [
+        "Starts the cursor at head",
+        "Loops while cursor != nullptr, printing cursor->getData()",
+        "Advances with cursor = cursor->getNext()",
+        "Marked const — the traversal doesn't modify the list",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#output-forward",
+        excerpt:
+          "void List::outputForward() const{\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        cout << cursor->getData() << \" \";\n        cursor = cursor->getNext();\n    }\n    cout << endl;\n}",
+        citation:
+          "Lecture Deck 03.3 — Doubly Linked Lists",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-09",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt: "Write List::outputBackward() — output a doubly linked list from tail to head.",
+      expected:
+        "void List::outputBackward() const{\n    Node *cursor = tail;\n    while (cursor != nullptr) {\n        cout << cursor->getData() << \" \";\n        cursor = cursor->getPrevious();\n    }\n    cout << endl;\n}",
+      criteria: [
+        "Starts the cursor at tail, not head",
+        "Loops while cursor != nullptr, printing cursor->getData()",
+        "Walks backward with cursor = cursor->getPrevious() — only possible because each node stores a previous pointer",
+        "Marked const — the traversal doesn't modify the list",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#output-backward",
+        excerpt:
+          "void List::outputBackward() const{\n    Node *cursor = tail;\n    while (cursor != nullptr) {\n        cout << cursor->getData() << \" \";\n        cursor = cursor->getPrevious();\n    }\n    cout << endl;\n}",
+        citation:
+          "Lecture Deck 03.3 — Doubly Linked Lists",
+      },
+      extraAtoms: ["#why-doubly-linked-lists"],
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-10",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt: "Write List::length() — a function that returns the count of nodes in the list.",
+      expected:
+        "int List::length() const{\n    int count = 0;\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        count++;\n        cursor = cursor->getNext();\n    }\n    return count;\n} // length",
+      criteria: [
+        "Initializes count to 0 and cursor to head",
+        "Increments count once per node while cursor != nullptr",
+        "Advances with cursor = cursor->getNext()",
+        "Returns count after the loop — O(n), every node must be touched",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#list-length-doubly",
+        excerpt:
+          "int List::length() const{\n    int count = 0;\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        count++;\n        cursor = cursor->getNext();\n    }\n    return count;\n} // length",
+        citation:
+          "Lecture Deck 03.3 — Doubly Linked Lists",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-11",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt: "Write List::clear() — deallocate every node and leave the list empty.",
+      expected:
+        "void List::clear(){\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        Node *doomed = cursor;\n        cursor = cursor->getNext();\n        delete doomed;\n    }\n    head = nullptr;\n    tail = nullptr;\n}",
+      criteria: [
+        "Saves the node to be freed (doomed) before advancing the cursor",
+        "Advances cursor = cursor->getNext() BEFORE delete doomed — reading getNext() off a freed node is undefined behavior",
+        "Deletes every node exactly once",
+        "Resets both head and tail to nullptr so the emptied list has no dangling pointers",
+      ],
+      timeBudgetSec: 150,
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#list-clear",
+        excerpt:
+          "void List::clear(){\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        Node *doomed = cursor;\n        cursor = cursor->getNext();\n        delete doomed;\n    }\n    head = nullptr;\n    tail = nullptr;\n}",
+        citation:
+          "Lecture Deck 03.3 — Doubly Linked Lists",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-12",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt: "Write List::copy(const List &source) — make this list a copy of source.",
+      expected:
+        "void List::copy(const List &source){\n    clear();\n    Node *cursor = source.head;\n    while (cursor != nullptr) {\n        addToTail(cursor->getData());\n        cursor = cursor->getNext();\n    }\n} // copy",
+      criteria: [
+        "Calls clear() first so the existing nodes are freed instead of leaked",
+        "Walks source with a cursor starting at source.head — not this list's head, which clear() just emptied",
+        "Calls addToTail(cursor->getData()) per node so the copy keeps the original order",
+        "Deep copy — new nodes are allocated rather than sharing source's pointers",
+      ],
+      timeBudgetSec: 150,
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#list-copy",
+        excerpt:
+          "void List::copy(const List &source){\n    clear();\n    Node *cursor = source.head;\n    while (cursor != nullptr) {\n        addToTail(cursor->getData());\n        cursor = cursor->getNext();\n    }\n} // copy",
+        citation:
+          "Lecture Deck 03.3 — Doubly Linked Lists",
+      },
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-13",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt: "Write List::search(const DataType &target) — return whether target appears in the list.",
+      expected:
+        "bool List::search(const DataType &target) const{\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        if (cursor->getData() == target) {\n            return true;\n        }\n        cursor = cursor->getNext();\n    }\n    return false;\n} // search",
+      criteria: [
+        "Traverses with a cursor from head until cursor == nullptr",
+        "Returns true as soon as cursor->getData() == target",
+        "Returns false after the loop if nothing matched",
+        "Takes target by const reference and is marked const",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#search-doubly",
+        excerpt:
+          "bool List::search(const DataType &target) const{\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        if (cursor->getData() == target) {\n            return true;\n        }\n        cursor = cursor->getNext();\n    }\n    return false;\n} // search",
+        citation:
+          "Lecture Deck 03.3 — Doubly Linked Lists",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
       id: "doubly-linked-lists-mcq-01",
       topicId: "doubly-linked-lists",
       format: FORMATS.MCQ,

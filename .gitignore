@@ -1,5 +1,7 @@
 # --- Dependencies ---
 node_modules/
+docs/old/
+*.tmp
 .pnp
 .pnp.js
 

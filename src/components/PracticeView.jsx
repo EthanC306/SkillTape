@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
-import { FORMATS, DIFFICULTY_LEVELS, CODE_FORMATS } from "../data/itemSchema";
+import { FORMATS, DIFFICULTY_LEVELS, CODE_FORMATS, applyWriteCap, MAX_WRITE_PER_SESSION } from "../data/itemSchema";
 import {
   getTopics,
   postDrillAttempt,
@@ -184,6 +184,10 @@ export default function PracticeView({ course, onExit }) {
     (it) => activeTopicIds.has(it.topicId) && activeDifficulties.has(it.difficulty) && activeFormats.has(it.format)
   );
 
+  const writeCount = filteredPool.filter((it) => it.format === FORMATS.WRITE).length;
+  const writeCapApplies = writeCount > MAX_WRITE_PER_SESSION && writeCount < filteredPool.length;
+  const cappedPoolSize = writeCapApplies ? filteredPool.length - (writeCount - MAX_WRITE_PER_SESSION) : filteredPool.length;
+
   function toggleTopic(id) {
     setSelectedTopicIds((prev) => {
       const next = new Set(prev ?? topicOptions.map(([tid]) => tid));
@@ -222,7 +226,13 @@ export default function PracticeView({ course, onExit }) {
   }
 
   function startPractice() {
-    const sampled = sessionLength === "all" ? shuffle(filteredPool) : shuffle(filteredPool).slice(0, sessionLength);
+    // The cap runs BEFORE the slice, not after: capping a 20-item deck that
+    // already sampled eight WRITEs would hand back a 15-item session, whereas
+    // trimming the pool first lets the slice backfill to the full length with
+    // other formats. applyWriteCap no-ops when WRITE is the only format left in
+    // the pool, which is how "WRITE only" stays uncapped.
+    const capped = applyWriteCap(shuffle(filteredPool));
+    const sampled = sessionLength === "all" ? capped : capped.slice(0, sessionLength);
     launchDeck(sampled);
   }
 
@@ -557,6 +567,12 @@ export default function PracticeView({ course, onExit }) {
 
           <div style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted, margin: "20px 0 14px" }}>
             {filteredPool.length} item{filteredPool.length === 1 ? "" : "s"} match this selection
+            {writeCapApplies && (
+              <div style={{ marginTop: 6 }}>
+                max {MAX_WRITE_PER_SESSION} WRITE per session ({writeCount} available) — deselect every other format to
+                drill WRITE on its own
+              </div>
+            )}
           </div>
 
           {/* Reset lives here too, not only on results — otherwise putting
@@ -587,7 +603,7 @@ export default function PracticeView({ course, onExit }) {
           >
             {filteredPool.length === 0
               ? "No items match this selection"
-              : `Start ${Math.min(sessionLength === "all" ? filteredPool.length : sessionLength, filteredPool.length)} questions`}
+              : `Start ${Math.min(sessionLength === "all" ? cappedPoolSize : sessionLength, cappedPoolSize)} questions`}
           </button>
         </div>
       </PracticeShell>

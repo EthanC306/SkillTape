@@ -415,6 +415,116 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+    // WRITE coverage for every code segment in the deck that didn't have one
+    // (2026-08-09). queues-03 already covers push; #array-queue-pop previously
+    // had only a TRACE item, and the class/constructor/peek segments had none.
+    makeItem({
+      id: "queues-07",
+      topicId: "queues",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the class declaration for the array-based Queue, including the private data, the nextIndex helper, and the public interface.",
+      expected:
+        "const int CAPACITY = 30;\ntemplate <typename Item>\nclass Queue {\nprivate:\nItem data[CAPACITY]; // Partially-filled array\nsize_t front; // Index of item at front of the queue\nsize_t rear; // Index of item at rear of the queue\nsize_t numItems; // Total number of items in the queue\n\nsize_t nextIndex(size_t index) const{\nreturn (index + 1) % CAPACITY;\n}\n\npublic:\nQueue();\nvoid push(const Item& entry);\nItem pop();\nItem peek();\nsize_t size() const { return numItems; }\nbool isEmpty() const {\nreturn (numItems == 0);\n}\n};",
+      criteria: [
+        "Declares the partially-filled array Item data[CAPACITY] plus three size_t members: front, rear, numItems",
+        "Defines the private helper nextIndex(size_t index) const returning (index + 1) % CAPACITY — the modulo is what makes the array circular",
+        "Public interface: Queue(), push(const Item&), pop(), peek(), size(), isEmpty()",
+        "size() returns numItems and isEmpty() tests numItems == 0 — emptiness is tracked by the counter, not by comparing front and rear",
+        "Ends the class declaration with a semicolon",
+      ],
+      timeBudgetSec: 300,
+      provenance: {
+        sourceId: "cpp-slides-05.2-queues",
+        anchor: "#array-queue-class",
+        excerpt:
+          "const int CAPACITY = 30;\ntemplate <typename Item>\nclass Queue {\nprivate:\nItem data[CAPACITY]; // Partially-filled array\nsize_t front; // Index of item at front of the queue\nsize_t rear; // Index of item at rear of the queue\nsize_t numItems; // Total number of items in the queue\n\nsize_t nextIndex(size_t index) const{\nreturn (index + 1) % CAPACITY;\n}\n\npublic:\nQueue();\nvoid push(const Item& entry);\nItem pop();\nItem peek();\nsize_t size() const { return numItems; }\nbool isEmpty() const {\nreturn (numItems == 0);\n}\n};",
+        citation: "Lecture Deck 05.2",
+      },
+      extraAtoms: ["#circular-array-concept"],
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "queues-08",
+      topicId: "queues",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the constructor for the array-based Queue, whose private data is `Item data[CAPACITY]; size_t front, rear, numItems;`.",
+      expected:
+        "template <class Item>\nQueue<Item>::Queue( )\n{\nnumItems = 0;\nfront = 0;\nrear = CAPACITY - 1;\n}",
+      criteria: [
+        "Sets numItems = 0 and front = 0",
+        "Sets rear = CAPACITY - 1, NOT 0 — so the first push's nextIndex(rear) wraps around to index 0 and lands in front of the queue",
+        "Defined out of class as Queue<Item>::Queue() with the template prefix",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-05.2-queues",
+        anchor: "#array-queue-constructor",
+        excerpt:
+          "template <class Item>\nQueue<Item>::Queue( )\n{\nnumItems = 0;\nfront = 0;\nrear = CAPACITY - 1;\n}",
+        citation: "Lecture Deck 05.2",
+      },
+      extraAtoms: ["#array-queue-push"],
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "queues-09",
+      topicId: "queues",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the array-based Queue `pop` function, given the circular helper `nextIndex(size_t index)`.",
+      expected:
+        "Item Queue<Item>::pop( )\n{\nassert(!isEmpty( ));\nItem removedItem = data[front];\nfront = nextIndex(front);\nnumItems--;\nreturn removedItem;\n}",
+      criteria: [
+        "Asserts !isEmpty() before reading anything",
+        "Saves data[front] into removedItem BEFORE advancing front",
+        "Advances with front = nextIndex(front), so front wraps around the circular array instead of running off the end",
+        "Decrements numItems and returns the saved removedItem",
+        "Pops from front while push appends at rear — that opposite-ends pairing is what makes it FIFO",
+      ],
+      timeBudgetSec: 150,
+      provenance: {
+        sourceId: "cpp-slides-05.2-queues",
+        anchor: "#array-queue-pop",
+        excerpt:
+          "Item Queue<Item>::pop( )\n{\nassert(!isEmpty( ));\nItem removedItem = data[front];\nfront = nextIndex(front);\nnumItems--;\nreturn removedItem;\n}",
+        citation: "Lecture Deck 05.2",
+      },
+      extraAtoms: ["#circular-array-concept"],
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "queues-10",
+      topicId: "queues",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the array-based Queue `peek` function.",
+      expected:
+        "template <class Item>\nItem Queue<Item>::peek( )\n{\nassert(!isEmpty( ));\nreturn data[front];\n}",
+      criteria: [
+        "Asserts !isEmpty() before reading",
+        "Returns data[front] — the front of the queue, where a stack's peek would return the top",
+        "Leaves front, rear and numItems untouched, unlike pop",
+      ],
+      timeBudgetSec: 90,
+      provenance: {
+        sourceId: "cpp-slides-05.2-queues",
+        anchor: "#array-queue-peek",
+        excerpt:
+          "template <class Item>\nItem Queue<Item>::peek( )\n{\nassert(!isEmpty( ));\nreturn data[front];\n}",
+        citation: "Lecture Deck 05.2",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
     makeItem({
       id: "queues-mcq-01",
       topicId: "queues",

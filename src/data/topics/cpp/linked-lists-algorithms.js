@@ -6,10 +6,7 @@ export default {
   subtitle: "Length, search, insert, delete",
   course: "cpp",
   showChart: false,
-  // examWeight (ROADMAP.md A0, 2026-08-01): provisional, see dynamic-alloc.js
-  // for the methodology note. Self-reported struggle area; not yet confirmed
-  // by a diagnostic question (the quiz didn't reach the insert-order-of-
-  // operations item).
+
   examWeight: 1.5,
   cards: [
     {
@@ -353,6 +350,92 @@ export default {
       difficulty: 1,
       verifiedByHuman: true,
     }),
+  
+    makeItem({
+      id: "linked-lists-algorithms-07",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the first-node case of DList::deleteNode(DNode *cursor), including the guard for a null cursor and the deallocation at the end.",
+      expected:
+        "void DList::deleteNode(DNode *cursor) {\n    if (cursor == nullptr) { return; } // nothing to delete\n\n    if (cursor == head) { // first node\n        head = cursor->getNext();\n        if (head != nullptr) { //only node?\n            head->setPrevious(nullptr);\n        }\n    }\n\n    delete cursor; //deallocate the node\n}",
+      criteria: [
+        "Returns immediately when cursor == nullptr, before dereferencing anything",
+        "Detects the first-node case with cursor == head",
+        "Advances head with head = cursor->getNext()",
+        "Guards head != nullptr before calling head->setPrevious(nullptr) — the deleted node may have been the only node",
+        "Calls delete cursor at the end, after the pointers have been rewired",
+      ],
+      timeBudgetSec: 180,
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#delete-node-function-doubly",
+        excerpt:
+          "void DList::deleteNode(DNode *cursor) {\nif (cursor == nullptr) {return;} // nothing to delete\nif (cursor == head) { // first node\nhead = cursor->getNext();\nif (head != nullptr){ //only node?\nhead->setPrevious(nullptr);\n}\n}\ndelete cursor; //deallocate the node\n}",
+        citation:
+          "Lecture Deck 03.3 — Doubly Linked Lists",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-08",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the delete for the last node",
+      expected:
+        "} else if (cursor->getNext() == nullptr) { //last node\n    DNode *previous = cursor->getPrevious(); // find the previous of cursor\n    previous->setNext(nullptr);\n}\n\ndelete cursor; //deallocate the node",
+      criteria: [
+        "Detects the last node with cursor->getNext() == nullptr",
+        "Reaches the previous node directly via cursor->getPrevious(), with no search loop — the prev pointer is already stored",
+        "Sets previous->setNext(nullptr) so the list has a new end",
+        "Runs as an else-if after the head case, so a single-node list is handled by the head branch instead",
+        "Still deallocates with delete cursor after the rewiring",
+      ],
+      timeBudgetSec: 150,
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#delete-node-function-doubly",
+        excerpt:
+          "} else if (cursor->getNext() == nullptr) { //last node\nDNode *previous = cursor->getPrevious(); // find the previous of cursor\nprevious->setNext(nullptr);\n}\ndelete cursor; //deallocate the node",
+        citation:
+          "Lecture Deck 03.3 — Doubly Linked Lists",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-09",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the middle-node case of DList::deleteNode(DNode *cursor)",
+      expected:
+        "} else { // somewhere in the middle\n    DNode *after = cursor->getNext();\n    DNode *before = cursor->getPrevious();\n    before->setNext(after);\n    after->setPrevious(before);\n}\n\ndelete cursor; //deallocate the node",
+      criteria: [
+        "Captures both neighbours first: after = cursor->getNext() and before = cursor->getPrevious()",
+        "Repairs both directions — before->setNext(after) and after->setPrevious(before)",
+        "Finds before in O(1) from the stored prev pointer, with no walk from head",
+        "Falls through as the final else, so it only runs when cursor is neither head nor last",
+        "Still deallocates with delete cursor after the splice",
+      ],
+      timeBudgetSec: 150,
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#delete-node-function-doubly",
+        excerpt:
+          "} else { // somewhere in the middle\nDNode *after = cursor->getNext();\nDNode *before = cursor->getPrevious();\nbefore->setNext(after);\nafter->setPrevious(before);\n}\ndelete cursor; //deallocate the node",
+        citation:
+          "Lecture Deck 03.3 — Doubly Linked Lists",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+   
     makeItem({
       id: "linked-lists-algorithms-mcq-01",
       topicId: "linked-lists-algorithms",
@@ -370,9 +453,7 @@ export default {
       criteria: [
         "The cursor visits every node exactly once before reaching nullptr, so the work scales linearly with the list's size.",
       ],
-      // Hand-authored course question promoted from this topic's legacy
-      // questions[]. No source excerpt exists to cite, so provenance stays
-      // null rather than being invented — see migrateLegacyQuestion.
+      
       provenance: null,
       difficulty: 2,
       verifiedByHuman: true,
@@ -394,9 +475,7 @@ export default {
       criteria: [
         "If previous were redirected to temp first, previous->getNext() would return temp instead of the original next node, orphaning the rest of the list.",
       ],
-      // Hand-authored course question promoted from this topic's legacy
-      // questions[]. No source excerpt exists to cite, so provenance stays
-      // null rather than being invented — see migrateLegacyQuestion.
+      
       provenance: null,
       difficulty: 2,
       verifiedByHuman: true,
@@ -418,9 +497,7 @@ export default {
       criteria: [
         "A nullptr previous means there's no node to insert after, which corresponds to an empty list — handled by calling headInsert.",
       ],
-      // Hand-authored course question promoted from this topic's legacy
-      // questions[]. No source excerpt exists to cite, so provenance stays
-      // null rather than being invented — see migrateLegacyQuestion.
+     
       provenance: null,
       difficulty: 2,
       verifiedByHuman: true,
@@ -442,9 +519,7 @@ export default {
       criteria: [
         "Every other node has a predecessor to re-link, but the head node doesn't — so head itself is advanced to the next node instead.",
       ],
-      // Hand-authored course question promoted from this topic's legacy
-      // questions[]. No source excerpt exists to cite, so provenance stays
-      // null rather than being invented — see migrateLegacyQuestion.
+     
       provenance: null,
       difficulty: 2,
       verifiedByHuman: true,

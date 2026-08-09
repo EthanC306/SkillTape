@@ -445,6 +445,167 @@ export default {
       difficulty: 1,
       verifiedByHuman: true,
     }),
+    // WRITE coverage for the code sections the deck shows but the bank never
+    // asked the student to produce (2026-08-09). stacks-03 already covers the
+    // array push; these fill in array pop/peek and the whole linked-list side.
+    makeItem({
+      id: "stacks-08",
+      topicId: "stacks",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the array-based `pop` function, given `Item data[CAPACITY]; int top;` and an `isEmpty()` that tests `top == -1`.",
+      expected:
+        "template <typename Item>\nItem Stack<Item>::pop() {\nassert(!isEmpty());\ntop--;\nreturn data[top + 1];\n}",
+      criteria: [
+        "Asserts !isEmpty() before touching the array, guarding against underflow",
+        "Decrements top first, then returns data[top + 1] — the slot that was just logically removed",
+        "Returns Item by value; the popped element is handed back, not just discarded",
+        "Nothing is erased from the array — popping only moves top",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#array-stack-pop-peek",
+        excerpt:
+          "template <typename Item>\nItem Stack<Item>::pop() {\nassert(!isEmpty());\ntop--;\nreturn data[top + 1];\n}",
+        citation: "Lecture Deck 05.1",
+      },
+      extraAtoms: ["#assert"],
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-09",
+      topicId: "stacks",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the array-based `peek` function, given `Item data[CAPACITY]; int top;`.",
+      expected:
+        "template <typename Item>\nItem Stack<Item>::peek() const {\nassert(!isEmpty());\nreturn data[top];\n}",
+      criteria: [
+        "Asserts !isEmpty() before reading",
+        "Returns data[top] — no change to top, unlike pop",
+        "Marked const, because peek doesn't modify the stack",
+      ],
+      timeBudgetSec: 90,
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#array-stack-pop-peek",
+        excerpt:
+          "template <typename Item>\nItem Stack<Item>::peek() const {\nassert(!isEmpty());\nreturn data[top];\n}",
+        citation: "Lecture Deck 05.1",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-10",
+      topicId: "stacks",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the constructor for the linked-list implementation of a Stack, whose private data is `Node<Item> *topPtr; size_t numItems;`.",
+      expected:
+        "template <typename Item>\nStack<Item>::Stack() {\ntopPtr = nullptr;\nnumItems = 0;\n}",
+      criteria: [
+        "Prefixed with template <typename Item> and defined as Stack<Item>::Stack()",
+        "Sets topPtr = nullptr — an empty stack points at no node",
+        "Sets numItems = 0 so size() starts correct",
+      ],
+      timeBudgetSec: 90,
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#linked-list-stack-constructor",
+        excerpt:
+          "template <typename Item>\nStack<Item>::Stack() {\ntopPtr = nullptr;\nnumItems = 0;\n}",
+        citation: "Lecture Deck 05.1",
+      },
+      extraAtoms: ["#linked-list-stack-class"],
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-11",
+      topicId: "stacks",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write `push` for the linked-list implementation of a Stack, given `Node<Item> *topPtr; size_t numItems;`.",
+      expected:
+        "template <typename Item>\nvoid Stack<Item>::push(const Item &entry){\n// insert at the begining\nNode<Item> *temp =\nnew Node<Item>(entry, topPtr);\ntopPtr = temp;\nnumItems++;\n}",
+      criteria: [
+        "Takes the entry by const reference",
+        "Allocates a new node whose next already points at the old topPtr — this is just a head insert",
+        "Moves topPtr to the new node",
+        "Increments numItems",
+        "No assert is needed — a linked stack has no fixed capacity to overflow",
+      ],
+      timeBudgetSec: 150,
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#linked-list-stack-push",
+        excerpt:
+          "template <typename Item>\nvoid Stack<Item>::push(const Item &entry){\n// insert at the begining\nNode<Item> *temp =\nnew Node<Item>(entry, topPtr);\ntopPtr = temp;\nnumItems++;\n}",
+        citation: "Lecture Deck 05.1",
+      },
+      extraAtoms: ["#linked-list-stack-concept"],
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-12",
+      topicId: "stacks",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write `pop` for the linked-list implementation of a Stack, given `Node<Item> *topPtr; size_t numItems;`.",
+      expected:
+        "template <typename Item>\nItem Stack<Item>::pop() {\nassert(!isEmpty());\nNode<Item> *delPtr = topPtr;\nItem topItem = topPtr->getData();\ntopPtr = topPtr->getNext();\ndelete delPtr;\nnumItems--;\nreturn topItem;\n}",
+      criteria: [
+        "Asserts !isEmpty() first",
+        "Saves the doomed node in delPtr AND copies its data into topItem before anything is freed",
+        "Advances topPtr = topPtr->getNext() before delete delPtr — order matters, the node is gone after the delete",
+        "Frees the old top node, so popping doesn't leak — unlike the array version, which just moves an index",
+        "Decrements numItems and returns the saved topItem, not topPtr->getData()",
+      ],
+      timeBudgetSec: 180,
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#linked-list-stack-pop",
+        excerpt:
+          "template <typename Item>\nItem Stack<Item>::pop() {\nassert(!isEmpty());\nNode<Item> *delPtr = topPtr;\nItem topItem = topPtr->getData();\ntopPtr = topPtr->getNext();\ndelete delPtr;\nnumItems--;\nreturn topItem;\n}",
+        citation: "Lecture Deck 05.1",
+      },
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-13",
+      topicId: "stacks",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write `peek` for the linked-list implementation of a Stack, given `Node<Item> *topPtr;`.",
+      expected:
+        "template <typename Item>\nItem Stack<Item>::peek() const {\nassert(!isEmpty());\nreturn topPtr->getData();\n}",
+      criteria: [
+        "Asserts !isEmpty() before dereferencing topPtr",
+        "Returns topPtr->getData()",
+        "Marked const, and nothing is deleted or unlinked — the difference from pop",
+      ],
+      timeBudgetSec: 90,
+      provenance: {
+        sourceId: "cpp-slides-05.1-stacks",
+        anchor: "#linked-list-stack-peek",
+        excerpt:
+          "template <typename Item>\nItem Stack<Item>::peek() const {\nassert(!isEmpty());\nreturn topPtr->getData();\n}",
+        citation: "Lecture Deck 05.1",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
     makeItem({
       id: "stacks-mcq-01",
       topicId: "stacks",

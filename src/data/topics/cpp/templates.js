@@ -368,6 +368,35 @@ export default {
       verifiedByHuman: true,
     }),
     makeItem({
+      id: "templates-06",
+      topicId: "templates",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write a template class named Pair that stores two values of the same generic type, with a default constructor, a two-argument constructor, setters and getters for both values.",
+      expected:
+        "template <typename T> //or template <class T>\nclass Pair\n{\npublic:\nPair();\nPair(T firstValue, T secondValue);\nvoid setFirst(T value);\nvoid setSecond(T value);\nT getFirst();\nT getSecond();\nprivate:\nT first;\nT second;\n};",
+      criteria: [
+        "Opens with template <typename T> above the class (class T is the equivalent alternative)",
+        "Declares both constructors: a default Pair() and Pair(T firstValue, T secondValue)",
+        "Declares setFirst(T value) and setSecond(T value) returning void",
+        "Declares getFirst() and getSecond() returning T",
+        "Keeps the two data members T first and T second private",
+        "Ends the class declaration with a semicolon",
+      ],
+      timeBudgetSec: 240,
+      provenance: {
+        sourceId: "cpp-slides-04.1-templates",
+        anchor: "#pair-template-class",
+        excerpt:
+          "template <typename T> //or template <class T>\nclass Pair\n{\npublic:\nPair();\nPair(T firstValue, T secondValue);\nvoid setFirst(T value);\nvoid setSecond(T value);\nT getFirst();\nT getSecond();\nprivate:\nT first;\nT second;\n};",
+        citation: "Lecture Deck 04.1",
+      },
+      extraAtoms: ["#class-templates"],
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
       id: "templates-mcq-01",
       topicId: "templates",
       format: FORMATS.MCQ,

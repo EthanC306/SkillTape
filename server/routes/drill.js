@@ -1,17 +1,13 @@
-// Drill mode routes (ROADMAP.md A4) and the exam simulator (A5): a due-item
-// queue, the attempt log, JSON export/import (CORR §4.3 / D4), an
-// examWeight-sampled item set, and closed-book accuracy stats for the exam
+// Drill mode and the exam simulator (A5): a due-item
+// queue, the attempt log, an examWeight-sampled item set, and closed-book accuracy stats for the exam
 // report's "vs. drill accuracy" comparison.
-//
-// Same anonymous-friendly stance as progress.js: this is a single-user app,
-// so gating drilling on being logged in would just add friction. getSessionUser
-// is the non-throwing lookup; ANON_USER_ID stands in for "no session" — see
-// schema.sql's comment on item_review_state for why that has to be a real
-// value (0) rather than SQL NULL.
+
+
 import { Router } from "express";
 import db from "../db.js";
 import { getSessionUser } from "../auth.js";
 import { scheduleReview } from "../fsrs.js";
+import { applyWriteCap } from "../../src/data/itemSchema.js";
 import {
   chatJSON,
   listModels,
@@ -99,11 +95,6 @@ const getItemForScheduling = db.prepare(
   "SELECT id, format, retired FROM items WHERE id = ?"
 );
 
-// Separate from getItemForScheduling on purpose — that query is also used by
-// /leeches/:itemId/reset, /attempts, and /import, none of which need the
-// extra columns. Practice mode's grading route looks the rubric up here by
-// itemId rather than trusting anything the client sends, same stance as
-// every other route in this file.
 const getItemForGrading = db.prepare(
   "SELECT id, format, prompt, expected, criteria, retired FROM items WHERE id = ?"
 );
@@ -594,15 +585,19 @@ router.get("/exam", (req, res) => {
     topicMeta[t.id] = { title: t.title, examWeight: t.exam_weight, sampled: picked.length, available: pool.length };
   }
 
-  res.json({ items: shuffled(sampled), topics: topicMeta, minutes });
+
+  const items = applyWriteCap(shuffled(sampled));
+
+  
+  if (items.length !== sampled.length) {
+    for (const id of Object.keys(topicMeta)) topicMeta[id].sampled = 0;
+    for (const it of items) topicMeta[it.topicId].sampled++;
+  }
+
+  res.json({ items, topics: topicMeta, minutes });
 });
 
-// GET /api/drill/stats?course=cpp — per-topic closed-book accuracy, for the
-// exam report's "vs. drill accuracy" comparison (A5). "Accuracy" here is the
-// same definition DrillView's grading uses for correctness: grade >= 2
-// (Good/Easy) counts as a pass, matching how MCQ auto-grading maps
-// correct/incorrect onto the same 0-3 scale (server/routes/drill.js's
-// submitMcq-equivalent, POST /attempts).
+
 router.get("/stats", (req, res) => {
   const user = getSessionUser(req);
   const userId = user?.id ?? ANON_USER_ID;
@@ -630,19 +625,6 @@ router.get("/stats", (req, res) => {
   res.json(stats);
 });
 
-// GET /api/drill/report?course=cpp — the standing dashboard (A6).
-//
-// "Only one number predicts the exam: closed-book, first-try, timed accuracy
-// per topic. Everything else is diagnostic" (ROADMAP.md A6) — so that number
-// (`firstTryAccuracy`) drives `studyNextScore` and the weakest-topics
-// ranking; format item-counts, median time, the open/closed delta, and leech
-// count are surfaced per topic as the diagnostics, not the ranking signal.
-//
-// "First-try" means the earliest CLOSED, non-abandoned, graded attempt per
-// item — computed in JS from the raw attempt rows rather than a bigger SQL
-// query, since the same per-item first-attempt needs to feed three different
-// aggregations (topic accuracy, format-level median seconds, open/closed
-// delta) and the bank is nowhere near large enough for that to matter.
 router.get("/report", (req, res) => {
   const user = getSessionUser(req);
   const userId = user?.id ?? ANON_USER_ID;
@@ -688,8 +670,6 @@ router.get("/report", (req, res) => {
     )
     .all(course, userId);
 
-  // First graded, non-abandoned attempt per item, split by mode — the
-  // earliest row per (item, mode) since `attempts` is already ts-ascending.
   const firstByItemMode = new Map(); // `${itemId}:${mode}` -> attempt
   for (const a of attempts) {
     const key = `${a.item_id}:${a.mode}`;
@@ -730,12 +710,7 @@ router.get("/report", (req, res) => {
     const openAccuracy = mean(b.openFirstTry);
     const leechCount = items.filter((it) => it.topic_id === t.id && reviewByItem.get(it.id)?.leech).length;
     const verifiedItemCount = Object.values(b.formats).reduce((s, f) => s + f.verified, 0);
-    // Unattempted topics rank as maximum priority (mastery 0) — nothing
-    // demonstrated yet outranks something demonstrated shakily. That's also
-    // true, and arguably more urgent, for a topic with NO verified items at
-    // all — but "study this next" isn't actionable there (there's nothing to
-    // drill yet), so the UI is expected to read verifiedItemCount and say
-    // "migrate this topic first" rather than link straight into Drill.
+
     const mastery = firstTryAccuracy ?? 0;
     return {
       id: t.id,
@@ -761,8 +736,6 @@ router.get("/report", (req, res) => {
     .slice(0, 3)
     .map((t) => t.id);
 
-  // Leech detail (also what A8's "copy for tutor" handoff needs): full
-  // content plus this user's complete attempt history for that item.
   const leeches = items
     .filter((it) => topicIds.has(it.topic_id) && reviewByItem.get(it.id)?.leech)
     .map((it) => {
@@ -787,13 +760,7 @@ router.get("/report", (req, res) => {
   res.json({ topics: topicReports, formatMedianSeconds, leeches, weakest });
 });
 
-// POST /api/drill/leeches/:itemId/reset — A8's "reset scheduling state"
-// leech-handoff outcome: "concept landed, item is fine" — clear lapses/leech
-// and drop the item back to a fresh, never-reviewed state so it re-enters
-// normal rotation immediately instead of staying parked. Does NOT touch the
-// item's content (prompt/expected/criteria) — "rewrite the item" and "split
-// the fact" are content edits with no authoring UI yet (A7), so those two
-// outcomes stay a direct file edit for now, same as verifiedByHuman today.
+
 const deleteReviewState = db.prepare("DELETE FROM item_review_state WHERE user_id = ? AND item_id = ?");
 router.post("/leeches/:itemId/reset", (req, res) => {
   const user = getSessionUser(req);
@@ -803,22 +770,11 @@ router.post("/leeches/:itemId/reset", (req, res) => {
   const item = getItemForScheduling.get(itemId);
   if (!item) return res.status(400).json({ error: `itemId "${itemId}" does not exist` });
 
-  // Deleting the row (rather than zeroing its fields) is equivalent to
-  // "never reviewed" — the exact state a genuinely new item is in, and
-  // /queue already treats a missing row as eligible immediately.
+
   deleteReviewState.run(userId, itemId);
   res.json({ ok: true });
 });
 
-// ── Suspensions ─────────────────────────────────────────────────────────────
-// Practice's "I got this right, stop showing it to me" set, per user. Read by
-// PracticeView to shrink its client-side pool; enforced server-side by /queue
-// so Drill honours it too. /exam deliberately does not.
-//
-// Nothing here touches item_review_state: suspending is not a judgment about
-// how well you know the item, so a suspend/reset round trip must leave FSRS
-// scheduling exactly where it was. That's also what separates this from
-// /leeches/:itemId/reset above, which exists precisely to wipe that state.
 
 const listSuspensions = db.prepare("SELECT item_id FROM item_suspensions WHERE user_id = ? ORDER BY suspended_at DESC");
 const insertSuspension = db.prepare(
@@ -827,27 +783,19 @@ const insertSuspension = db.prepare(
 const deleteSuspension = db.prepare("DELETE FROM item_suspensions WHERE user_id = ? AND item_id = ?");
 const deleteAllSuspensions = db.prepare("DELETE FROM item_suspensions WHERE user_id = ?");
 
-// All-or-nothing: one unknown id fails the whole request rather than silently
-// suspending the rest, so the client's optimistic update never diverges from
-// what's stored.
+
 const insertSuspensions = db.transaction((userId, itemIds, ts) => {
   let inserted = 0;
   for (const id of itemIds) inserted += insertSuspension.run(userId, id, ts).changes;
   return inserted;
 });
 
-// GET /api/drill/suspensions — every suspended itemId for this user, all
-// courses. No course filter: the client already holds the whole bank from
-// GET /api/topics and filters against this set locally.
 router.get("/suspensions", (req, res) => {
   const user = getSessionUser(req);
   const userId = user?.id ?? ANON_USER_ID;
   res.json({ itemIds: listSuspensions.all(userId).map((r) => r.item_id) });
 });
 
-// POST /api/drill/suspensions — body { itemIds: string[] }. One endpoint for
-// both the per-card button (an array of one) and "Remove all N correct", so
-// a bulk remove is one round trip and one transaction.
 router.post("/suspensions", (req, res) => {
   const user = getSessionUser(req);
   const userId = user?.id ?? ANON_USER_ID;
@@ -867,14 +815,12 @@ router.post("/suspensions", (req, res) => {
     throw err;
   }
 
-  // `count` is rows newly inserted — re-suspending something already
-  // suspended is a no-op, not an error (INSERT OR IGNORE).
+
   const count = insertSuspensions(userId, itemIds, Date.now());
   res.json({ ok: true, count });
 });
 
-// DELETE /api/drill/suspensions/:itemId — put one item back in rotation (the
-// per-card Undo). Idempotent: deleting a suspension that isn't there is fine.
+
 router.delete("/suspensions/:itemId", (req, res) => {
   const user = getSessionUser(req);
   const userId = user?.id ?? ANON_USER_ID;
@@ -882,20 +828,14 @@ router.delete("/suspensions/:itemId", (req, res) => {
   res.json({ ok: true });
 });
 
-// DELETE /api/drill/suspensions — "Reset deck": everything this user parked
-// comes back at once. Intentionally unconfirmed and instant on the client;
-// the worst case is re-removing items, which costs one click each.
+
 router.delete("/suspensions", (req, res) => {
   const user = getSessionUser(req);
   const userId = user?.id ?? ANON_USER_ID;
   res.json({ cleared: deleteAllSuspensions.run(userId).changes });
 });
 
-// POST /api/drill/attempts — record one graded (or abandoned) drill attempt.
-// Body: { itemId, mode, grade, seconds, tabBlurs, note, abandoned }
-//   grade is required and 0..3 unless abandoned is true, in which case it's
-//   ignored (the A4 "End drill" escape hatch — the attempt is logged but
-//   doesn't move the scheduler, since no real self-assessment happened).
+
 router.post("/attempts", (req, res) => {
   const user = getSessionUser(req);
   const userId = user?.id ?? ANON_USER_ID;
@@ -955,9 +895,7 @@ router.post("/attempts", (req, res) => {
   });
 });
 
-// GET /api/drill/export — the current user's full item-attempt log as JSON.
-// D4: "build the JSON export regardless" — cheap insurance against the one
-// SQLite file this app's whole history lives in (docs/PRODUCTION_READINESS.md §2.4).
+
 router.get("/export", (req, res) => {
   const user = getSessionUser(req);
   const userId = user?.id ?? ANON_USER_ID;
@@ -984,16 +922,7 @@ router.get("/export", (req, res) => {
   });
 });
 
-// POST /api/drill/import — re-ingest a previously exported attempt log.
-// Body: { attempts: [{ itemId, ts, mode, grade, seconds, tabBlurs, note, abandoned }, ...] }
-//
-// Deliberately simple, not robust (same stance as useProgress.js's
-// importLocalHistory): replays the attempts in timestamp order through the
-// real scheduler so item_review_state ends up where it would have if this
-// history had happened on this install, then logs each row. No dedup against
-// attempts already present — re-importing the same file twice double-counts.
-// That's an acceptable cost for "restore my history onto a fresh install",
-// which is the actual use case this exists for.
+
 router.post("/import", (req, res) => {
   const user = getSessionUser(req);
   const userId = user?.id ?? ANON_USER_ID;

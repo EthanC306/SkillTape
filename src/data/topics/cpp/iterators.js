@@ -750,6 +750,186 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+    // One WRITE item per Iterator operator (2026-08-09). These are deliberately
+    // finer-grained than iterators-06, which asks for both ++ overloads at once.
+    makeItem({
+      id: "iterators-09",
+      topicId: "iterators",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the `operator*` overload for the Iterator class, given `private: Node<ItDataType> *current;`.",
+      expected:
+        "// Implement the * operator\nItDataType &operator*() const { return current->getData(); }",
+      criteria: [
+        "Returns ItDataType & — a reference, so *it can be assigned through",
+        "Returns current->getData()",
+        "Marked const — dereferencing doesn't move or modify the iterator",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#iterator-implementation-constructor",
+        excerpt:
+          "// Implement the * operator\nItDataType &operator*() const {\nreturn current->getData();\n}",
+        citation: "Lecture Deck 04.2",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-10",
+      topicId: "iterators",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the `operator->` overload for the Iterator class, given `private: Node<ItDataType> *current;`.",
+      expected: "Node<ItDataType> *operator->() { return current; }",
+      criteria: [
+        "Returns Node<ItDataType> * — a raw pointer, which C++ then re-applies -> to",
+        "Returns current itself, not current->getData()",
+        "Not marked const here, unlike operator*",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#iterator-implementation-constructor",
+        excerpt: "Node<ItDataType> * operator->() {\nreturn current;\n}",
+        citation: "Lecture Deck 04.2",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-11",
+      topicId: "iterators",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the prefix `operator++` overload for the Iterator class — the one used as `++it`.",
+      expected:
+        "// overload prefix ++ operator as in ++it\nIterator &operator++() {\n    current = current->getNext();\n    return *this;\n}",
+      criteria: [
+        "Takes no parameters — that empty list is what makes it the prefix form",
+        "Advances with current = current->getNext()",
+        "Returns Iterator & — a reference to *this, the already-advanced iterator",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#iterator-implementation-increment",
+        excerpt:
+          "// overload prefix ++ operator as in ++it\nIterator &operator++() {\ncurrent = current->getNext();\nreturn *this;\n}",
+        citation: "Lecture Deck 04.2",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-12",
+      topicId: "iterators",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the postfix `operator++` overload for the Iterator class — the one used as `it++`.",
+      expected:
+        "// overload postfix ++ operator as in it++\nIterator operator++(int) {\n    Iterator original = *this;\n    current = current->getNext();\n    return original;\n}",
+      criteria: [
+        "Takes an unnamed int parameter — the dummy argument that distinguishes postfix from prefix",
+        "Saves Iterator original = *this BEFORE advancing",
+        "Advances with current = current->getNext()",
+        "Returns original by value, not by reference — the copy is the pre-increment state, so it must outlive the call",
+      ],
+      timeBudgetSec: 150,
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#iterator-implementation-increment",
+        excerpt:
+          "// overload postfix ++ operator as in it++\nIterator operator++(int) {\nIterator original = *this;\ncurrent = current->getNext();\nreturn original;\n}",
+        citation: "Lecture Deck 04.2",
+      },
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-13",
+      topicId: "iterators",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the `operator==` overload for the Iterator class, given `private: Node<ItDataType> *current;`.",
+      expected:
+        "bool operator==(const Iterator other) const {\n    return current == other.current;\n}",
+      criteria: [
+        "Returns bool and takes the other Iterator as a const parameter",
+        "Compares the stored pointers — current == other.current — not the pointed-to data",
+        "Marked const — comparing doesn't modify either iterator",
+        "Reaches other.current directly, which is legal because both objects are of the same class",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#iterator-implementation-equality",
+        excerpt:
+          "//More operators\nbool operator==(const Iterator other) const {\nreturn current == other.current;\n}",
+        citation: "Lecture Deck 04.2",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-14",
+      topicId: "iterators",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the `operator!=` overload for the Iterator class — the one that makes `while (it != list.end())` work.",
+      expected:
+        "bool operator!=(const Iterator other) const {\n    return current != other.current;\n}",
+      criteria: [
+        "Returns bool and takes the other Iterator as a const parameter",
+        "Compares the stored pointers with != — current != other.current",
+        "Marked const",
+        "This is the overload the standard for-loop/while traversal against end() depends on",
+      ],
+      timeBudgetSec: 120,
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#iterator-implementation-equality",
+        excerpt:
+          "bool operator!=(const Iterator other) const {\nreturn current != other.current;\n}",
+        citation: "Lecture Deck 04.2",
+      },
+      extraAtoms: ["#iterate-over-elements"],
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-15",
+      topicId: "iterators",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Write the ConstIterator constructor that initializes the iterator, defaulting to a null starting node.",
+      expected:
+        "// initialize the iterator\nConstIterator(const Node<ItDataType> *initial = nullptr) { current = initial; }",
+      criteria: [
+        "Takes const Node<ItDataType> *initial — the const is what separates this from the plain Iterator constructor",
+        "Defaults the parameter to nullptr, so a default-constructed ConstIterator points at nothing",
+        "Assigns current = initial",
+      ],
+      timeBudgetSec: 90,
+      provenance: {
+        sourceId: "cpp-slides-04.2-iterators",
+        anchor: "#constiterator-constructor",
+        excerpt:
+          "// initialize the iterator\nConstIterator(const Node<ItDataType> *initial = nullptr) { current = initial; }",
+        citation: "Lecture Deck 04.2",
+      },
+      extraAtoms: ["#constant-iterators"],
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
     makeItem({
       id: "iterators-mcq-01",
       topicId: "iterators",

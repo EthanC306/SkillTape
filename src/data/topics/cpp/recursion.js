@@ -499,6 +499,8 @@ export default {
         citation: "Lecture Deck 06.2",
         page: 18,
       },
+      // The item asks for both directions, so it covers the forward slide too.
+      extraAtoms: ["#print-list-forward-recursive"],
       generationMeta: {
         model: "claude-opus-5",
         generatedAt: "2026-08-09",

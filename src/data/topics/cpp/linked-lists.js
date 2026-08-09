@@ -422,5 +422,36 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "linked-lists-07",
+      topicId: "linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.EXTRACTED,
+      prompt:
+        "Doubly linked list — write insertAfter(DNode *&head, DNode *cursor, int value), inserting a new node holding value directly after cursor. Handle the empty-list case and the case where cursor is the last node.",
+      // Reflowed from the deck's single-column slide formatting for legibility
+      // (rendered pre-wrap by PracticeView/DrillView). The verbatim slide text
+      // lives untouched in provenance.excerpt below.
+      expected:
+        "void insertAfter (DNode *&head, DNode *cursor, int value)\n{\n    DNode *temp;\n    temp = new DNode;\n    temp->data = value;\n\n    if (head == nullptr) //list is empty\n    {\n        head = temp;\n        temp->next = NULL;\n        temp->prev = NULL;\n        return;\n    }\n\n    temp->next = cursor->next;\n    temp->prev = cursor;\n\n    if (cursor->next != nullptr) //check if at end of list\n        cursor->next->prev = temp;\n\n    cursor->next = temp;\n}",
+      criteria: [
+        "Allocates a new DNode with new and stores value in its data field",
+        "Handles the empty-list case: head = temp, next and prev both null, then returns early",
+        "Links the new node both ways: temp->next = cursor->next and temp->prev = cursor",
+        "Guards cursor->next != nullptr before writing cursor->next->prev = temp, since cursor may be the last node",
+        "Sets cursor->next = temp last, after the old cursor->next has been read",
+      ],
+      timeBudgetSec: 240,
+      provenance: {
+        sourceId: "cpp-slides-03.3-doubly-linked-lists",
+        anchor: "#insert-after-cursor-node",
+        excerpt:
+          "void insertAfter (DNode *&head, DNode *cursor, int value)\n{ DNode *temp;\ntemp = new DNode;\ntemp->data = value;\nif (head == nullptr)//list is empty\n{ head = temp;\ntemp->next = NULL;\ntemp->prev = NULL;\nreturn;\n}\ntemp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr) //check if at end of list\ncursor->next->prev = temp;\ncursor->next = temp;\n}",
+        citation:
+          "Lecture Deck 03.3 — Doubly Linked Lists",
+      },
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };
