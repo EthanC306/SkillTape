@@ -483,10 +483,17 @@ router.get("/ollama-status", async (req, res) => {
 
 // GET /api/drill/queue?course=cpp&limit=20
 //
-// Items eligible for drilling: verified, not retired, and either never
-// reviewed by this user or due. Leeches (A8) are excluded from the normal
-// queue on purpose — they need the leech-handoff triage flow, not more of
-// the same rotation that already failed them 3 times.
+// Items eligible for drilling: verified, not retired, not suspended by this
+// user, and either never reviewed by this user or due. Two separate kinds of
+// exclusion share this WHERE clause and mean different things:
+//   leeches (A8)  — excluded automatically after 3 lapses, because they need
+//                   the leech-handoff triage flow, not more of the same
+//                   rotation that already failed them 3 times.
+//   suspensions   — excluded because the user explicitly said so from
+//                   Practice's results screen ("I know this one"). Undone in
+//                   one click by Reset deck, unlike a leech, which has to be
+//                   triaged. /exam ignores both — an exam draws from the whole
+//                   verified bank regardless of what you've parked.
 //
 // New items (no review row) sort first — COALESCE(due_on, 0) treats "never
 // reviewed" as maximally overdue. Fine at this bank's size; if the bank grows
@@ -514,10 +521,13 @@ router.get("/queue", (req, res) => {
          AND items.verified_by_human = 1
          AND items.retired = 0
          AND (rs.item_id IS NULL OR (rs.leech = 0 AND rs.due_on <= ?))
+         AND NOT EXISTS (SELECT 1 FROM item_suspensions s WHERE s.user_id = ? AND s.item_id = items.id)
        ORDER BY COALESCE(rs.due_on, 0) ASC, items.position ASC
        LIMIT ?`
     )
-    .all(userId, course, Date.now(), limit);
+    // Positional binds: rs.user_id, course_id, due_on, suspensions user_id, LIMIT.
+    // The user id appears twice — the LEFT JOIN's copy and the NOT EXISTS's.
+    .all(userId, course, Date.now(), userId, limit);
 
   res.json(
     rows.map((r) => ({
@@ -798,6 +808,87 @@ router.post("/leeches/:itemId/reset", (req, res) => {
   // /queue already treats a missing row as eligible immediately.
   deleteReviewState.run(userId, itemId);
   res.json({ ok: true });
+});
+
+// ── Suspensions ─────────────────────────────────────────────────────────────
+// Practice's "I got this right, stop showing it to me" set, per user. Read by
+// PracticeView to shrink its client-side pool; enforced server-side by /queue
+// so Drill honours it too. /exam deliberately does not.
+//
+// Nothing here touches item_review_state: suspending is not a judgment about
+// how well you know the item, so a suspend/reset round trip must leave FSRS
+// scheduling exactly where it was. That's also what separates this from
+// /leeches/:itemId/reset above, which exists precisely to wipe that state.
+
+const listSuspensions = db.prepare("SELECT item_id FROM item_suspensions WHERE user_id = ? ORDER BY suspended_at DESC");
+const insertSuspension = db.prepare(
+  "INSERT OR IGNORE INTO item_suspensions (user_id, item_id, suspended_at) VALUES (?, ?, ?)"
+);
+const deleteSuspension = db.prepare("DELETE FROM item_suspensions WHERE user_id = ? AND item_id = ?");
+const deleteAllSuspensions = db.prepare("DELETE FROM item_suspensions WHERE user_id = ?");
+
+// All-or-nothing: one unknown id fails the whole request rather than silently
+// suspending the rest, so the client's optimistic update never diverges from
+// what's stored.
+const insertSuspensions = db.transaction((userId, itemIds, ts) => {
+  let inserted = 0;
+  for (const id of itemIds) inserted += insertSuspension.run(userId, id, ts).changes;
+  return inserted;
+});
+
+// GET /api/drill/suspensions — every suspended itemId for this user, all
+// courses. No course filter: the client already holds the whole bank from
+// GET /api/topics and filters against this set locally.
+router.get("/suspensions", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  res.json({ itemIds: listSuspensions.all(userId).map((r) => r.item_id) });
+});
+
+// POST /api/drill/suspensions — body { itemIds: string[] }. One endpoint for
+// both the per-card button (an array of one) and "Remove all N correct", so
+// a bulk remove is one round trip and one transaction.
+router.post("/suspensions", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  const body = req.body ?? {};
+
+  let itemIds;
+  try {
+    if (!Array.isArray(body.itemIds)) fail('body must contain an "itemIds" array');
+    if (body.itemIds.length === 0) fail("itemIds must not be empty");
+    if (body.itemIds.length > MAX_ITEMS) fail(`itemIds may contain at most ${MAX_ITEMS} (got ${body.itemIds.length})`);
+    itemIds = body.itemIds.map((id, i) => requiredString(id, `itemIds[${i}]`));
+    for (const id of itemIds) {
+      if (!getItemForScheduling.get(id)) fail(`itemId "${id}" does not exist`);
+    }
+  } catch (err) {
+    if (err instanceof BadRequest) return res.status(400).json({ error: err.message });
+    throw err;
+  }
+
+  // `count` is rows newly inserted — re-suspending something already
+  // suspended is a no-op, not an error (INSERT OR IGNORE).
+  const count = insertSuspensions(userId, itemIds, Date.now());
+  res.json({ ok: true, count });
+});
+
+// DELETE /api/drill/suspensions/:itemId — put one item back in rotation (the
+// per-card Undo). Idempotent: deleting a suspension that isn't there is fine.
+router.delete("/suspensions/:itemId", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  deleteSuspension.run(userId, req.params.itemId);
+  res.json({ ok: true });
+});
+
+// DELETE /api/drill/suspensions — "Reset deck": everything this user parked
+// comes back at once. Intentionally unconfirmed and instant on the client;
+// the worst case is re-removing items, which costs one click each.
+router.delete("/suspensions", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  res.json({ cleared: deleteAllSuspensions.run(userId).changes });
 });
 
 // POST /api/drill/attempts — record one graded (or abandoned) drill attempt.

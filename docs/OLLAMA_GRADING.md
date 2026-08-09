@@ -360,3 +360,78 @@ most notably an explicit "judge only the quoted span, ignore the rest of the
 answer" rule, which dropped `qwen2.5:7b-instruct` from 94% to 89% by breaking a
 case it previously passed. Re-run the numbers before keeping any prompt edit;
 this is a bank where plausible reasoning loses to measurement routinely.
+
+---
+
+## 9. Taking items out of circulation (2026-08-08)
+
+Practice's results screen used to be a dead end: you could see you'd nailed an
+item and do nothing about it. It now accepts exactly one per-item judgment —
+**remove from deck**, on results graded `correct` — plus a **Reset deck**
+button sitting next to every removal control.
+
+What this is *not*: `items.retired`. That column is authored content, shared by
+every user, edited by hand in `src/data/topics/**`, and the UI must never flip
+it. Removal is a **per-user suspension**, stored in its own table:
+
+```sql
+item_suspensions (user_id, item_id, suspended_at)   -- PK (user_id, item_id)
+```
+
+Same `user_id = 0` anonymous convention as `item_review_state`, and a separate
+table rather than a new column because `schema.sql` is only a create-or-noop
+migration for whole tables — adding a column would need a real `ALTER TABLE`.
+
+- **API** — `GET/POST/DELETE /api/drill/suspensions` and
+  `DELETE /api/drill/suspensions/:itemId`, in `server/routes/drill.js` beside
+  the A8 leech reset. `POST` takes an `itemIds` array so a bulk "Remove all N
+  correct" is one round trip and one transaction, and is all-or-nothing: an
+  unknown id fails the whole request rather than half-applying it.
+- **Who honours it** — Practice (client-side, via `candidatePool`) and Drill's
+  `GET /queue` (server-side). **The exam simulator deliberately does not**: an
+  exam draws from the whole verified bank regardless of what you've parked.
+- **Scheduling is untouched.** Suspending writes nothing to
+  `item_review_state`, so a suspend → reset round trip leaves FSRS exactly
+  where it was. That's the difference from `/leeches/:itemId/reset`, which
+  exists precisely to *wipe* that state.
+- **Two kinds of exclusion now share `/queue`'s WHERE clause**, and they mean
+  different things: a leech is parked automatically after 3 lapses and needs
+  triage to come back; a suspension is a deliberate "I know this" and comes
+  back in one click.
+- **Client writes are optimistic** and roll back to a snapshot on failure, so a
+  failed bulk remove can't leave half the cards marked. A rejection surfaces in
+  a red box rather than letting the button lie about what's stored.
+
+---
+
+## 10. Overriding the grader, and G1 arriving in Practice (2026-08-08)
+
+Practice used to post every attempt at the end of `submitQuiz`, *before* the
+results screen rendered. That made the model's verdict unarguable: by the time
+you read it, it was already in `item_attempts` and FSRS had already scheduled
+off it. An after-the-fact override can't undo that cleanly — FSRS scheduling
+isn't invertible without a pre-attempt state snapshot the schema doesn't keep.
+
+So Practice now does what G1 said all along, and what DrillView has always
+done: **hold the attempts, and post them when you leave the results screen.**
+
+- **Every card can be overridden**, on the full 0-3 Again/Hard/Good/Easy scale
+  — the same one DrillView offers and `server/fsrs.js` consumes. MCQ included:
+  MCQ grading is deterministic, but a *key* can still be wrong, and "the key is
+  wrong and I can't say so" is the worse failure.
+- **An override is an edit, not a correction.** Nothing has been sent, so
+  exactly one attempt per item is ever logged and it carries the grade you
+  agreed with. No double-scheduling, no drifting first-try accuracy.
+- **`ungraded` items are the case that benefits most.** An Ollama outage used
+  to log them `abandoned: true`, moving the scheduler not at all. Grade one
+  yourself and it logs as a real attempt.
+- **The grader's rationale is kept, not hidden**, once overridden — dimmed and
+  prefixed `GRADER SAID:`, since it's now the losing opinion rather than the
+  verdict.
+
+**No server change was required for any of this.** The one client-side subtlety
+is durability: React cleanup doesn't run when a tab or the Electron window
+closes, so `flushAttempts` is also wired to `pagehide`, and `api()` grew a
+`keepalive` passthrough so those last requests outlive the page. `flushAttempts`
+is idempotent (`submittedRef`) because several exit paths can race, and it reads
+refs rather than state so the unmount cleanup can't see a stale array.

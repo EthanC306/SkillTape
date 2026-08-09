@@ -7,8 +7,16 @@
  * anyway. Either way there is no hostname here to change.
  */
 
-/** One fetch wrapper: JSON in, JSON out, errors as thrown Errors. */
-export async function api(path, { method = "GET", body } = {}) {
+/**
+ * One fetch wrapper: JSON in, JSON out, errors as thrown Errors.
+ *
+ * `keepalive` lets a request outlive the page that started it — the browser
+ * finishes sending it even as the tab closes. Only useful from a pagehide
+ * handler (PracticeView flushes its held attempts there); the response is
+ * unreadable by then, so callers must not depend on what it resolves to.
+ * Browsers cap keepalive bodies at 64KB, which no request here approaches.
+ */
+export async function api(path, { method = "GET", body, keepalive = false } = {}) {
   let res;
   try {
     res = await fetch(path, {
@@ -18,6 +26,7 @@ export async function api(path, { method = "GET", body } = {}) {
       // Send the session cookie once auth exists. Same-origin is the default,
       // but being explicit means this keeps working if the API ever moves.
       credentials: "same-origin",
+      keepalive,
     });
   } catch {
     // fetch only rejects when the request never completed — server down,
@@ -117,9 +126,9 @@ export function getDrillQueue(course, limit = 20) {
   return api(`/api/drill/queue?course=${encodeURIComponent(course)}&limit=${limit}`);
 }
 
-/** Record one drill attempt. body: { itemId, mode, grade, seconds, tabBlurs, note, abandoned }. */
-export function postDrillAttempt(body) {
-  return api("/api/drill/attempts", { method: "POST", body });
+/** Record one drill attempt. body: { itemId, mode, grade, seconds, tabBlurs, note, abandoned }. Pass keepalive when posting from a pagehide handler. */
+export function postDrillAttempt(body, { keepalive = false } = {}) {
+  return api("/api/drill/attempts", { method: "POST", body, keepalive });
 }
 
 /** The full item-attempt log as JSON, for download. */
@@ -170,4 +179,29 @@ export function getDrillReport(course) {
 /** A8 "reset scheduling state" outcome — clears a leech's review history so it re-enters rotation fresh. */
 export function resetLeech(itemId) {
   return api(`/api/drill/leeches/${encodeURIComponent(itemId)}/reset`, { method: "POST" });
+}
+
+// ── Suspensions ─────────────────────────────────────────────────────────────
+// Per-user "out of circulation" set, driven from Practice's results screen and
+// honoured by Practice's pool and Drill's queue (not by the exam simulator).
+// Distinct from items.retired, which is authored content shared by every user.
+
+/** Every suspended itemId for the current user: { itemIds: string[] }. */
+export function getSuspensions() {
+  return api("/api/drill/suspensions");
+}
+
+/** Take items out of circulation. Accepts one id or many — bulk is a single request. */
+export function postSuspensions(itemIds) {
+  return api("/api/drill/suspensions", { method: "POST", body: { itemIds } });
+}
+
+/** Put one item back in rotation (per-card undo). */
+export function deleteSuspension(itemId) {
+  return api(`/api/drill/suspensions/${encodeURIComponent(itemId)}`, { method: "DELETE" });
+}
+
+/** "Reset deck" — put everything this user parked back in rotation at once. */
+export function clearSuspensions() {
+  return api("/api/drill/suspensions", { method: "DELETE" });
 }

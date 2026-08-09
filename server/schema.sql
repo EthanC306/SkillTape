@@ -201,3 +201,19 @@ CREATE TABLE IF NOT EXISTS item_attempts (
 );
 CREATE INDEX IF NOT EXISTS idx_item_attempts_user ON item_attempts(user_id, ts);
 CREATE INDEX IF NOT EXISTS idx_item_attempts_item ON item_attempts(item_id, ts);
+
+-- ── Suspensions ─────────────────────────────────────────────────────────────
+-- Per-user "I know this one, stop showing it" set, driven from Practice's
+-- results screen. Deliberately NOT items.retired: that column is authored
+-- content shared by every user, this is one person's rotation. Same
+-- user_id = 0 anonymous convention as item_review_state — see its comment for
+-- why that has to be a real value rather than SQL NULL. Nothing else is
+-- stored: deleting the rows is the whole "Reset deck" story, and scheduling
+-- state deliberately survives a suspend/reset round trip untouched.
+CREATE TABLE IF NOT EXISTS item_suspensions (
+  user_id      INTEGER NOT NULL DEFAULT 0,
+  item_id      TEXT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+  suspended_at INTEGER NOT NULL,   -- epoch ms
+  PRIMARY KEY (user_id, item_id)
+);
+CREATE INDEX IF NOT EXISTS idx_item_suspensions_user ON item_suspensions(user_id);
