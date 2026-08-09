@@ -77,23 +77,28 @@ export default function Shell() {
                 maxWidth: 480,
               }}
             >
+              {/* App logo. Lives in public/icons/, so Vite serves it from the
+                  site root in dev, in the build, and in Electron (which loads
+                  the app over http, not file://). */}
+              <img
+                src="/icons/256x256.png"
+                alt="SkillTape"
+                width={96}
+                height={96}
+                style={{
+                  width: 96,
+                  maxWidth: "100%",
+                  height: "auto",
+                  borderRadius: RADII.lg,
+                  marginBottom: 10,
+                }}
+              />
               <div style={{ fontFamily: HEADING, fontSize: 12, fontWeight: 600, color: PALETTE.accent }}>
                 Question what you know
               </div>
-                <div>
-                  <div>
-                    </div>
-                </div>
               <div style={{ fontFamily: MONO, fontSize: 32, color: PALETTE.muted }}>
                 A quiet place to review your coursework.
               </div>
-                <div>
-                  <div>
-                    <div>
-                    </div>
-                  </div>
-                </div>
-              
               <div style={{ fontFamily: MONO, fontSize: 13, color: PALETTE.muted }}>
                 Pick a class below to read through topic notes, drill yourself with fill-in-the-blank recall, or run a multiple-choice quiz.
               </div>

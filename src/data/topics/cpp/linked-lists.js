@@ -137,6 +137,66 @@ export default {
       explanation:
         "Adding at the head just points the new node at the old head and reassigns head — a constant number of pointer updates, regardless of list size.",
     },
+    {
+  prompt: "What is the running time for inserting an element in a sorted array/vector?",
+  choices: [
+    "O(1)",
+    "O(n)",
+    "O(log n) ",
+    "O(n^2)",
+  ],
+  answer: 1,
+  explanation:
+    "The run-time stack is LIFO, so each call pushes an Activation Record on top and that record is popped when the call finishes.",
+},
+{
+  prompt: "What is the running time for inserting an element in the beginning of an array/vector?",
+  choices: [
+    "O(1)",
+    "O(log n)",
+    "O(n)",
+    "O(n²)",
+  ],
+  answer: 2,
+  explanation:
+    "Inserting at the front means every existing element must shift one slot to the right, so the work grows linearly with the size of the array.",
+},
+{
+  prompt: "What is the running time for deleting an element in the middle of an array/vector?",
+  choices: [
+    "O(n)",
+    "O(1)",
+    "O(log n)",
+    "O(n²)",
+  ],
+  answer: 0,
+  explanation:
+    "After removing the element, all elements to its right must shift one slot left to close the gap, which takes linear time in the worst case.",
+},
+{
+  prompt: "In a linked list, each object is called a ___.",
+  choices: [
+    "cursor",
+    "node",
+    "head",
+    "bag",
+  ],
+  answer: 1,
+  explanation:
+    "A linked list is built from individual objects called nodes, where each node holds its data and a pointer to the next node in the chain.",
+},
+{
+  prompt: "Each node in a linked list is a(n) ___.",
+  choices: [
+    "primitive value",
+    "array",
+    "object",
+    "pointer",
+  ],
+  answer: 2,
+  explanation:
+    "Each node is an object that bundles together its data payload and a pointer to the next node in the list.",
+},
   ],
   items: [
     makeItem({
@@ -274,6 +334,30 @@ export default {
         model: "claude-sonnet-5",
         generatedAt: "2026-08-01",
         promptedFrom: "sources/cpp/linked-lists.md",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-06",
+      topicId: "linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Node Declaration",
+      expected:
+        "class Node {\npublic:\n…\nprivate:\n<type> data; //can be of any type\n<type> moreData;\n…\nNode *next; //point to the next node\n};",
+      criteria: [
+        "Declares class Node with public and private sections",
+        "Private section holds the data member(s), noted as being of any type",
+        "Private section holds Node *next, a pointer to the next node",
+      ],
+      timeBudgetSec: 90,
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#node-declaration-skeleton",
+        excerpt:
+          "class Node {\npublic:\n\nprivate:\n<type> data; //can be of any type\n<type> moreData;\n\nNode *next; //point to the next node\n};",
+        citation: "Lecture Deck 03.1",
       },
       difficulty: 1,
       verifiedByHuman: true,

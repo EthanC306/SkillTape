@@ -62,6 +62,7 @@ export default function SettingsMenu({ auth }) {
           aria-expanded={open}
           title="Settings"
           style={{
+            position: "relative",
             width: 36,
             height: 36,
             display: "flex",
@@ -69,10 +70,15 @@ export default function SettingsMenu({ auth }) {
             justifyContent: "center",
             borderRadius: RADII.md,
             cursor: "pointer",
+            overflow: "hidden",
             border: `1px solid ${open ? PALETTE.accent : PALETTE.line}`,
-            background: open ? PALETTE.accentSoft : PALETTE.panel,
-            color: open ? PALETTE.accent : PALETTE.text,
+            // The app logo is the button's background, with the gear over it.
+            // Black behind it so the logo's own black field blends into the
+            // button instead of sitting on a lighter panel color.
+            background: `#000 url("/icons/256x256.png") center / cover no-repeat`,
+            color: "#fff",
             boxShadow: SHADOWS.sm,
+            padding: 0,
           }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
