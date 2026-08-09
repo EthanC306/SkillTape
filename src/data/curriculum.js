@@ -58,6 +58,7 @@ import stacks from "./topics/cpp/stacks.js";
 import queues from "./topics/cpp/queues.js";
 import derivedClasses from "./topics/cpp/derived-classes.js";
 import multidimArrays from "./topics/cpp/multidim-arrays.js";
+import recursion from "./topics/cpp/recursion.js";
 
 // CS 3000 — Discrete Structures (Epp, 5e)
 import discrete11Variables from "./topics/discrete/1-1-variables.js";
@@ -87,6 +88,7 @@ const curriculum = [
   queues,
   derivedClasses,
   multidimArrays,
+  recursion,
 
   discrete11Variables,
   discrete12Sets,
