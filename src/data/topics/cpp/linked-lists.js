@@ -150,18 +150,6 @@ export default {
     "The run-time stack is LIFO, so each call pushes an Activation Record on top and that record is popped when the call finishes.",
 },
 {
-  prompt: "What is the running time for inserting an element in the beginning of an array/vector?",
-  choices: [
-    "O(1)",
-    "O(log n)",
-    "O(n)",
-    "O(n²)",
-  ],
-  answer: 2,
-  explanation:
-    "Inserting at the front means every existing element must shift one slot to the right, so the work grows linearly with the size of the array.",
-},
-{
   prompt: "What is the running time for deleting an element in the middle of an array/vector?",
   choices: [
     "O(n)",
