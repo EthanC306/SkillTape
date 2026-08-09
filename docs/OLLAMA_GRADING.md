@@ -136,6 +136,29 @@ best-effort pattern already in `recordAttempt` (`DrillView.jsx:120`, a failed
 session"). A missing local LLM is a much more common failure mode than a failed
 write to your own DB, so this matters more here, not less.
 
+**The cost of failing open, and what pays it down.** Silence is the point of G4,
+but it also means the most common failure — Ollama simply not started — is
+indistinguishable from a grading bug: every answer comes back `ungraded` with no
+error anywhere in the UI. So the Electron build starts Ollama itself on launch
+(`startOllama` in `electron/main.cjs`), which removes that cause rather than
+reporting it. Notes on that:
+
+- It probes first and only spawns if nothing answers, so an Ollama already
+  running under a system service or the tray app is left alone — and, since only
+  a process we spawned is tracked, only that one is killed on quit (a ~6GB model
+  stays resident in VRAM for `KEEP_ALIVE_SEC` otherwise).
+- It starts Ollama on the same OS as the app, which is the only correct side. A
+  WSL Ollama and a Windows Ollama both answer on `127.0.0.1:11434` and cannot
+  see each other, so "Ollama is running on this machine" is not the question.
+- It's best-effort: not installed, not on PATH, or slow to bind all log and
+  carry on, leaving exactly the G4 behaviour above. Dev runs (`node
+  server/index.js`) have no such launcher — start Ollama yourself, §7.
+- It does not help with a *stale model name*: `GET /api/drill/ollama-status`
+  probes only `model`, never the `skilltape:ollama:codeModel` that
+  `PracticeView.jsx` routes WRITE/TRACE/ERROR items to. A deleted code model
+  means Ollama 404s and only code items come back `ungraded`, while "test
+  connection" still passes.
+
 ### G5 — Config lives in Settings, not an env var (recommended)
 This has to run on an end user's machine via the Electron build, not just your dev
 server, so "set `OLLAMA_MODEL` before starting `node server/index.js`" isn't a real

@@ -24,9 +24,11 @@
 const { app, BrowserWindow, ipcMain, session } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
-const { fork } = require("node:child_process");
+const { fork, spawn } = require("node:child_process");
 const path = require("node:path");
 const http = require("node:http");
+const fs = require("node:fs");
+const os = require("node:os");
 
 const ROOT = path.join(__dirname, "..");
 const PORT = "3001";
@@ -78,44 +80,243 @@ function waitForServer(url, { intervalMs = 150, timeoutMs = 15000 } = {}) {
   });
 }
 
-async function startBackend() {
-  // Reseed on every launch — cheap and idempotent (upserts), and it's the
-  // only way a packaged app's content ever gets into a fresh install's DB;
-  // there's no terminal here to run `npm run db:seed` from by hand.
-  const seed = forkScript(path.join(ROOT, "server", "seed.js"), childEnv);
-  seed.stdout?.on("data", (d) => process.stdout.write(`[seed] ${d}`));
-  seed.stderr?.on("data", (d) => process.stderr.write(`[seed] ${d}`));
-  await new Promise((resolve, reject) => {
-    seed.on("exit", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`Seed process exited with code ${code}`));
-    });
-  });
-
-  serverProcess = forkScript(path.join(ROOT, "server", "index.js"), childEnv);
-  serverProcess.stdout?.on("data", (d) => process.stdout.write(`[server] ${d}`));
-  serverProcess.stderr?.on("data", (d) => process.stderr.write(`[server] ${d}`));
-
-  await waitForServer(`http://${HOST}:${PORT}/api/health`);
+function pipeOutput(child, label) {
+  if (child.stdout) {
+    child.stdout.on("data", (d) => process.stdout.write("[" + label + "] " + d));
+  }
+  if (child.stderr) {
+    child.stderr.on("data", (d) => process.stderr.write("[" + label + "] " + d));
+  }
 }
 
-// Icon shown in the app window and taskbar while the app is running.
-// Same file electron-builder uses, so dev and packaged builds match.
-// Windows and macOS pull their icon from the installed app itself, but
-// Linux doesn't set one automatically and without this you'd see the
-// default Electron logo instead.
-// Using the 256px version: biggest size anything actually requests,
-// and 39 kB instead of 850 kB.
+function runToCompletion(child, label) {
+  return new Promise((resolve, reject) => {
+    child.on("exit", (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(label + " exited with code " + code));
+      }
+    });
+  });
+}
+
+async function startBackend() {
+
+  const seed = forkScript(path.join(ROOT, "server", "seed.js"), childEnv);
+  pipeOutput(seed, "seed");
+  await runToCompletion(seed, "seed");
+
+  serverProcess = forkScript(path.join(ROOT, "server", "index.js"), childEnv);
+  pipeOutput(serverProcess, "server");
+
+  await waitForServer("http://" + HOST + ":" + PORT + "/api/health");
+}
+
+// ---------------------------------------------------------------------------
+// Local Ollama
+// ---------------------------------------------------------------------------
+//
+// Practice grading (server/routes/drill.js) posts to a local Ollama server and
+// FAILS OPEN when it can't reach one: every answer comes back "ungraded", with
+// no error shown anywhere in the UI. That silence is deliberate there — a dead
+// grader must never block a study session — but it means the overwhelmingly
+// common cause, "nobody started Ollama", looks like a grading bug instead of a
+// missing process. Starting it here removes that failure entirely.
+//
+// Started from THIS process specifically, so it lands on the same OS the app
+// runs on. A WSL Ollama and a Windows Ollama both answer on 127.0.0.1:11434
+// and are completely invisible to each other, so "is one running somewhere on
+// this machine" is the wrong question — only this process's own loopback
+// counts, and it's the one we probe and bind.
+//
+// Best-effort throughout: not installed, not on PATH, slow to bind, already
+// running under someone else — all of it logs and moves on. Ollama is an
+// optional dependency and grading already degrades gracefully without it, so
+// nothing in here is allowed to fail a launch.
+
+const OLLAMA_ORIGIN = (() => {
+  // Mirrors server/ollama.js's DEFAULT_HOST, including the OLLAMA_HOST
+  // override, so we probe and start whatever the server will actually call.
+  const configured = process.env.OLLAMA_HOST?.trim();
+  if (configured) {
+    try {
+      return new URL(configured).origin;
+    } catch {
+      /* not a URL — fall through to the default, same as the server does */
+    }
+  }
+  return "http://127.0.0.1:11434";
+})();
+
+const OLLAMA_READY_TIMEOUT_MS = 20000;
+
+// Set ONLY when this process spawned Ollama itself. An Ollama that was already
+// running belongs to the user (or to a system service) and must survive us —
+// stopOllama checks this, never the port.
+let ollamaProcess = null;
+
+function isLoopbackOrigin(origin) {
+  try {
+    const { hostname } = new URL(origin);
+    return hostname === "localhost" || hostname === "[::1]" || /^127(\.\d{1,3}){3}$/.test(hostname);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Resolves true/false, never rejects — "is Ollama serving its API at OLLAMA_ORIGIN".
+ *
+ * A 5xx counts as NOT ready, not merely as "answered": Ollama binds its port
+ * before it finishes discovering GPUs and answers /api/tags with a 500 for a
+ * few hundred ms in between (observed on a cold start here). Treating that as
+ * ready would have this function return while the very next call could still
+ * fail — polling through it costs one extra 250ms tick.
+ */
+function probeOllama({ timeoutMs = 1500 } = {}) {
+  return new Promise((resolve) => {
+    const req = http.get(`${OLLAMA_ORIGIN}/api/tags`, (res) => {
+      res.resume();
+      resolve(res.statusCode >= 200 && res.statusCode < 500);
+    });
+    req.setTimeout(timeoutMs, () => req.destroy());
+    req.on("error", () => resolve(false));
+  });
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// A bare name first (found via PATH), then the per-OS install locations. The
+// absolute fallbacks are the load-bearing half: a GUI-launched app inherits a
+// minimal PATH — on macOS and Linux it typically does NOT include /usr/local/bin
+// or a user-local bin dir — so PATH-only lookup works when you launch from a
+// terminal and silently fails from the desktop icon, which is how the app is
+// actually started.
+function ollamaCandidates() {
+  const home = os.homedir();
+  if (process.platform === "win32") {
+    const localAppData = process.env.LOCALAPPDATA || path.join(home, "AppData", "Local");
+    return ["ollama.exe", path.join(localAppData, "Programs", "Ollama", "ollama.exe")];
+  }
+  if (process.platform === "darwin") {
+    return [
+      "ollama",
+      "/opt/homebrew/bin/ollama",
+      "/usr/local/bin/ollama",
+      "/Applications/Ollama.app/Contents/Resources/ollama",
+    ];
+  }
+  return [
+    "ollama",
+    "/usr/local/bin/ollama",
+    "/usr/bin/ollama",
+    path.join(home, ".local", "bin", "ollama"),
+    path.join(home, "ollama", "bin", "ollama"),
+  ];
+}
+
+async function startOllama() {
+  if (!isLoopbackOrigin(OLLAMA_ORIGIN)) {
+    // A remote OLLAMA_HOST is someone else's server to run, not ours to spawn.
+    log.info(`[ollama] ${OLLAMA_ORIGIN} is not loopback — not starting one locally`);
+    return;
+  }
+
+  if (await probeOllama()) {
+    log.info(`[ollama] already running at ${OLLAMA_ORIGIN}`);
+    return;
+  }
+
+  for (const bin of ollamaCandidates()) {
+    // Absolute candidates are checked first so a missing one costs no spawn;
+    // the bare name has to be attempted, since only PATH can resolve it.
+    if (path.isAbsolute(bin) && !fs.existsSync(bin)) continue;
+
+    const child = spawn(bin, ["serve"], {
+      stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
+    });
+
+    // ENOENT (not on PATH) arrives here asynchronously, not as a throw.
+    let spawnError = null;
+    child.once("error", (err) => {
+      spawnError = err;
+    });
+    pipeOutput(child, "ollama");
+
+    const deadline = Date.now() + OLLAMA_READY_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      await delay(250);
+      if (spawnError) break;
+      // Exited on its own — most often "address already in use" from a race
+      // with another launcher, which the probe below still resolves happily.
+      const exited = child.exitCode !== null || child.signalCode !== null;
+      if (await probeOllama()) {
+        if (!exited) {
+          ollamaProcess = child;
+          log.info(`[ollama] started via ${bin} at ${OLLAMA_ORIGIN}`);
+        } else {
+          log.info(`[ollama] ${OLLAMA_ORIGIN} came up under another process — leaving it alone`);
+        }
+        return;
+      }
+      if (exited) break;
+    }
+
+    log.info(`[ollama] ${bin} did not come up${spawnError ? `: ${spawnError.message}` : ""}`);
+    try {
+      child.kill();
+    } catch {
+      /* already gone */
+    }
+  }
+
+  // The one case worth a warning rather than an info: the app works, but every
+  // Practice answer will come back "ungraded" until Ollama is installed/started.
+  log.warn(
+    `[ollama] no local Ollama found or started — Practice grading will report "ungraded" until one is running at ${OLLAMA_ORIGIN}`
+  );
+}
+
+// Only ever kills an Ollama this process started (see ollamaProcess). Worth
+// doing rather than leaking it: the grading model is ~6GB resident in VRAM,
+// held for server/ollama.js's KEEP_ALIVE window after the last call.
+function stopOllama({ timeoutMs = 2000 } = {}) {
+  const proc = ollamaProcess;
+  ollamaProcess = null;
+  if (!proc || proc.killed || proc.exitCode !== null) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      try {
+        proc.kill("SIGKILL");
+      } catch {
+        /* already gone */
+      }
+      resolve();
+    }, timeoutMs);
+    proc.once("exit", () => {
+      clearTimeout(timer);
+      resolve();
+    });
+    try {
+      proc.kill();
+    } catch {
+      clearTimeout(timer);
+      resolve();
+    }
+  });
+}
+
+
 const ICON_PATH = path.join(ROOT, "build", "icons", "256x256.png");
 
-// Clears the cached page on every launch.
-//
-// The server now tells the browser not to cache index.html, but that only
-// helps if the browser bothers to ask. An install that already cached the
-// old page will keep loading it from disk and never see the fix.
-//
-// Done every launch, not just once: everything is served locally, so a
-// fresh load costs a few milliseconds and nothing else.
+// Old installs cached index.html before the no-store header existed and
+// will serve it from disk forever. Clearing on launch is the only way the
+// fix reaches them. Cheap since everything is local.
 async function createWindow() {
   try {
     await session.defaultSession.clearCache();
@@ -173,6 +374,13 @@ function stopBackend({ timeoutMs = 2000 } = {}) {
       done();
     }
   });
+}
+
+// Both children, in parallel — Ollama is a separate process tree with no
+// handles inside the install directory, so it has no bearing on the NSIS
+// handoff that stopBackend's own comment is about.
+function shutdown() {
+  return Promise.all([stopBackend(), stopOllama()]);
 }
 
 // ---------------------------------------------------------------------------
@@ -272,7 +480,7 @@ function registerUpdaterIpc() {
   ipcMain.handle("updater:getState", () => ({ ...updateState }));
 
   ipcMain.handle("updater:quitAndInstall", async () => {
-    await stopBackend();
+    await shutdown();
     autoUpdater.quitAndInstall();
   });
 
@@ -306,6 +514,11 @@ if (!gotLock) {
       await startBackend();
       await createWindow();
       initUpdater();
+      // Deliberately not awaited: a cold Ollama takes a couple of seconds to
+      // bind, and grading isn't called until the user has actually answered
+      // something. Blocking the window on it would trade a real delay at every
+      // launch for a saved second on an optional feature.
+      startOllama().catch((err) => log.warn("[ollama] startup failed:", err));
     } catch (err) {
       log.error("Failed to start backend:", err);
       app.quit();
@@ -335,6 +548,6 @@ if (!gotLock) {
     if (quitting) return;
     quitting = true;
     event.preventDefault();
-    stopBackend().finally(() => app.quit());
+    shutdown().finally(() => app.quit());
   });
 }
