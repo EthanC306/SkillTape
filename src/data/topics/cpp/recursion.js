@@ -98,9 +98,9 @@ export default {
     {
       prompt: "What makes a definition a recursive definition?",
       choices: [
-        "It defines something in terms of itself, and includes a base case that is not recursive",
+        "It defines something in terms of itself, plus a non-recursive base case",
         "It defines something using only loops",
-        "It defines something in terms of a different, simpler concept",
+        "It defines something in terms of a different and strictly simpler concept entirely",
         "It defines something without any special cases",
       ],
       answer: 0,
@@ -123,9 +123,9 @@ export default {
       prompt: "What happens on the run-time stack every time a function is called?",
       choices: [
         "The stack is cleared and rebuilt",
-        "An Activation Record is placed on top of the stack, and popped off when the function fully executes",
+        "An Activation Record is pushed, then popped when the call finishes",
         "The function's code is copied onto the stack",
-        "An Activation Record is placed at the bottom of the stack",
+        "An Activation Record is placed at the bottom of the stack, under the earlier calls",
       ],
       answer: 1,
       explanation:
@@ -155,9 +155,9 @@ export default {
       code:
         "double factorial(int n){\n    if (n == 0) //Base case\n    {\n        return 1;\n    }\n    return  n * factorial(n - 1);\n}",
       choices: [
-        "The n == 0 test, which returns 1 without calling factorial again",
+        "The n == 0 test",
         "The return statement at the end of the function",
-        "The runtime detects the repeated call and stops it",
+        "The runtime notices the repeated call and stops it before the stack fills",
         "The multiplication by n eventually reaches zero",
       ],
       answer: 0,
@@ -167,8 +167,8 @@ export default {
     {
       prompt: "What are the two steps in the deck's recipe for designing a recursive function?",
       choices: [
-        "Write the loop first, then convert it mechanically to recursion",
-        "Determine the base case(s), then determine the rule that reduces the problem until a base case is hit",
+        "Write the loop version first, then convert it mechanically into a recursive one",
+        "Find the base case(s), then the rule that reduces toward one",
         "Determine the running time, then determine the memory used",
         "Determine the recursive call, then add a loop as a safety net",
       ],
@@ -182,8 +182,8 @@ export default {
         "void revPrintRec(int numbers[], size_t numItems){\n    //base case do nothing when numItems is <= 0\n    if (numItems > 0)\n    {\n        cout << setw(4) << numbers[numItems-1];\n        revPrintRec(numbers, numItems - 1);\n    }\n}",
       choices: [
         "numItems == 1, handled by printing numbers[0]",
-        "There is no base case; the function relies on the array's end",
-        "numItems <= 0, handled by doing nothing — the if simply fails and the function returns",
+        "There is no base case — the function simply relies on reaching the array's end",
+        "numItems <= 0, handled by doing nothing",
         "numItems > 0, handled by the body of the if",
       ],
       answer: 2,
@@ -209,10 +209,10 @@ export default {
       code:
         "void printListRec(Node* head){        // A\n    if (head != nullptr)\n    {\n        cout << setw(4) << head->num;\n        printListRec(head->next);\n    }\n}\n\nvoid printListRec(Node* head){        // B\n    if (head != nullptr)\n    {\n        printListRec(head->next);\n        cout << setw(4) << head->num;\n    }\n}",
       choices: [
-        "The same order as A — statement order does not matter",
+        "The same order as A, because statement order inside the if makes no difference",
         "Nothing; B never reaches its cout",
         "Only the last node's value",
-        "The list backward, because each node prints after its recursive call returns",
+        "The list backward",
       ],
       answer: 3,
       explanation:
@@ -221,8 +221,8 @@ export default {
     {
       prompt: "Why do recursive functions use more memory than their iterative equivalents?",
       choices: [
-        "They copy the entire data structure on each call",
-        "Each call requires a separate activation record on the run-time stack",
+        "They copy the entire data structure again on every single call",
+        "Each call needs its own activation record",
         "They allocate their local variables on the heap",
         "The compiler disables optimization for recursive functions",
       ],
@@ -247,9 +247,9 @@ export default {
     {
       prompt: "Looking at the call tree for fib(6), what is the problem with the naive recursive Fibonacci?",
       choices: [
-        "It computes the same values, such as fib(2), over and over, and each call generates 2 more calls",
+        "It recomputes the same values repeatedly, each call spawning two more",
         "It never reaches a base case for even values of n",
-        "It uses no activation records, so results are lost",
+        "It uses no activation records at all, so intermediate results are lost between calls",
         "It returns the wrong value for large n",
       ],
       answer: 0,
@@ -260,9 +260,9 @@ export default {
       prompt: "Which claim about recursion does the deck make?",
       choices: [
         "Recursion is always faster than iteration",
-        "Recursion leads to a simpler solution and fewer lines of code, but may perform poorly",
+        "Simpler code, but it may perform poorly",
         "Recursion uses less memory than iteration",
-        "Any recursive function can be written without a base case",
+        "Any recursive function can be rewritten without needing a base case at all",
       ],
       answer: 1,
       explanation:
@@ -728,13 +728,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "These two functions differ only in the order of two statements. What does the second one print?\n```\nvoid printListRec(Node* head){        // A\n    if (head != nullptr)\n    {\n        cout << setw(4) << head->num;\n        printListRec(head->next);\n    }\n}\n\nvoid printListRec(Node* head){        // B\n    if (head != nullptr)\n    {\n        printListRec(head->next);\n        cout << setw(4) << head->num;\n    }\n}\n```",
       choices: [
-        "The same order as A — statement order does not matter",
+        "The same order as A, because statement order inside the if makes no difference",
         "Nothing; B never reaches its cout",
         "Only the last node's value",
-        "The list backward, because each node prints after its recursive call returns",
+        "The list backward",
       ],
       answerIndex: 3,
-      expected: "The list backward, because each node prints after its recursive call returns",
+      expected: "The list backward",
       criteria: [
         "Putting the recursive call first drives all the way to the end of the list before any printing happens, so values print as the calls unwind.",
       ],
@@ -749,13 +749,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "Why do recursive functions use more memory than their iterative equivalents?",
       choices: [
-        "They copy the entire data structure on each call",
-        "Each call requires a separate activation record on the run-time stack",
+        "They copy the entire data structure again on every single call",
+        "Each call needs its own activation record",
         "They allocate their local variables on the heap",
         "The compiler disables optimization for recursive functions",
       ],
       answerIndex: 1,
-      expected: "Each call requires a separate activation record on the run-time stack",
+      expected: "Each call needs its own activation record",
       criteria: [
         "An iterative loop reuses one activation record, while each level of recursion pushes its own record that stays until that call returns.",
       ],

@@ -45,7 +45,7 @@ export default {
         "“**p if and only if q**” — the **biconditional**, written **p ↔ q** — asserts p and q have the **same truth value**: it's **true** exactly when p and q are **both true or both false**. It unpacks into a conjunction of two conditionals: **(p → q) ∧ (q → p)**. Example: “This program is correct **iff** it gives correct answers for all inputs” splits into “if correct then always-right, **and** if always-right then correct.”",
       figure: {
         src: "/figures/discrete/biconditional-truth-table.png",
-        alt: "Truth table for p if and only if q: true only when p and q have the same truth value.",
+        alt: "Truth table for p if and only if q: true only when p and q agree.",
         caption: "p ↔ q is true exactly when p and q match",
       },
     },
@@ -76,8 +76,8 @@ export default {
     {
       prompt: "“If 0 = 1, then 1 = 2” is… ",
       choices: [
-        "false, because 1 ≠ 2",
-        "true (vacuously), because the hypothesis 0 = 1 is false",
+        "false, on the grounds that 1 ≠ 2",
+        "true, vacuously",
         "meaningless",
         "sometimes true",
       ],
@@ -115,8 +115,8 @@ export default {
       prompt: "Which statement is logically EQUIVALENT to “If today is Easter, then tomorrow is Monday”?",
       choices: [
         "If tomorrow is Monday, then today is Easter (converse)",
-        "If today is not Easter, then tomorrow is not Monday (inverse)",
-        "If tomorrow is not Monday, then today is not Easter (contrapositive)",
+        "If today is not Easter, then tomorrow cannot be Monday (inverse)",
+        "If tomorrow is not Monday, then today is not Easter",
         "Today is Easter and tomorrow is not Monday",
       ],
       answer: 2,
@@ -126,8 +126,8 @@ export default {
     {
       prompt: "The converse of p → q is q → p, and the inverse is ~p → ~q. How are the converse and inverse related?",
       choices: [
-        "They are equivalent to the original p → q",
-        "They are contrapositives of each other, so equivalent to each other",
+        "They are each equivalent to the original conditional p → q",
+        "They are contrapositives, so equivalent",
         "They are always false",
         "They are unrelated",
       ],
@@ -157,8 +157,8 @@ export default {
     {
       prompt: "The biconditional p ↔ q is true exactly when…",
       choices: [
-        "at least one of p, q is true",
-        "p and q have the same truth value",
+        "at least one of p and q is true",
+        "p and q agree",
         "p is true and q is false",
         "both are false",
       ],

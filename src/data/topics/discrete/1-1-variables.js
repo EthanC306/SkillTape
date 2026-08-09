@@ -70,8 +70,8 @@ export default {
       prompt:
         "“There is a positive integer that is less than or equal to every positive integer.” What type is this, and why is it true?",
       choices: [
-        "Universal existential; every integer has a smaller one",
-        "Existential universal; the number 1 satisfies it for all positive integers",
+        "Universal existential; every positive integer has a smaller one below it",
+        "Existential universal; 1 works for every positive integer",
         "Universal conditional; it uses an if-then",
         "It is false",
       ],
@@ -104,10 +104,10 @@ export default {
       prompt:
         "Which trio of phrases is needed to state the definition of the limit of a sequence?",
       choices: [
-        "“for every,” “there is,” and “if-then”",
+        "“for every,” “there is,” “if-then”",
         "“for every” and “there is” only",
         "“if-then” only",
-        "“there is” and “or” only",
+        "“there is” and “or,” but nothing else",
       ],
       answer: 0,
       explanation:
@@ -118,9 +118,9 @@ export default {
         "What is the main advantage of introducing a variable to replace an ambiguous word like “it”?",
       choices: [
         "It makes the statement shorter",
-        "It gives a temporary, unambiguous name you can compute with",
+        "It gives a temporary name you can compute with",
         "It proves the statement is true",
-        "It removes the need for numbers",
+        "It removes the need to mention any numbers at all",
       ],
       answer: 1,
       explanation:
@@ -130,8 +130,8 @@ export default {
       prompt:
         "In a universal existential statement, how does the object that “exists” relate to the universally chosen object?",
       choices: [
-        "It is always the same fixed object",
-        "It can depend on the universally chosen object",
+        "It is always one and the same fixed object",
+        "It can depend on the chosen object",
         "It must be larger",
         "It cannot exist",
       ],

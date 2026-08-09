@@ -175,8 +175,8 @@ export default {
       choices: [
         "Sequential — it's simpler",
         "Either — they're the same speed",
-        "Sequential — binary needs more memory",
-        "Binary — O(log n) grows far slower than O(n)",
+        "Sequential — binary search needs more memory to run",
+        "Binary — O(log n) beats O(n)",
       ],
       answer: 3,
       explanation:

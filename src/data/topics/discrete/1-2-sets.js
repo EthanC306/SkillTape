@@ -87,9 +87,9 @@ export default {
       prompt: "Is {0} = 0?",
       choices: [
         "Yes — they both represent zero",
-        "No — {0} is a set containing 0, while 0 is a number",
+        "No — {0} is a set, 0 is a number",
         "Yes — braces are optional",
-        "Only when 0 is an integer",
+        "Only when 0 is treated as an integer rather than a real",
       ],
       answer: 1,
       explanation:
@@ -131,8 +131,8 @@ export default {
         "Let B = ℤ⁺ (positive integers) and C = {100, 200, 300}. Is C a proper subset of B?",
       choices: [
         "No — C has elements not in B",
-        "Yes — every element of C is a positive integer, and B has elements not in C",
-        "No — a finite set can't be a proper subset",
+        "Yes — C ⊆ B, and B has elements C doesn't",
+        "No — a finite set can never be a proper subset of another one",
         "Yes — because C and B are equal",
       ],
       answer: 1,
@@ -142,8 +142,8 @@ export default {
     {
       prompt: "Is (1, 2) = (2, 1)?",
       choices: [
-        "Yes — they contain the same numbers",
-        "No — ordered pairs are equal only when both positions match",
+        "Yes — the two pairs contain exactly the same numbers",
+        "No — both positions must match",
         "Yes — order never matters",
         "Only if 1 = 2",
       ],
@@ -162,8 +162,8 @@ export default {
       prompt: "In general, is A × B the same set as B × A?",
       choices: [
         "Yes — Cartesian product is symmetric",
-        "No — their ordered pairs have the coordinates swapped",
-        "Yes — as long as A and B are finite",
+        "No — the coordinates are swapped",
+        "Yes — provided that both A and B are finite sets",
         "Only when A = ∅",
       ],
       answer: 1,

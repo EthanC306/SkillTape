@@ -111,10 +111,10 @@ export default {
     {
       prompt: "What are the two properties a relation F must satisfy to be a function from A to B?",
       choices: [
-        "Every element of A is used, and no element of A maps to two different outputs",
+        "Every element of A is used, and none maps twice",
         "It must be finite, and it must be sorted",
         "Every element of B is used, and A = B",
-        "It maps numbers to numbers, and it has a formula",
+        "It maps numbers to numbers, and it can be written as a formula",
       ],
       answer: 0,
       explanation:
@@ -130,8 +130,8 @@ export default {
       },
       choices: [
         "Yes — every element is used",
-        "No — 4 is paired with two different outputs",
-        "Yes — arrows are allowed to cross",
+        "No — 4 is paired twice",
+        "Yes — arrows are perfectly allowed to cross each other",
         "No — because 6 has no arrow",
       ],
       answer: 1,
@@ -154,8 +154,8 @@ export default {
     {
       prompt: "If a function T is given by T(2) = 5, T(4) = 1, T(6) = 1, is T a valid function?",
       choices: [
-        "No — two inputs (4 and 6) share the output 1",
-        "Yes — each input has exactly one output; shared outputs are fine",
+        "No — two inputs, 4 and 6, both share the single output 1",
+        "Yes — each input has exactly one output",
         "No — outputs must all be different",
         "Only if the domain is sorted",
       ],
@@ -184,8 +184,8 @@ export default {
         "On ℝ, let f(x) = |x| and g(x) = √(x²). Does f = g?",
       choices: [
         "No — the formulas are different",
-        "Yes — same domain, co-domain, and √(x²) = |x| for every x",
-        "No — g is undefined for negative x",
+        "Yes — √(x²) = |x| for every x",
+        "No — g is left undefined for every negative value of x",
         "Only for x ≥ 0",
       ],
       answer: 1,
@@ -195,10 +195,10 @@ export default {
     {
       prompt: "“A function is a special kind of relation.” Is this accurate?",
       choices: [
-        "Yes — every function is a relation, but not every relation is a function",
+        "Yes — every function is a relation",
         "No — they are completely unrelated ideas",
         "No — every relation is a function",
-        "Yes — the two words mean exactly the same thing",
+        "Yes — the two words mean exactly the same thing in every context",
       ],
       answer: 0,
       explanation:
@@ -209,8 +209,8 @@ export default {
         "On an arrow diagram, which situation is ALLOWED for a function from A to B?",
       choices: [
         "A domain element with no arrow out of it",
-        "A domain element with two arrows out of it",
-        "Two domain elements whose arrows point to the same element of B",
+        "A domain element with two separate arrows leading out of it",
+        "Two domain elements sharing one arrow target",
         "None of these are allowed",
       ],
       answer: 2,

@@ -70,8 +70,8 @@ export default {
     {
       prompt: "What is a pointer?",
       choices: [
-        "A function that allocates memory",
-        "A variable that holds a memory address",
+        "A function that allocates memory and hands back what it reserved",
+        "A variable holding an address",
         "A loop control variable",
         "A type of array",
       ],
@@ -108,10 +108,10 @@ export default {
       prompt: "What does *dblPtr do in this code?",
       code: "value = 34.5;\ndblPtr = &value;\n*dblPtr = 12.3;",
       choices: [
-        "Dereferences dblPtr to access/change the memory value refers to",
+        "Dereferences dblPtr to reach the value it points at",
         "Deletes the pointer",
         "Declares a new pointer",
-        "Compares dblPtr to value",
+        "Compares dblPtr against the address currently stored in value",
       ],
       answer: 0,
       explanation:
@@ -121,8 +121,8 @@ export default {
       prompt: "What does this statement do?",
       code: "intPtr = new int(99);",
       choices: [
-        "Allocates memory for an int and initializes it to 99",
-        "Declares an int variable named 99",
+        "Allocates an int and sets it to 99",
+        "Declares a new int variable whose name is 99",
         "Copies 99 into an existing int",
         "Deletes intPtr",
       ],
@@ -145,8 +145,8 @@ export default {
       prompt: "After intPtr = new int; with no initializer, what does intPtr point to?",
       choices: [
         "Always 0",
-        "Garbage (an unspecified value)",
-        "A compile error occurs",
+        "Garbage",
+        "A compile error, since reading it first is not allowed",
         "nullptr",
       ],
       answer: 1,
@@ -169,8 +169,8 @@ export default {
       code: "int *intPtr1, *intPtr2;\nintPtr1 = new int(99);\nintPtr2 = intPtr1;\ndelete intPtr1;",
       choices: [
         "A null pointer",
-        "Still safely pointing to 99",
-        "A dangling reference, pointing to deallocated memory",
+        "Still safely pointing at the 99 that was stored there",
+        "A dangling reference",
         "A compile error",
       ],
       answer: 2,
@@ -181,8 +181,8 @@ export default {
       prompt: "What is nullptr?",
       choices: [
         "An integer equal to -1",
-        "A reserved variable name for arrays",
-        "A special constant pointer meaning 'points at nothing'",
+        "A reserved variable name used for arrays that have not been sized yet",
+        "A constant meaning 'points at nothing'",
         "A function that frees memory",
       ],
       answer: 2,
@@ -192,9 +192,9 @@ export default {
     {
       prompt: "What happens if the new operator fails to find enough memory?",
       choices: [
-        "It throws an exception, terminating the program unless handled",
+        "It throws an exception",
         "It silently returns nullptr",
-        "It reduces the requested size automatically",
+        "It automatically reduces the requested size until the allocation fits",
         "It waits until memory is available",
       ],
       answer: 0,
@@ -530,13 +530,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "What does *dblPtr do in this code?\n```\nvalue = 34.5;\ndblPtr = &value;\n*dblPtr = 12.3;\n```",
       choices: [
-        "Dereferences dblPtr to access/change the memory value refers to",
+        "Dereferences dblPtr to reach the value it points at",
         "Deletes the pointer",
         "Declares a new pointer",
-        "Compares dblPtr to value",
+        "Compares dblPtr against the address currently stored in value",
       ],
       answerIndex: 0,
-      expected: "Dereferences dblPtr to access/change the memory value refers to",
+      expected: "Dereferences dblPtr to reach the value it points at",
       criteria: [
         "*dblPtr dereferences the pointer, reaching into the memory it points to (the same memory as value).",
       ],
@@ -554,13 +554,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "What does this statement do?\n```\nintPtr = new int(99);\n```",
       choices: [
-        "Allocates memory for an int and initializes it to 99",
-        "Declares an int variable named 99",
+        "Allocates an int and sets it to 99",
+        "Declares a new int variable whose name is 99",
         "Copies 99 into an existing int",
         "Deletes intPtr",
       ],
       answerIndex: 0,
-      expected: "Allocates memory for an int and initializes it to 99",
+      expected: "Allocates an int and sets it to 99",
       criteria: [
         "new int(99) allocates space for one int on the heap and initializes it to 99 in one step.",
       ],

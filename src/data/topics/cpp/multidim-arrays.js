@@ -61,9 +61,9 @@ export default {
       prompt: "What does char page[30][100]; declare?",
       choices: [
         "A single array of 30 characters",
-        "An array of characters with two index values: the first ranging 0–29, the second 0–99",
+        "A char array indexed 0–29 by 0–99",
         "A pointer to 100 characters",
-        "A 30-character string repeated 100 times",
+        "A 30-character string that is then repeated 100 times over",
       ],
       answer: 1,
       explanation:
@@ -85,9 +85,9 @@ export default {
       prompt: "In a multi-dimensional array parameter, which dimension's size can be left out?",
       code: "void displayPage(const char page[][100], int sizeDimension1);",
       choices: [
-        "The first dimension's size — every remaining dimension's size must still be given",
+        "The first dimension's size only",
         "Every dimension's size can be left out",
-        "Only the last dimension's size can be left out",
+        "Only the last dimension's size may be left out of the parameter",
         "No dimension's size can ever be left out",
       ],
       answer: 0,
@@ -119,9 +119,9 @@ export default {
         "In the loop that prints a 2D array row by row, why does cout << endl; sit after the inner loop finishes, not inside it?",
       code: "for (i = 0; i < 4; i++){\nfor (j = 0; j < 5; j++){\ncout << a[i][j];\n}\ncout << endl;\n}",
       choices: [
-        "So a newline prints once per row, after all of that row's columns have printed",
+        "So a newline prints once per row",
         "So a newline prints after every single element",
-        "Because endl can't be called from inside a nested loop",
+        "Because endl can't be used inside the body of a nested loop",
         "It has no effect on the output either way",
       ],
       answer: 0,
@@ -135,9 +135,9 @@ export default {
         "int a[10][10];\nint numRows= 5, numCols = 8;\ninputArray(a, numRows, numCols);\nfor (i = 0; i < numRows; i++)\nsort(a[i], numCols); //any sort functions ...",
       choices: [
         "A single int",
-        "A one-dimensional array — row i of the two-dimensional array — which is exactly what sort's first parameter expects",
+        "Row i, a one-dimensional array",
         "A pointer to the whole array a",
-        "An error; a[i] isn't valid syntax here",
+        "An error, because a[i] is not valid syntax on a 2D array",
       ],
       answer: 1,
       explanation:
@@ -166,7 +166,7 @@ export default {
     },
     {
       prompt: "How many nested loops are needed to fill int a[3][4][5]; element by element with cin?",
-      choices: ["One", "Two", "Three — one per dimension", "Four"],
+      choices: ["One", "Two", "Three", "Four, one per dimension plus one"],
       answer: 2,
       explanation:
         "Each dimension needs its own loop variable to reach every combination of indices, so a 3D array needs 3 nested loops.",
@@ -175,9 +175,9 @@ export default {
       prompt:
         "Why does declaring a formal parameter as const char page[][100] still require the 100, when a plain 1D array parameter like const char a[] needs no size at all?",
       choices: [
-        "Because the compiler needs every dimension's size except the first to compute where each row starts in memory",
+        "The compiler needs the column count to find where each row starts",
         "Because it's a stylistic convention with no real effect",
-        "Because 2D array parameters aren't actually allowed in C++",
+        "Because 2D array parameters are not actually allowed in C++ at all",
         "Because char arrays are handled differently from int arrays",
       ],
       answer: 0,
@@ -357,13 +357,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "In a multi-dimensional array parameter, which dimension's size can be left out?\n```\nvoid displayPage(const char page[][100], int sizeDimension1);\n```",
       choices: [
-        "The first dimension's size — every remaining dimension's size must still be given",
+        "The first dimension's size only",
         "Every dimension's size can be left out",
-        "Only the last dimension's size can be left out",
+        "Only the last dimension's size may be left out of the parameter",
         "No dimension's size can ever be left out",
       ],
       answerIndex: 0,
-      expected: "The first dimension's size — every remaining dimension's size must still be given",
+      expected: "The first dimension's size only",
       criteria: [
         "Only the first dimension is omitted from the parameter type; page[][100] still states the second dimension explicitly.",
       ],
@@ -429,13 +429,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "In the loop that prints a 2D array row by row, why does cout << endl; sit after the inner loop finishes, not inside it?\n```\nfor (i = 0; i < 4; i++){\nfor (j = 0; j < 5; j++){\ncout << a[i][j];\n}\ncout << endl;\n}\n```",
       choices: [
-        "So a newline prints once per row, after all of that row's columns have printed",
+        "So a newline prints once per row",
         "So a newline prints after every single element",
-        "Because endl can't be called from inside a nested loop",
+        "Because endl can't be used inside the body of a nested loop",
         "It has no effect on the output either way",
       ],
       answerIndex: 0,
-      expected: "So a newline prints once per row, after all of that row's columns have printed",
+      expected: "So a newline prints once per row",
       criteria: [
         "endl outside the inner loop but inside the outer loop fires exactly once per completed row, which is what produces one line per row of output.",
       ],

@@ -79,8 +79,8 @@ export default {
       choices: [
         "The index of the following node",
         "A pointer to the head of the list",
-        "A pointer to the following node in the list (or nullptr if last)",
-        "A copy of the following node's data",
+        "A pointer to the next node, or nullptr",
+        "A copy of the data held in the following node",
       ],
       answer: 2,
       explanation:
@@ -103,8 +103,8 @@ export default {
       prompt: "Why does Node provide two getNext() overloads?",
       code: "const Node* getNext() const { return next; }\nNode* getNext() { return next; }",
       choices: [
-        "One overload is for the head node, the other for all other nodes",
-        "So a const Node gets a const Node* back, and a non-const Node gets a modifiable Node*",
+        "One overload handles the head node, the other handles every other node in the list",
+        "So a const Node gets a const Node* back",
         "C++ requires two overloads for every getter",
         "So getNext can be called with or without parentheses",
       ],
@@ -130,8 +130,8 @@ export default {
       choices: [
         "Vectors don't support insertion at the front",
         "Because linked lists are always kept sorted",
-        "Linked lists don't actually store the new data",
-        "Only the new node's next pointer and head need to change — no existing elements move",
+        "Linked lists don't actually store the new data anywhere, only a reference to it",
+        "Only the new node's next pointer and head change",
       ],
       answer: 3,
       explanation:
@@ -407,11 +407,11 @@ export default {
       choices: [
         "The index of the following node",
         "A pointer to the head of the list",
-        "A pointer to the following node in the list (or nullptr if last)",
-        "A copy of the following node's data",
+        "A pointer to the next node, or nullptr",
+        "A copy of the data held in the following node",
       ],
       answerIndex: 2,
-      expected: "A pointer to the following node in the list (or nullptr if last)",
+      expected: "A pointer to the next node, or nullptr",
       criteria: [
         "next holds the address of the next node, letting code walk the list one link at a time; it's nullptr on the last node.",
       ],

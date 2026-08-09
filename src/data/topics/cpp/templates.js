@@ -81,9 +81,9 @@ export default {
     {
       prompt: "What problem do templates solve?",
       choices: [
-        "Making programs run in constant time",
+        "Making programs run in constant time regardless of the data they are given",
         "Allocating memory on the heap",
-        "Writing the same algorithm once instead of overloading it for every data type",
+        "Writing the algorithm once instead of per type",
         "Hiding a class's private data",
       ],
       answer: 2,
@@ -113,10 +113,10 @@ export default {
     {
       prompt: "In `template <typename T>`, what is T?",
       choices: [
-        "A required keyword that cannot be renamed",
+        "A required keyword that cannot be renamed to anything else",
         "Always shorthand for int",
         "The name of the function being defined",
-        "An identifier standing in for any type the caller supplies",
+        "An identifier standing in for any type",
       ],
       answer: 3,
       explanation:
@@ -136,8 +136,8 @@ export default {
       choices: [
         "References make the template compile faster",
         "T can only be used with references",
-        "They're references, so the swap changes the caller's actual variables",
-        "It prevents the arguments from being modified",
+        "They're references, so the caller's variables change",
+        "It prevents either of the arguments from being modified by the call",
       ],
       answer: 2,
       explanation:
@@ -155,8 +155,8 @@ export default {
       choices: [
         "Classes are always slower than functions",
         "swap is a built-in function, not a template",
-        "Angle brackets are optional everywhere and just stylistic",
-        "A template function deduces its type from the arguments; a class declaration has no arguments to deduce from",
+        "Angle brackets are optional everywhere in C++ and are purely a matter of style",
+        "A function deduces T from its arguments; a class declaration has none",
       ],
       answer: 3,
       explanation:
@@ -166,8 +166,8 @@ export default {
       prompt: "What is wrong with this out-of-class definition?",
       code: "template <typename T>\nvoid Pair::setFirst(T value)\n{\n    first = value;\n}",
       choices: [
-        "The class name needs <T>: it should be Pair <T>::setFirst",
-        "The template line should say <class T>",
+        "The class name needs <T>",
+        "The template line should have been written as <class T> instead",
         "The return type should be T, not void",
         "Nothing — this compiles fine",
       ],
@@ -179,8 +179,8 @@ export default {
       prompt: "How many template lines does a class with three out-of-class member function definitions need?",
       choices: [
         "One, above the class only",
-        "Three, above the definitions only",
-        "Four — one above the class and one above each definition",
+        "Three, placed above the member definitions but not the class",
+        "Four: one per class and definition",
         "None, if the class already has one",
       ],
       answer: 2,
@@ -204,9 +204,9 @@ export default {
       code: "template <typename T1, typename T2>\nT2  ClassName <T1, T2>::getvar2 ()\n{\n    return var2;\n}",
       choices: [
         "var1, whose type is T1",
-        "A pointer to the object",
+        "A pointer to the object the call was made on",
         "Nothing — it is void",
-        "var2, whose type is the second generic type T2",
+        "var2, of type T2",
       ],
       answer: 3,
       explanation:
@@ -218,8 +218,8 @@ export default {
       choices: [
         "first is int and second is char",
         "They are always pointers",
-        "Both are T — the single generic type, so both hold the same type",
-        "Their types are decided at run time",
+        "Both are T",
+        "Their types are worked out at run time rather than at compile time",
       ],
       answer: 2,
       explanation:
@@ -403,13 +403,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "What problem do templates solve?",
       choices: [
-        "Making programs run in constant time",
+        "Making programs run in constant time regardless of the data they are given",
         "Allocating memory on the heap",
-        "Writing the same algorithm once instead of overloading it for every data type",
+        "Writing the algorithm once instead of per type",
         "Hiding a class's private data",
       ],
       answerIndex: 2,
-      expected: "Writing the same algorithm once instead of overloading it for every data type",
+      expected: "Writing the algorithm once instead of per type",
       criteria: [
         "Templates let one definition serve every data type, replacing a pile of near-identical overloaded functions.",
       ],

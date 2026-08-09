@@ -128,8 +128,8 @@ export default {
       prompt:
         "Edge e₁ has endpoints {v₁, v₂}. Which statement uses the terminology correctly?",
       choices: [
-        "v₁ and v₂ are parallel",
-        "e₁ is incident on v₁ and v₂, and v₁ and v₂ are adjacent",
+        "v₁ and v₂ are parallel to one another",
+        "e₁ is incident on v₁ and v₂",
         "e₁ is isolated",
         "v₁ is a loop of v₂",
       ],
@@ -141,9 +141,9 @@ export default {
       prompt: "What makes a directed graph (digraph) different from an ordinary graph?",
       choices: [
         "Its edges may be curved",
-        "Each edge is an ordered pair of vertices, drawn as an arrow",
+        "Each edge is an ordered pair",
         "It cannot contain loops",
-        "Its vertices must be numbered",
+        "Its vertices must be numbered before it can be drawn",
       ],
       answer: 1,
       explanation:
@@ -181,10 +181,10 @@ export default {
       prompt:
         "You want to color a map so no two adjacent countries share a color. How do you model it as a graph?",
       choices: [
-        "One vertex per country; an edge between countries that share a border",
+        "One vertex per country, edges for shared borders",
         "One vertex per color; edges between colors",
         "One vertex per border; edges between borders",
-        "Vertices for the largest countries only",
+        "Vertices for the largest countries only, with edges between neighbours",
       ],
       answer: 0,
       explanation:
@@ -208,8 +208,8 @@ export default {
         "When coloring a graph's vertices, a good strategy at each step is to color…",
       choices: [
         "the uncolored vertex of highest degree",
-        "the vertex with the fewest edges",
-        "any isolated vertex first",
+        "the uncolored vertex with the fewest edges",
+        "any isolated vertex, taken first",
         "vertices in alphabetical order",
       ],
       answer: 0,

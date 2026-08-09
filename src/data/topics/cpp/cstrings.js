@@ -98,7 +98,7 @@ export default {
     {
       prompt: "You need to read a full line, spaces included, into a char array. Which call do you use?",
       choices: [
-        "strlen(name);",
+        "strncpy(name, cin, length);",
         "cin >> name;",
         "cin.getline(name, length);",
         "name = cin;",
@@ -112,9 +112,9 @@ export default {
       code: "cin.getline(name, 10, '!');",
       choices: [
         "Pads the string with '!'",
-        "Reads until the delimiter '!' is reached",
+        "Reads until '!' is reached",
         "Skips all '!' characters",
-        "Limits the line to 10 lines",
+        "Limits the input to at most 10 separate lines",
       ],
       answer: 1,
       explanation:
@@ -187,7 +187,7 @@ export default {
         "strncpy(st, name.c_str(), 100);",
         "st = name;",
         "atoi(name);",
-        "char st[] = name;",
+        "char st[] = name.data_copy();",
       ],
       answer: 0,
       explanation:

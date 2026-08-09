@@ -48,8 +48,8 @@ export default {
     {
       prompt: "An argument form is valid when…",
       choices: [
-        "its premises are all actually true",
-        "in every row where all premises are true, the conclusion is also true",
+        "its premises all happen to be actually true",
+        "the conclusion is true in every critical row",
         "its conclusion is true",
         "it has exactly two premises",
       ],
@@ -61,9 +61,9 @@ export default {
       prompt: "When checking validity with a truth table, which rows matter?",
       choices: [
         "Every row",
-        "Only the rows where all premises are true (critical rows)",
+        "Only the critical rows",
         "Only the first row",
-        "Only rows where the conclusion is true",
+        "Only the rows in which the conclusion comes out true",
       ],
       answer: 1,
       explanation:
@@ -79,8 +79,8 @@ export default {
     {
       prompt: "“If 870,232 is divisible by 6, then it is divisible by 3. 870,232 is not divisible by 3. ∴ ?”",
       choices: [
-        "870,232 is divisible by 6 (modus ponens)",
-        "870,232 is not divisible by 6 (modus tollens)",
+        "870,232 is divisible by 6, by modus ponens",
+        "870,232 is not divisible by 6",
         "Nothing follows",
         "870,232 is divisible by 3",
       ],
@@ -136,8 +136,8 @@ export default {
     {
       prompt: "A valid argument has a false premise and a false conclusion. Is the argument still valid?",
       choices: [
-        "No — false parts make it invalid",
-        "Yes — validity is about form, not the truth of the statements",
+        "No — a false premise or conclusion makes it invalid",
+        "Yes — validity is about form",
         "Only if the conclusion is true",
         "Only if it uses modus ponens",
       ],
@@ -148,8 +148,8 @@ export default {
     {
       prompt: "How can you prove an argument form is INVALID?",
       choices: [
-        "Show every row has a true conclusion",
-        "Find one critical row (or real example) with true premises and a false conclusion",
+        "Show that every single row has a true conclusion in it",
+        "Find a critical row with a false conclusion",
         "Show the premises are false",
         "You can't — all forms are valid",
       ],

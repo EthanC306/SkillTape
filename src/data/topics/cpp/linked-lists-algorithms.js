@@ -96,10 +96,10 @@ export default {
       prompt: "Why is head insert an O(1) operation?",
       code: "Node *temp = new Node(value);\ntemp->setNext(head);\nhead = temp;",
       choices: [
-        "It only works on lists with one node",
+        "It only ever works on lists that already contain exactly one node",
         "It doesn't allocate any new memory",
         "It secretly uses binary search",
-        "It does a fixed number of pointer operations no matter how large the list is",
+        "It does a fixed number of pointer operations",
       ],
       answer: 3,
       explanation:
@@ -111,9 +111,9 @@ export default {
       code: "Node *temp = new Node(value);\nif (previous != nullptr) {\n    temp->setNext(previous->getNext());\n    previous->setNext(temp);\n}",
       choices: [
         "The order doesn't actually matter here",
-        "Otherwise previous->getNext() would already be temp, losing the link to the rest of the list",
+        "Otherwise previous->getNext() is already temp, losing the rest of the list",
         "It avoids a memory leak in temp itself",
-        "C++ requires setNext calls in alphabetical order",
+        "C++ requires setNext calls to be written in alphabetical order by variable name",
       ],
       answer: 1,
       explanation:
@@ -122,8 +122,8 @@ export default {
     {
       prompt: "In the insert algorithm, what does `previous == nullptr` signal?",
       choices: [
-        "The list is empty, so the new value should be inserted at the head",
-        "An invalid pointer was passed and the program should crash",
+        "The list is empty, so insert at the head",
+        "An invalid pointer was passed in, and the program is expected to crash on it",
         "The list has exactly one node",
         "previous points to the last node in the list",
       ],
@@ -136,8 +136,8 @@ export default {
       code: "if (current == head) {\n    head = current->getNext();\n    delete current;\n}",
       choices: [
         "The head node can never be deleted",
-        "Deleting the head always empties the whole list",
-        "There's no predecessor node whose next pointer needs updating — head itself must move instead",
+        "Deleting the head always empties the whole list, whatever else it held",
+        "There's no predecessor to re-link, so head itself must move",
         "head is a const pointer and can't be reassigned",
       ],
       answer: 2,
@@ -148,9 +148,9 @@ export default {
       prompt: "In the general (middle-of-list) delete case, why is a `previous` pointer needed?",
       code: "Node *previous = head;\nwhile (previous->getNext() != current) {\n    previous = previous->getNext();\n}\nprevious->setNext(current->getNext());\ndelete current;",
       choices: [
-        "Because it's the previous node's next pointer that must be redirected around current",
+        "Because previous's next pointer must be redirected around current",
         "previous is only used for printing, not deletion",
-        "Because current cannot be deleted directly in C++",
+        "Because current cannot be handed to delete directly in C++ without a copy",
         "To count how many nodes come before current",
       ],
       answer: 0,
@@ -160,9 +160,9 @@ export default {
     {
       prompt: "Why keep a separate tail pointer if a program frequently appends to the end of a list?",
       choices: [
-        "It's required for the list destructor to work",
+        "It's required before the list destructor can free anything",
         "It automatically sorts the list",
-        "It avoids an O(n) walk from head every time, making appends O(1)",
+        "It makes appends O(1)",
         "It removes the need for a head pointer",
       ],
       answer: 2,
@@ -466,12 +466,12 @@ export default {
       prompt: "Why must temp->setNext(previous->getNext()) happen BEFORE previous->setNext(temp) when inserting after a pointer?\n```\nNode *temp = new Node(value);\nif (previous != nullptr) {\n    temp->setNext(previous->getNext());\n    previous->setNext(temp);\n}\n```",
       choices: [
         "The order doesn't actually matter here",
-        "Otherwise previous->getNext() would already be temp, losing the link to the rest of the list",
+        "Otherwise previous->getNext() is already temp, losing the rest of the list",
         "It avoids a memory leak in temp itself",
-        "C++ requires setNext calls in alphabetical order",
+        "C++ requires setNext calls to be written in alphabetical order by variable name",
       ],
       answerIndex: 1,
-      expected: "Otherwise previous->getNext() would already be temp, losing the link to the rest of the list",
+      expected: "Otherwise previous->getNext() is already temp, losing the rest of the list",
       criteria: [
         "If previous were redirected to temp first, previous->getNext() would return temp instead of the original next node, orphaning the rest of the list.",
       ],
@@ -487,13 +487,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "In the insert algorithm, what does `previous == nullptr` signal?",
       choices: [
-        "The list is empty, so the new value should be inserted at the head",
-        "An invalid pointer was passed and the program should crash",
+        "The list is empty, so insert at the head",
+        "An invalid pointer was passed in, and the program is expected to crash on it",
         "The list has exactly one node",
         "previous points to the last node in the list",
       ],
       answerIndex: 0,
-      expected: "The list is empty, so the new value should be inserted at the head",
+      expected: "The list is empty, so insert at the head",
       criteria: [
         "A nullptr previous means there's no node to insert after, which corresponds to an empty list — handled by calling headInsert.",
       ],
@@ -510,12 +510,12 @@ export default {
       prompt: "When deleting a node, why does the head case need special handling?\n```\nif (current == head) {\n    head = current->getNext();\n    delete current;\n}\n```",
       choices: [
         "The head node can never be deleted",
-        "Deleting the head always empties the whole list",
-        "There's no predecessor node whose next pointer needs updating — head itself must move instead",
+        "Deleting the head always empties the whole list, whatever else it held",
+        "There's no predecessor to re-link, so head itself must move",
         "head is a const pointer and can't be reassigned",
       ],
       answerIndex: 2,
-      expected: "There's no predecessor node whose next pointer needs updating — head itself must move instead",
+      expected: "There's no predecessor to re-link, so head itself must move",
       criteria: [
         "Every other node has a predecessor to re-link, but the head node doesn't — so head itself is advanced to the next node instead.",
       ],

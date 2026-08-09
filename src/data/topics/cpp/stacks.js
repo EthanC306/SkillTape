@@ -153,10 +153,10 @@ export default {
       prompt: "Why does size return top + 1?",
       code: "size_t size() const { return top + 1; }\nbool isEmpty() const { return top == -1; }",
       choices: [
-        "One slot in data is always reserved and never used",
+        "One slot in data is always held in reserve and is never written to",
         "It counts the top element twice on purpose",
         "The array is one element longer than CAPACITY",
-        "top is an index starting at 0, and an empty stack's top of -1 gives a size of 0",
+        "top is a 0-based index, so -1 gives size 0",
       ],
       answer: 3,
       explanation:
@@ -166,8 +166,8 @@ export default {
       prompt: "Why does this pop return data[top + 1] instead of data[top]?",
       code: "template <typename Item>\nItem Stack<Item>::pop() {\n    assert(!isEmpty());\n    top--;\n    return data[top + 1];\n}",
       choices: [
-        "top was already decremented, so the popped item now sits one slot above it",
-        "The top element is always stored one past the index in top",
+        "top was already decremented, so the item sits one slot above",
+        "The top element is always stored one slot past whatever index top holds",
         "It is returning the item underneath the one being removed",
         "Arrays in C++ are indexed starting at 1",
       ],
@@ -229,9 +229,9 @@ export default {
       code: "Node<Item> *delPtr = topPtr;\nItem topItem = topPtr->getData();\ntopPtr = topPtr->getNext();\ndelete delPtr;\nnumItems--;\nreturn topItem;",
       choices: [
         "delPtr is needed to decrement numItems correctly",
-        "Once topPtr moves to the next node, the old head's address would otherwise be lost and could not be deleted",
+        "Once topPtr moves on, the old head's address would be lost",
         "delete cannot be called on a pointer named topPtr",
-        "It makes a copy of the whole list before removing anything",
+        "It makes a copy of the entire list before anything is removed from it",
       ],
       answer: 1,
       explanation:
@@ -241,8 +241,8 @@ export default {
       prompt: "Why should the linked list stack have a destructor, a copy constructor, and an overloaded assignment operator?",
       choices: [
         "Templates require all three to compile",
-        "They are needed to make size and isEmpty run in constant time",
-        "It manages dynamically allocated nodes, which the compiler's defaults do not handle correctly",
+        "They are what make size and isEmpty run in constant time instead of linear",
+        "It manages dynamically allocated nodes",
         "Only classes with a private section need them",
       ],
       answer: 2,
@@ -709,13 +709,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "Why does size return top + 1?\n```\nsize_t size() const { return top + 1; }\nbool isEmpty() const { return top == -1; }\n```",
       choices: [
-        "One slot in data is always reserved and never used",
+        "One slot in data is always held in reserve and is never written to",
         "It counts the top element twice on purpose",
         "The array is one element longer than CAPACITY",
-        "top is an index starting at 0, and an empty stack's top of -1 gives a size of 0",
+        "top is a 0-based index, so -1 gives size 0",
       ],
       answerIndex: 3,
-      expected: "top is an index starting at 0, and an empty stack's top of -1 gives a size of 0",
+      expected: "top is a 0-based index, so -1 gives size 0",
       criteria: [
         "Converting the zero-based index of the top element to a count means adding one, and that also makes the empty case come out as 0.",
       ],

@@ -56,10 +56,10 @@ export default {
     {
       prompt: "What does a doubly linked list add compared to a singly linked list?",
       choices: [
-        "A guarantee that the list is never empty",
+        "A guarantee that the list can never be empty once built",
         "Automatic sorting of the list",
         "A second data field in each node",
-        "A previous pointer in each node, enabling efficient backward traversal",
+        "A previous pointer in each node",
       ],
       answer: 3,
       explanation:
@@ -85,8 +85,8 @@ export default {
       choices: [
         "It throws an exception",
         "cursor is used as the new head instead of temp",
-        "The new node becomes head, with both next and previous set to nullptr",
-        "The function does nothing and returns immediately",
+        "It becomes head, with next and previous both nullptr",
+        "The function does nothing at all and returns to its caller immediately",
       ],
       answer: 2,
       explanation:
@@ -96,8 +96,8 @@ export default {
       prompt: "Why does inserting after a cursor need four pointer updates instead of two?",
       code: "temp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr)\n    cursor->next->prev = temp;\ncursor->next = temp;",
       choices: [
-        "Because both temp's own next/prev links and the neighboring nodes' back-links to temp must be set",
-        "Because C++ requires initializing every pointer field twice",
+        "Because temp's own links and the neighbours' back-links to temp both need setting",
+        "Because C++ requires every pointer field in a node to be initialized exactly twice",
         "Because cursor must be duplicated",
         "It doesn't — two updates are always enough",
       ],
@@ -108,8 +108,8 @@ export default {
     {
       prompt: "Why is `if (cursor->next != nullptr)` needed before `cursor->next->prev = temp;`?",
       choices: [
-        "It's optional and only improves performance",
-        "To avoid dereferencing a null pointer when cursor is the last node in the list",
+        "It's optional, and skipping it only costs a little performance on long lists",
+        "To avoid dereferencing nullptr when cursor is the last node",
         "To decide whether to allocate temp",
         "To check whether the list has more than one node",
       ],
@@ -122,9 +122,9 @@ export default {
       code: "if (cursor == head) {\n    head = cursor->getNext();\n    if (head != nullptr) {\n        head->setPrevious(nullptr);\n    }\n}",
       choices: [
         "Its next pointer must be cleared to nullptr",
-        "Its previous pointer must be cleared to nullptr, since it has no node before it now",
+        "Its previous pointer must be set to nullptr",
         "It must be deleted immediately",
-        "Nothing — head can keep its old previous pointer",
+        "Nothing — the new head can keep whatever previous pointer it already had",
       ],
       answer: 1,
       explanation:
@@ -136,8 +136,8 @@ export default {
       code: "DNode *after = cursor->getNext();\nDNode *before = cursor->getPrevious();\nbefore->setNext(after);\nafter->setPrevious(before);",
       choices: [
         "It avoids calling delete on the node",
-        "Middle nodes can't be deleted in a singly linked list at all",
-        "The previous node is already known directly — no loop is needed to find it",
+        "Middle nodes can't be deleted from a singly linked list at all, only from a doubly linked one",
+        "The previous node is already known — no search loop",
         "It doesn't require updating any pointers",
       ],
       answer: 2,
@@ -148,9 +148,9 @@ export default {
       prompt: "Deleting a node in a doubly linked list has how many distinct cases?",
       choices: [
         "One: the same logic always applies",
-        "Four: first, last, middle, and root",
+        "Four: first node, last node, middle node, and root node",
         "Two: empty list and non-empty list",
-        "Three: first node, last node, and a node in the middle",
+        "Three: first, last, middle",
       ],
       answer: 3,
       explanation:
@@ -538,13 +538,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "Why does inserting after a cursor need four pointer updates instead of two?\n```\ntemp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr)\n    cursor->next->prev = temp;\ncursor->next = temp;\n```",
       choices: [
-        "Because both temp's own next/prev links and the neighboring nodes' back-links to temp must be set",
-        "Because C++ requires initializing every pointer field twice",
+        "Because temp's own links and the neighbours' back-links to temp both need setting",
+        "Because C++ requires every pointer field in a node to be initialized exactly twice",
         "Because cursor must be duplicated",
         "It doesn't — two updates are always enough",
       ],
       answerIndex: 0,
-      expected: "Because both temp's own next/prev links and the neighboring nodes' back-links to temp must be set",
+      expected: "Because temp's own links and the neighbours' back-links to temp both need setting",
       criteria: [
         "A doubly linked insert must wire up temp's next and prev, plus fix up cursor->next and (if it exists) cursor->next's old prev pointer.",
       ],
@@ -562,13 +562,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "Why is `if (cursor->next != nullptr)` needed before `cursor->next->prev = temp;`?",
       choices: [
-        "It's optional and only improves performance",
-        "To avoid dereferencing a null pointer when cursor is the last node in the list",
+        "It's optional, and skipping it only costs a little performance on long lists",
+        "To avoid dereferencing nullptr when cursor is the last node",
         "To decide whether to allocate temp",
         "To check whether the list has more than one node",
       ],
       answerIndex: 1,
-      expected: "To avoid dereferencing a null pointer when cursor is the last node in the list",
+      expected: "To avoid dereferencing nullptr when cursor is the last node",
       criteria: [
         "If cursor is the last node, cursor->next is nullptr, and dereferencing it (cursor->next->prev) would be undefined behavior.",
       ],
@@ -587,12 +587,12 @@ export default {
       prompt: "When deleting the first node in a doubly linked list, what must happen to the new head?\n```\nif (cursor == head) {\n    head = cursor->getNext();\n    if (head != nullptr) {\n        head->setPrevious(nullptr);\n    }\n}\n```",
       choices: [
         "Its next pointer must be cleared to nullptr",
-        "Its previous pointer must be cleared to nullptr, since it has no node before it now",
+        "Its previous pointer must be set to nullptr",
         "It must be deleted immediately",
-        "Nothing — head can keep its old previous pointer",
+        "Nothing — the new head can keep whatever previous pointer it already had",
       ],
       answerIndex: 1,
-      expected: "Its previous pointer must be cleared to nullptr, since it has no node before it now",
+      expected: "Its previous pointer must be set to nullptr",
       criteria: [
         "After removing the old first node, the new first node's previous must be nullptr since nothing precedes it anymore.",
       ],

@@ -59,8 +59,8 @@ export default {
       prompt: "Why do engineers model a circuit as a “black box”?",
       choices: [
         "To hide the answer from users",
-        "To focus on the input/output relationship and ignore internal wiring",
-        "Because the circuit is broken",
+        "To focus on input/output, not wiring",
+        "Because the circuit is broken and cannot be inspected",
         "To make it run faster",
       ],
       answer: 1,
@@ -103,8 +103,8 @@ export default {
     {
       prompt: "In a circuit diagram, a black dot where two wires meet indicates…",
       choices: [
-        "the wires are soldered together (connected)",
-        "the wires cross without touching",
+        "the wires are connected",
+        "the wires cross over without ever touching",
         "a NOT-gate",
         "an error",
       ],
@@ -128,8 +128,8 @@ export default {
       prompt: "Why is a simpler equivalent circuit preferable in an integrated circuit?",
       choices: [
         "It looks nicer",
-        "It uses fewer gates, so less space and power",
-        "It is always faster",
+        "Fewer gates, less space and power",
+        "It is always faster to switch",
         "It has more outputs",
       ],
       answer: 1,
@@ -141,13 +141,13 @@ export default {
       choices: ["0", "1", "either", "the last"],
       answer: 1,
       explanation:
-        "For each output-1 row you build an AND term true only for that pattern, then OR them — giving disjunctive normal form (sum-of-products).",
+        "For each output-1 row you build an AND term true only for that pattern, then OR them — giving disjunctive normal form.",
     },
     {
       prompt: "A disjunction of conjunctions (an OR of ANDs) built from a truth table is said to be in…",
       choices: [
-        "conjunctive normal form",
-        "disjunctive normal form (sum-of-products)",
+        "conjunctive normal form (product-of-sums)",
+        "disjunctive normal form",
         "contrapositive form",
         "binary form",
       ],
@@ -170,8 +170,8 @@ export default {
     {
       prompt: "The symbols | and ↓ stand for which gates?",
       choices: [
-        "| is NOR, ↓ is NAND",
-        "| is NAND (Sheffer stroke), ↓ is NOR (Peirce arrow)",
+        "| is NOR (Peirce arrow), ↓ is NAND (Sheffer stroke)",
+        "| is NAND, ↓ is NOR",
         "| is AND, ↓ is OR",
         "both mean NOT",
       ],

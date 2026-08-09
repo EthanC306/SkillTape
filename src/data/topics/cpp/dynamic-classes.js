@@ -72,7 +72,7 @@ export default {
       prompt: "When is a destructor called?",
       choices: [
         "Automatically, when an object goes out of scope",
-        "Only when you call it explicitly",
+        "Only when you call it explicitly, the way you would any other member function",
         "Only if the class has no constructor",
         "Every time a member function runs",
       ],
@@ -96,10 +96,10 @@ export default {
       prompt: "What does this destructor do?",
       code: "MyString::~MyString() {\n  delete[] str;\n}",
       choices: [
-        "Frees the dynamically allocated character array str points to",
+        "Frees the character array str points to",
         "Resets str to point to a new empty string",
         "Copies str into a temporary buffer",
-        "Deletes the MyString object itself from the stack",
+        "Deletes the MyString object itself from the stack, along with anything it points at",
       ],
       answer: 0,
       explanation:
@@ -110,9 +110,9 @@ export default {
       code: "MyString::MyString(int size) {\n  if (size > 0) {\n    str = new char[size];\n    maxLength = size;\n  } else {\n    str = new char[1000];\n    maxLength = 1000;\n  }\n}",
       choices: [
         "maxLength is set to 0",
-        "The constructor throws an exception",
+        "The constructor throws an exception that the caller is expected to catch",
         "str is left pointing to garbage",
-        "It falls back to allocating a 1000-character buffer",
+        "It allocates a 1000-character buffer",
       ],
       answer: 3,
       explanation:
@@ -122,8 +122,8 @@ export default {
       prompt:
         "void printString(MyString strObject); is called with an existing MyString. Without a copy constructor, what goes wrong when printString returns?",
       choices: [
-        "Nothing — pass by value is always safe for pointers",
-        "Its destructor deletes memory that the original object's pointer also points to, leaving a dangling pointer",
+        "Nothing — pass by value copies the pointer, which is always safe to do",
+        "Its destructor frees memory the original's pointer still points to",
         "The compiler refuses to compile the call",
         "The original object is automatically renamed",
       ],
@@ -134,21 +134,21 @@ export default {
     {
       prompt: "What must a copy constructor's parameter be?",
       choices: [
-        "A const reference to an object of the same class",
-        "A value parameter of the same class",
+        "A const reference to the same class",
+        "A value parameter of the same class, copied on the way in",
         "A pointer to the class",
         "An int giving the size to copy",
       ],
       answer: 0,
       explanation:
-        "A value parameter of the same class would itself require copying — an infinite recursion — so the parameter must be a const reference.",
+        "A value parameter of the same class, copied on the way in would itself require copying — an infinite recursion — so the parameter must be a const reference.",
     },
     {
       prompt: "A copy constructor runs automatically in which situations?",
       choices: [
-        "Only when explicitly written as CopyOf(obj)",
+        "Only when explicitly written as CopyOf(obj) somewhere in the program",
         "Whenever operator<< is used",
-        "When an object is passed by value, or returned from a function",
+        "When an object is passed by value or returned",
         "Only during program startup",
       ],
       answer: 2,
@@ -159,8 +159,8 @@ export default {
       prompt: "Why does MyString's copy constructor use strndup instead of copying the pointer str directly?",
       code: "MyString::MyString(const MyString& strObject) {\n  maxLength = strObject.length();\n  str = strndup(strObject.str, 1000);\n}",
       choices: [
-        "So the new object gets its own independent memory instead of sharing the original's",
-        "Because strndup is faster than pointer assignment",
+        "So the new object gets its own memory instead of sharing the original's",
+        "Because strndup is faster than assigning the pointer across and copying later",
         "Because str is declared const",
         "To avoid calling the destructor",
       ],
@@ -172,9 +172,9 @@ export default {
       prompt: "Why must operator= be overloaded for a class like MyString?",
       choices: [
         "It's required to make the class printable",
-        "The default assignment would copy the pointer, leaving both objects pointing at the same memory",
+        "The default assignment copies the pointer, so both objects end up on the same memory",
         "operator= doesn't exist unless you define it",
-        "Assignment is illegal for classes with constructors",
+        "Assignment is illegal for any class that declares its own constructor or destructor",
       ],
       answer: 1,
       explanation:
@@ -186,8 +186,8 @@ export default {
       choices: [
         "It has no real purpose",
         "It decides whether to call the destructor",
-        "It only checks whether rightSide is a valid object",
-        "Without it, self-assignment (string1 = string1;) would delete memory the statement still needs to read from",
+        "It only checks whether rightSide is a valid object before the copy begins",
+        "Without it, string1 = string1; deletes memory the statement still has to read",
       ],
       answer: 3,
       explanation:
@@ -197,9 +197,9 @@ export default {
       prompt: "A class allocates memory with new in its constructor. Which three member functions should it define together?",
       choices: [
         "getString, setString, and length",
-        "Destructor, copy constructor, and overloaded operator=",
+        "Destructor, copy constructor, operator=",
         "Only a destructor",
-        "Constructor, destructor, and a friend function",
+        "Constructor, destructor, and a friend function for output",
       ],
       answer: 1,
       explanation:
@@ -209,10 +209,10 @@ export default {
       prompt: "Why does createNewArray take arr as double*& instead of double*?",
       code: "void createNewArray(double*& arr, size_t n) {\n  arr = new double[n];\n}",
       choices: [
-        "Because double*& is required for the new operator",
+        "Because double*& is the only form the new operator accepts here",
         "Because arrays can't be passed by pointer",
         "To make the function run faster",
-        "So the function can redirect the caller's own pointer variable to new memory",
+        "So the function can repoint the caller's own pointer",
       ],
       answer: 3,
       explanation:
@@ -467,7 +467,7 @@ export default {
       prompt: "When is a destructor called?",
       choices: [
         "Automatically, when an object goes out of scope",
-        "Only when you call it explicitly",
+        "Only when you call it explicitly, the way you would any other member function",
         "Only if the class has no constructor",
         "Every time a member function runs",
       ],
@@ -515,12 +515,12 @@ export default {
       prompt: "In MyString::MyString(int size), what happens if size is 0 or negative?\n```\nMyString::MyString(int size) {\n  if (size > 0) {\n    str = new char[size];\n    maxLength = size;\n  } else {\n    str = new char[1000];\n    maxLength = 1000;\n  }\n}\n```",
       choices: [
         "maxLength is set to 0",
-        "The constructor throws an exception",
+        "The constructor throws an exception that the caller is expected to catch",
         "str is left pointing to garbage",
-        "It falls back to allocating a 1000-character buffer",
+        "It allocates a 1000-character buffer",
       ],
       answerIndex: 3,
-      expected: "It falls back to allocating a 1000-character buffer",
+      expected: "It allocates a 1000-character buffer",
       criteria: [
         "The else branch handles a non-positive size by defaulting to a 1000-character buffer.",
       ],
@@ -538,13 +538,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "Why does MyString's copy constructor use strndup instead of copying the pointer str directly?\n```\nMyString::MyString(const MyString& strObject) {\n  maxLength = strObject.length();\n  str = strndup(strObject.str, 1000);\n}\n```",
       choices: [
-        "So the new object gets its own independent memory instead of sharing the original's",
-        "Because strndup is faster than pointer assignment",
+        "So the new object gets its own memory instead of sharing the original's",
+        "Because strndup is faster than assigning the pointer across and copying later",
         "Because str is declared const",
         "To avoid calling the destructor",
       ],
       answerIndex: 0,
-      expected: "So the new object gets its own independent memory instead of sharing the original's",
+      expected: "So the new object gets its own memory instead of sharing the original's",
       criteria: [
         "strndup allocates a fresh buffer and copies the characters, so the new object doesn't share memory with the original.",
       ],
@@ -563,12 +563,12 @@ export default {
       prompt: "Why must operator= be overloaded for a class like MyString?",
       choices: [
         "It's required to make the class printable",
-        "The default assignment would copy the pointer, leaving both objects pointing at the same memory",
+        "The default assignment copies the pointer, so both objects end up on the same memory",
         "operator= doesn't exist unless you define it",
-        "Assignment is illegal for classes with constructors",
+        "Assignment is illegal for any class that declares its own constructor or destructor",
       ],
       answerIndex: 1,
-      expected: "The default assignment would copy the pointer, leaving both objects pointing at the same memory",
+      expected: "The default assignment copies the pointer, so both objects end up on the same memory",
       criteria: [
         "Without an overload, assignment copies str's address rather than its contents, so both objects end up sharing one buffer.",
       ],

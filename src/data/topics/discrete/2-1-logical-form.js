@@ -137,10 +137,10 @@ export default {
     {
       prompt: "Why is the expression p ∧ q ∨ r considered ambiguous?",
       choices: [
-        "∧ and ∨ are coequal in precedence, so parentheses are needed",
+        "∧ and ∨ are coequal, so parentheses are needed",
         "It contains three variables",
         "~ is missing",
-        "∨ always comes before ∧",
+        "∨ always binds before ∧ does, so the grouping is already fixed",
       ],
       answer: 0,
       explanation:
@@ -173,8 +173,8 @@ export default {
     {
       prompt: "What does it mean for two statement forms to be logically equivalent (P ≡ Q)?",
       choices: [
-        "They contain the same variables",
-        "They have the same truth value in every row of the truth table",
+        "They are built from exactly the same variables",
+        "They agree in every row",
         "They look similar",
         "They are both tautologies",
       ],
@@ -186,8 +186,8 @@ export default {
       prompt: "To show that two statement forms are NOT logically equivalent, it is enough to…",
       choices: [
         "check that every row matches",
-        "find one row (or example) where their truth values differ",
-        "show they use different symbols",
+        "find one row where they differ",
+        "show that the two of them use different symbols",
         "prove both are contradictions",
       ],
       answer: 1,

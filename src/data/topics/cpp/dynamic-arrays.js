@@ -99,8 +99,8 @@ export default {
       code: "char *chArray = new char[10];\nchArray += 5;\ndelete [] chArray;",
       choices: [
         "chArray leaks memory but nothing else happens",
-        "chArray no longer points at the start of the allocated block, which can corrupt memory",
-        "Nothing — delete[] always finds the original block",
+        "chArray no longer points at the start of the block",
+        "Nothing — delete[] always tracks down the original block on its own",
         "The += operator isn't allowed on pointers",
       ],
       answer: 1,
@@ -110,9 +110,9 @@ export default {
     {
       prompt: "Why does void someFunction(int *intPtr); accept an array argument?",
       choices: [
-        "Arrays and pointers are compatible — an array name decays to a pointer to its first element",
+        "An array name decays to a pointer to its first element",
         "Because intPtr is declared as int[]",
-        "C++ automatically converts arrays to vectors",
+        "C++ quietly converts the array into a vector on the way in",
         "The function secretly copies the whole array",
       ],
       answer: 0,
@@ -124,8 +124,8 @@ export default {
       code: "void swap(int *intPtr1, int *intPtr2) {\n  int temp = *intPtr1;\n  *intPtr1 = *intPtr2;\n  *intPtr2 = temp;\n}",
       choices: [
         "Deletes the memory at intPtr1",
-        "Makes intPtr1 point to the same address as intPtr2",
-        "Stores the value intPtr2 points to into the memory intPtr1 points to",
+        "Makes intPtr1 point at exactly the same address intPtr2 holds",
+        "Stores intPtr2's value into intPtr1's memory",
         "Compares the two pointers",
       ],
       answer: 2,
@@ -147,8 +147,8 @@ export default {
     {
       prompt: "What does strndup(name, 100) return?",
       choices: [
-        "true if name fits in 100 characters",
-        "A pointer to a newly allocated copy of name's contents",
+        "true, as long as name fits inside 100 characters",
+        "A pointer to a fresh copy of name",
         "The length of name",
         "A reference to name itself",
       ],
@@ -172,10 +172,10 @@ export default {
       prompt: "In this loop, what does *(intPtr + i) do?",
       code: "for (i = 0; i < size; i++) {\n  cout << *(intPtr + i) << ' ';\n}",
       choices: [
-        "Adds i to the pointer's stored address without reading memory",
+        "Adds i to the pointer's stored address without ever reading memory",
         "Multiplies the pointer's address by i",
         "Deletes the element at index i",
-        "Accesses the i-th element of the array intPtr points to, same as intPtr[i]",
+        "Accesses the i-th element, same as intPtr[i]",
       ],
       answer: 3,
       explanation:
@@ -496,12 +496,12 @@ export default {
       prompt: "What goes wrong here?\n```\nchar *chArray = new char[10];\nchArray += 5;\ndelete [] chArray;\n```",
       choices: [
         "chArray leaks memory but nothing else happens",
-        "chArray no longer points at the start of the allocated block, which can corrupt memory",
-        "Nothing — delete[] always finds the original block",
+        "chArray no longer points at the start of the block",
+        "Nothing — delete[] always tracks down the original block on its own",
         "The += operator isn't allowed on pointers",
       ],
       answerIndex: 1,
-      expected: "chArray no longer points at the start of the allocated block, which can corrupt memory",
+      expected: "chArray no longer points at the start of the block",
       criteria: [
         "delete[] expects the pointer to still reference the start of the block new returned; a shifted pointer can corrupt memory or free memory used elsewhere.",
       ],
@@ -519,13 +519,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "What does strndup(name, 100) return?",
       choices: [
-        "true if name fits in 100 characters",
-        "A pointer to a newly allocated copy of name's contents",
+        "true, as long as name fits inside 100 characters",
+        "A pointer to a fresh copy of name",
         "The length of name",
         "A reference to name itself",
       ],
       answerIndex: 1,
-      expected: "A pointer to a newly allocated copy of name's contents",
+      expected: "A pointer to a fresh copy of name",
       criteria: [
         "strndup allocates new memory, copies up to the given number of characters, and returns a pointer to that new copy.",
       ],

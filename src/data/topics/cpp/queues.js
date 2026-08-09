@@ -96,9 +96,9 @@ export default {
     {
       prompt: "What is queue overflow?",
       choices: [
-        "Trying to add an entry to a full queue",
-        "Trying to remove an entry from an empty queue",
-        "Storing an item at a negative array index",
+        "Adding an entry to a queue that is already full",
+        "Removing from an empty queue",
+        "Storing an item at a negative array index, below data[0]",
         "Peeking at a queue with one item on it",
       ],
       answer: 0,
@@ -108,10 +108,10 @@ export default {
     {
       prompt: "What is queue underflow?",
       choices: [
-        "Trying to add an entry to a full queue",
+        "Adding an entry to a queue that is already full",
         "Overwriting the front pointer",
         "Enqueuing a null item",
-        "Trying to remove an entry from an empty queue",
+        "Removing from an empty queue",
       ],
       answer: 3,
       explanation:
@@ -121,9 +121,9 @@ export default {
       prompt: "Why can't a plain array implementation just treat the last array index as a fixed rear boundary?",
       choices: [
         "Because rear must always be lower than front",
-        "Because the rear doesn't always mean the end of the array, and the front can drift past a fixed high boundary as items are removed",
+        "Because rear isn't always the array's end, and front drifts as items leave",
         "Because arrays can't hold more than CAPACITY - 1 items",
-        "Because C++ arrays don't support indexing past element 0",
+        "Because C++ arrays cannot be indexed past element 0 once a value has been removed",
       ],
       answer: 1,
       explanation:
@@ -135,8 +135,8 @@ export default {
         "size_t nextIndex(size_t index) const{\n    return (index + 1) % CAPACITY;\n}",
       choices: [
         "Returns index - 1, wrapping at 0",
-        "Doubles the capacity of the array",
-        "Returns (index + 1) % CAPACITY, wrapping past the last slot back to 0",
+        "Doubles the capacity of the array once the last slot is used",
+        "Returns (index + 1) % CAPACITY",
         "Always returns 0",
       ],
       answer: 2,
@@ -146,8 +146,8 @@ export default {
     {
       prompt: "For an empty queue, what is true of front and rear?",
       choices: [
-        "rear holds some valid index, and front equals nextIndex(rear)",
-        "front is always 0 and rear is always CAPACITY - 1",
+        "front equals nextIndex(rear)",
+        "front sits at 0 and rear at CAPACITY - 1, exactly as constructed",
         "Both front and rear are set to -1",
         "front is always greater than rear",
       ],
@@ -160,10 +160,10 @@ export default {
       code:
         "template <class Item>\nQueue<Item>::Queue( )\n{\n    numItems = 0;\n    front = 0;\n    rear = CAPACITY - 1;\n}",
       choices: [
-        "0, so the first push writes to data[0] directly",
-        "CAPACITY, one past the last valid index",
-        "-1, matching the stack's empty convention",
-        "CAPACITY - 1, so nextIndex(rear) makes the first push land at index 0",
+        "0, so the very first push writes straight into data[0]",
+        "CAPACITY, which is one past the last valid index",
+        "-1, matching the empty convention the array stack uses",
+        "CAPACITY - 1",
       ],
       answer: 3,
       explanation:
@@ -188,8 +188,8 @@ export default {
       code:
         "rear = nextIndex(rear);\ndata[rear] = entry;\nnumItems++;",
       choices: [
-        "So the very first push, right after construction, lands at index 0, since rear starts at CAPACITY - 1",
-        "So data[rear] is always one slot behind the item actually stored",
+        "So the first push lands at index 0, since rear starts at CAPACITY - 1",
+        "So data[rear] always trails one slot behind the item that was actually stored",
         "It doesn't matter; writing first would work identically",
         "So old items get overwritten immediately",
       ],
@@ -204,8 +204,8 @@ export default {
       choices: [
         "data[rear], the most recently pushed item",
         "numItems, the current size of the queue",
-        "The value saved from data[front] before front was advanced",
-        "data[front] after front has already moved forward",
+        "The value saved before front advanced",
+        "data[front], read after front has already been moved forward",
       ],
       answer: 2,
       explanation:
@@ -214,10 +214,10 @@ export default {
     {
       prompt: "What is the difference between peek and pop on this queue?",
       choices: [
-        "peek returns the item at the front without removing it; pop removes it",
+        "peek reads the front item; pop removes it",
         "peek works only on array queues; pop works only on linked queues",
         "There is no difference",
-        "peek removes the front item; pop only looks at it",
+        "peek removes the front item, while pop only reads it and leaves it in place",
       ],
       answer: 0,
       explanation:
@@ -239,9 +239,9 @@ export default {
       prompt: "What do frontPtr and rearPtr point to in the linked-list queue?",
       choices: [
         "frontPtr is an index, not a pointer",
-        "frontPtr is the head pointer; rearPtr is the tail pointer, for a non-empty queue",
+        "frontPtr is the head pointer, rearPtr the tail",
         "Both point to the same node at all times",
-        "rearPtr is only used when the queue is empty",
+        "rearPtr is only used while the queue is empty, and is null the rest of the time",
       ],
       answer: 1,
       explanation:
@@ -581,12 +581,12 @@ export default {
       prompt: "Why can't a plain array implementation just treat the last array index as a fixed rear boundary?",
       choices: [
         "Because rear must always be lower than front",
-        "Because the rear doesn't always mean the end of the array, and the front can drift past a fixed high boundary as items are removed",
+        "Because rear isn't always the array's end, and front drifts as items leave",
         "Because arrays can't hold more than CAPACITY - 1 items",
-        "Because C++ arrays don't support indexing past element 0",
+        "Because C++ arrays cannot be indexed past element 0 once a value has been removed",
       ],
       answerIndex: 1,
-      expected: "Because the rear doesn't always mean the end of the array, and the front can drift past a fixed high boundary as items are removed",
+      expected: "Because rear isn't always the array's end, and front drifts as items leave",
       criteria: [
         "As items are pushed and popped, the occupied range can wrap around, so treating the array's last index as a hard boundary wastes freed slots at the low end.",
       ],
@@ -604,13 +604,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "Why does the constructor set rear to CAPACITY - 1 instead of 0?\n```\ntemplate <class Item>\nQueue<Item>::Queue( )\n{\n    numItems = 0;\n    front = 0;\n    rear = CAPACITY - 1;\n}\n```",
       choices: [
-        "0, so the first push writes to data[0] directly",
-        "CAPACITY, one past the last valid index",
-        "-1, matching the stack's empty convention",
-        "CAPACITY - 1, so nextIndex(rear) makes the first push land at index 0",
+        "0, so the very first push writes straight into data[0]",
+        "CAPACITY, which is one past the last valid index",
+        "-1, matching the empty convention the array stack uses",
+        "CAPACITY - 1",
       ],
       answerIndex: 3,
-      expected: "CAPACITY - 1, so nextIndex(rear) makes the first push land at index 0",
+      expected: "CAPACITY - 1",
       criteria: [
         "push always advances rear with nextIndex before writing, so starting rear one slot behind index 0 is what makes the first push actually land at index 0.",
       ],

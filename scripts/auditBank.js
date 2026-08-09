@@ -112,6 +112,48 @@ function checkSourceIntegrity(items, sourceIndex) {
   return { errors, warnings: [] };
 }
 
+/**
+ * Length bias: a multiple-choice item whose correct answer is visibly the
+ * longest choice can be answered without knowing anything about the subject.
+ * Measured across this bank on 2026-08-09, the correct answer was the strictly
+ * longest choice in 58% of rows — against ~25% for four choices if length
+ * carried no signal — because a correct answer tends to get written with all
+ * its qualifications attached while the distractors stay throwaway one-liners.
+ *
+ * The fix is per-item, not global: either trim the correct answer to its claim
+ * or give the distractors the same specificity. Both are cheap; what isn't
+ * cheap is a bank that quietly trains recognition of long text.
+ *
+ * A warning, not an error, and only past a margin — some questions have
+ * genuinely uneven choices (a list of member names, a code fragment) where
+ * padding a distractor would be worse than the tell it removes.
+ */
+const LENGTH_BIAS_MARGIN = 5;
+
+function checkChoiceLengthBias(items) {
+  const warnings = [];
+  for (const item of items) {
+    // Handles both shapes this script already accepts: promoted mcq items
+    // (choices/answerIndex) and legacy questions[] rows (choices/answer).
+    const choices = item.choices;
+    const answer = item.answerIndex ?? item.answer;
+    if (!Array.isArray(choices) || typeof answer !== "number") continue;
+    if (!choices[answer]) continue;
+
+    const lengths = choices.map((c) => String(c).length);
+    const others = lengths.filter((_, i) => i !== answer);
+    if (!others.length) continue;
+
+    const gap = lengths[answer] - Math.max(...others);
+    if (gap >= LENGTH_BIAS_MARGIN) {
+      warnings.push(
+        `item ${item.id ?? item.prompt?.slice(0, 40)}: length bias — the correct choice is ${gap} characters longer than the next longest, which is answerable without the material`
+      );
+    }
+  }
+  return warnings;
+}
+
 // Per-course allowlists for notation the tripwire would otherwise flag.
 // Keyed by `topic.course` — the ids in src/data/courses.js, not the course
 // numbers those cards display.
@@ -188,6 +230,11 @@ for (const topic of topics) {
 // Merge the second set of errors into the first.
   for (const err of integrity.errors) {
     result.errors.push(err);
+  }
+
+// And the choice-length tell, which is a warning rather than an error.
+  for (const warning of checkChoiceLengthBias(items)) {
+    result.warnings.push(warning);
   }
 
   totalErrors += result.errors.length;

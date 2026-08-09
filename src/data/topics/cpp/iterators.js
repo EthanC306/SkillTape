@@ -115,9 +115,9 @@ export default {
       prompt: "What does the keyword `this` refer to inside a member function?",
       choices: [
         "A copy of the object's data",
-        "A pointer to the object that invoked the function",
+        "A pointer to the invoking object",
         "The class itself, not any object",
-        "The most recently constructed object",
+        "The most recently constructed object of that class",
       ],
       answer: 1,
       explanation:
@@ -128,8 +128,8 @@ export default {
       choices: [
         "Linked lists are always sorted",
         "Indexes only work on constant data",
-        "Linked lists have no elements, only pointers",
-        "Its nodes are chained by pointers, so there's no direct offset to element i",
+        "Linked lists have no elements at all, only pointers to other pointers",
+        "Its nodes are chained by pointers, with no offset to element i",
       ],
       answer: 3,
       explanation:
@@ -139,8 +139,8 @@ export default {
       prompt: "What is the one difference between set and multiset?",
       choices: [
         "multiset is sorted, set is not",
-        "set has an iterator, multiset does not",
-        "set cannot hold duplicate elements; multiset can",
+        "set has an iterator type, multiset has to be walked by index",
+        "set cannot hold duplicates; multiset can",
         "multiset can only hold strings",
       ],
       answer: 2,
@@ -167,7 +167,7 @@ export default {
         "multiset<string>::iterator",
         "string",
         "string*",
-        "auto is its own type",
+        "auto, which is its own distinct type",
       ],
       answer: 0,
       explanation:
@@ -183,7 +183,7 @@ export default {
     {
       prompt: "In the iterator hierarchy, which is true?",
       choices: [
-        "A forward iterator can do everything a bidirectional one can",
+        "A forward iterator can do everything a bidirectional iterator can",
         "A random access iterator can do everything a bidirectional one can",
         "Input and output iterators are the most capable",
         "The categories are unrelated to each other",
@@ -198,8 +198,8 @@ export default {
       choices: [
         "The type of data the iterator iterates over",
         "Comparing two iterators for equality",
-        "Marking which iterator category the class belongs to",
-        "A signed integer measuring the distance between two iterators",
+        "Marking which of the five iterator categories the class belongs to",
+        "A signed integer distance between two iterators",
       ],
       answer: 3,
       explanation:
@@ -209,9 +209,9 @@ export default {
       prompt: "What does operator* return, and why a reference?",
       code: "ItDataType &operator*() const {\n    return current->getData();\n}",
       choices: [
-        "A copy of the data, so changes are discarded",
+        "A copy of the data, so any change made through *it is discarded",
         "The node pointer",
-        "A reference to the current node's data, so *it names the stored value itself",
+        "A reference to the current node's data",
         "A const pointer to the next node",
       ],
       answer: 2,
@@ -235,9 +235,9 @@ export default {
       prompt: "What does this postfix ++ return?",
       code: "Iterator operator++(int) {\n    Iterator original = *this;\n    current = current->getNext();\n    return original;\n}",
       choices: [
-        "A reference to the advanced iterator",
+        "A reference to the iterator after it has been advanced",
         "The data at the next node",
-        "A copy of the iterator as it was before advancing",
+        "A copy of the iterator from before it advanced",
         "Nothing — it modifies in place",
       ],
       answer: 2,
@@ -248,9 +248,9 @@ export default {
       prompt: "How do two iterators decide whether they are equal?",
       code: "bool operator==(const Iterator other) const {\n    return current == other.current;\n}",
       choices: [
-        "They compare their current pointers — same node means equal",
+        "They compare their current pointers",
         "They compare the data stored at each node",
-        "They compare how many times each has been advanced",
+        "They compare how many times each one has been advanced so far",
         "They compare the sizes of their lists",
       ],
       answer: 0,
@@ -261,8 +261,8 @@ export default {
       prompt: "What does end() return, and why does that stop the loop?",
       code: "Iterator<DataType> end() {\n    return Iterator<DataType>();\n}",
       choices: [
-        "An iterator to the last node, so the last element is skipped",
-        "A default-constructed iterator whose current is nullptr — the walk stops when it runs off the list",
+        "An iterator to the list's last node, so the final element is skipped by the loop",
+        "A default-constructed iterator whose current is nullptr",
         "The number of elements in the list",
         "A null reference that causes the loop to throw",
       ],
@@ -275,9 +275,9 @@ export default {
       code: "const ItDataType &operator*() const { ... }\nprivate:\n    const Node<ItDataType> *current;",
       choices: [
         "It can only move backward",
-        "It stores a copy of the data instead of a pointer",
+        "It stores a copy of the data instead of a pointer to the node holding it",
         "It drops the ++ operators entirely",
-        "Its functions return constant pointers and values, so the data can't be modified through it",
+        "Its functions return constant pointers and values",
       ],
       answer: 3,
       explanation:
@@ -938,12 +938,12 @@ export default {
       prompt: "What does the keyword `this` refer to inside a member function?",
       choices: [
         "A copy of the object's data",
-        "A pointer to the object that invoked the function",
+        "A pointer to the invoking object",
         "The class itself, not any object",
-        "The most recently constructed object",
+        "The most recently constructed object of that class",
       ],
       answerIndex: 1,
-      expected: "A pointer to the object that invoked the function",
+      expected: "A pointer to the invoking object",
       criteria: [
         "this is a pointer that always points to the current object — the one the member function was called on.",
       ],
@@ -963,11 +963,11 @@ export default {
       choices: [
         "Linked lists are always sorted",
         "Indexes only work on constant data",
-        "Linked lists have no elements, only pointers",
-        "Its nodes are chained by pointers, so there's no direct offset to element i",
+        "Linked lists have no elements at all, only pointers to other pointers",
+        "Its nodes are chained by pointers, with no offset to element i",
       ],
       answerIndex: 3,
-      expected: "Its nodes are chained by pointers, so there's no direct offset to element i",
+      expected: "Its nodes are chained by pointers, with no offset to element i",
       criteria: [
         "You'd have to walk the chain node by node, which is exactly the complexity iterators are designed to hide.",
       ],
@@ -986,12 +986,12 @@ export default {
       prompt: "What is the one difference between set and multiset?",
       choices: [
         "multiset is sorted, set is not",
-        "set has an iterator, multiset does not",
-        "set cannot hold duplicate elements; multiset can",
+        "set has an iterator type, multiset has to be walked by index",
+        "set cannot hold duplicates; multiset can",
         "multiset can only hold strings",
       ],
       answerIndex: 2,
-      expected: "set cannot hold duplicate elements; multiset can",
+      expected: "set cannot hold duplicates; multiset can",
       criteria: [
         "Both keep their elements ordered — only the duplicate rule differs.",
       ],

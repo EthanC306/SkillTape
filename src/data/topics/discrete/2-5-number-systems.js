@@ -26,7 +26,7 @@ export default {
     {
       heading: "Binary addition",
       body:
-        "Binary arithmetic mirrors decimal, but you **carry at 2** instead of at 10 (since 2 = 10₂). The single-digit sums are: 0+0 = 0, 0+1 = 1, and **1+1 = 10₂** (write 0, **carry 1**). Adding three 1's gives **11₂** (write 1, carry 1). Just like grade-school addition, you work right to left, writing the low bit and carrying the high bit into the next column.",
+        "Binary arithmetic mirrors decimal, but you **carry at 2** instead of at 10 (since 2 = 10₂). The single-digit sums are: 0+0 = 0, 0+1 = 1, and **1+1 = 10₂** (write 0, **carry 1**). Adding three 1's gives **11₂ (1 carry 1)** (write 1, carry 1). Just like grade-school addition, you work right to left, writing the low bit and carrying the high bit into the next column.",
     },
     {
       heading: "The half-adder",
@@ -84,8 +84,8 @@ export default {
       prompt: "Why is binary (base 2) important in computing?",
       choices: [
         "It is easier for humans to read",
-        "Electronic signals have two states, matching the two binary digits",
-        "It uses fewer digits than any other base",
+        "Signals have two states, like the two digits",
+        "It uses fewer digits than any other base available",
         "It avoids carrying",
       ],
       answer: 1,
@@ -101,7 +101,7 @@ export default {
     },
     {
       prompt: "In binary addition, what is 1 + 1?",
-      choices: ["1", "2", "10₂ (0 carry 1)", "11₂"],
+      choices: ["1", "2", "10₂", "11₂ (1 carry 1)"],
       answer: 2,
       explanation:
         "1 + 1 = 2 = 10₂: you write 0 and carry 1, since binary carries at 2.",
@@ -117,9 +117,9 @@ export default {
       prompt: "Why can't a half-adder alone add the middle columns of a multi-digit binary sum?",
       choices: [
         "It only has one input",
-        "It can't accept a carry coming in from the previous column",
+        "It can't accept a carry in",
         "It produces no carry",
-        "It works only in decimal",
+        "It works only on decimal digits, never binary",
       ],
       answer: 1,
       explanation:
@@ -129,13 +129,13 @@ export default {
       prompt: "A full-adder adds three bits. It is typically built from…",
       choices: [
         "one half-adder",
-        "two half-adders and an OR-gate",
+        "two half-adders, one OR-gate",
         "three OR-gates",
-        "a single AND-gate",
+        "a single AND-gate on its own",
       ],
       answer: 1,
       explanation:
-        "A full-adder combines two half-adders and an OR-gate to add P, Q, and a carry R.",
+        "A full-adder combines two half-adders, one OR-gate to add P, Q, and a carry R.",
     },
     {
       prompt: "A circuit that adds two multi-digit binary numbers by chaining adders is called a…",
@@ -147,8 +147,8 @@ export default {
     {
       prompt: "To find the 8-bit two's complement of a negative number, you…",
       choices: [
-        "write the positive value in binary, flip every bit, then add 1",
-        "just write it in binary",
+        "write it in binary, flip the bits, add 1",
+        "just write it in binary and mark the sign",
         "flip every bit only",
         "add 1 only",
       ],
@@ -160,9 +160,9 @@ export default {
       prompt: "What is the main advantage of two's complement representation?",
       choices: [
         "It uses fewer bits",
-        "The same adder circuit can perform both addition and subtraction, and 0 is unique",
+        "One adder circuit does both, and 0 is unique",
         "It makes numbers bigger",
-        "It avoids binary entirely",
+        "It avoids using binary representation entirely",
       ],
       answer: 1,
       explanation:
@@ -172,9 +172,9 @@ export default {
       prompt: "In two's complement, what does the leading (left-most) bit indicate?",
       choices: [
         "The size of the number",
-        "The sign: 1 for negative, 0 for nonnegative",
+        "The sign",
         "Always 1",
-        "Whether the number is even",
+        "Whether the number happens to be an even one",
       ],
       answer: 1,
       explanation:

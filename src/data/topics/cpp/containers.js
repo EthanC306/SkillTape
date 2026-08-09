@@ -61,9 +61,9 @@ export default {
       prompt: "What is a container class?",
       choices: [
         "A special kind of loop",
-        "A class whose objects hold a collection of items",
+        "A class holding a collection of items",
         "A header file",
-        "A function that sorts data",
+        "A function that sorts the data it is handed",
       ],
       answer: 1,
       explanation:
@@ -85,9 +85,9 @@ export default {
       prompt: "What makes a sequence class different from a plain container?",
       choices: [
         "It can only hold integers",
-        "Its elements are kept in a set order",
+        "Its elements are kept in order",
         "It has no capacity limit",
-        "Its items cannot be erased",
+        "Its items can never be erased once inserted",
       ],
       answer: 1,
       explanation:
@@ -98,8 +98,8 @@ export default {
       code: "int data[CAPACITY];\nsize_t used;",
       choices: [
         "The array's memory address",
-        "The largest value in the bag",
-        "How many values are currently stored",
+        "The largest value currently sitting in the bag",
+        "How many values are stored",
         "The maximum capacity",
       ],
       answer: 2,
@@ -109,9 +109,9 @@ export default {
     {
       prompt: "What is CAPACITY in the Bag class?",
       choices: [
-        "A static constant for the most items the bag can hold",
+        "A static constant capacity",
         "A loop counter",
-        "The current number of items",
+        "The number of items the bag currently holds",
         "A member function",
       ],
       answer: 0,
@@ -123,8 +123,8 @@ export default {
       choices: [
         "A container class",
         "A signed integer",
-        "An unsigned integer used for sizes and counts",
-        "A floating-point type",
+        "An unsigned integer type",
+        "A floating-point type used for measurements",
       ],
       answer: 2,
       explanation:
@@ -159,10 +159,10 @@ export default {
       prompt: "Why is size() marked const?",
       code: "size_t size() const;",
       choices: [
-        "It only reads the bag and never changes it",
+        "It only reads the bag",
         "It runs faster",
         "It can only be called once",
-        "It always returns a constant value",
+        "It always hands back the same constant value every time",
       ],
       answer: 0,
       explanation:
@@ -173,8 +173,8 @@ export default {
       choices: [
         "eraseAll only works on sorted bags",
         "There is no real difference",
-        "erase is simply the faster version",
-        "erase removes one matching value; eraseAll removes every match",
+        "erase is simply the faster of the two, with no other difference",
+        "erase removes one match; eraseAll removes all",
       ],
       answer: 3,
       explanation:
