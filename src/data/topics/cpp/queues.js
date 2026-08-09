@@ -415,5 +415,101 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "queues-mcq-01",
+      topicId: "queues",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Where can entries be inserted and removed in a queue?",
+      choices: [
+        "At the rear for insertion, at the front for removal",
+        "Only at one end, called the front, for both operations",
+        "Anywhere, since order doesn't matter",
+        "Only at the rear, for both operations",
+      ],
+      answerIndex: 0,
+      expected: "At the rear for insertion, at the front for removal",
+      criteria: [
+        "A queue restricts insertion to the rear and removal to the front, which is what makes it FIFO rather than a stack.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "queues-mcq-02",
+      topicId: "queues",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "You enqueue 3, then 7, then 5 onto an empty queue. What does the next dequeue return?",
+      choices: [
+        "The largest value, 7",
+        "5",
+        "7",
+        "3",
+      ],
+      answerIndex: 3,
+      expected: "3",
+      criteria: [
+        "A queue is First-In/First-Out, so the earliest item pushed, 3, is the first one back off.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "queues-mcq-03",
+      topicId: "queues",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Why can't a plain array implementation just treat the last array index as a fixed rear boundary?",
+      choices: [
+        "Because rear must always be lower than front",
+        "Because the rear doesn't always mean the end of the array, and the front can drift past a fixed high boundary as items are removed",
+        "Because arrays can't hold more than CAPACITY - 1 items",
+        "Because C++ arrays don't support indexing past element 0",
+      ],
+      answerIndex: 1,
+      expected: "Because the rear doesn't always mean the end of the array, and the front can drift past a fixed high boundary as items are removed",
+      criteria: [
+        "As items are pushed and popped, the occupied range can wrap around, so treating the array's last index as a hard boundary wastes freed slots at the low end.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "queues-mcq-04",
+      topicId: "queues",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Why does the constructor set rear to CAPACITY - 1 instead of 0?\n```\ntemplate <class Item>\nQueue<Item>::Queue( )\n{\n    numItems = 0;\n    front = 0;\n    rear = CAPACITY - 1;\n}\n```",
+      choices: [
+        "0, so the first push writes to data[0] directly",
+        "CAPACITY, one past the last valid index",
+        "-1, matching the stack's empty convention",
+        "CAPACITY - 1, so nextIndex(rear) makes the first push land at index 0",
+      ],
+      answerIndex: 3,
+      expected: "CAPACITY - 1, so nextIndex(rear) makes the first push land at index 0",
+      criteria: [
+        "push always advances rear with nextIndex before writing, so starting rear one slot behind index 0 is what makes the first push actually land at index 0.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

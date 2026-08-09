@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 import { FORMATS } from "../data/itemSchema";
 import { getExamSet, getDrillStats, postDrillAttempt, getDrillExport } from "../api/client";
+import PromptBody from "./PromptBody";
 
 /**
  * ExamView — the exam simulator (ROADMAP.md A5, re-homed in-app per D6).
@@ -342,7 +343,7 @@ export default function ExamView({ course, onExit }) {
             </span>
           </div>
 
-          <div style={{ fontSize: 16, lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 20 }}>{item.prompt}</div>
+          <PromptBody prompt={item.prompt} style={{ fontSize: 16, lineHeight: 1.6, marginBottom: 20 }} />
 
           {item.format === FORMATS.MCQ ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
@@ -425,7 +426,7 @@ export default function ExamView({ course, onExit }) {
           <div style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted, marginBottom: 14 }}>
             GRADING · {gradedResults.length + 1} / {gradedResults.length + gradeQueue.length} · {item.format.toUpperCase()}
           </div>
-          <div style={{ fontSize: 16, lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 20 }}>{item.prompt}</div>
+          <PromptBody prompt={item.prompt} style={{ fontSize: 16, lineHeight: 1.6, marginBottom: 20 }} />
 
           {current.answerText?.trim() && (
             <div style={{ marginBottom: 16 }}>

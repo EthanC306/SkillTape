@@ -12,6 +12,7 @@ import {
 } from "../api/client";
 import useOllamaSettings from "../hooks/useOllamaSettings";
 import shuffle from "../utils/shuffle";
+import PromptBody from "./PromptBody";
 
 /**
  * PracticeView — a selective, batch-graded companion to DrillView
@@ -619,7 +620,7 @@ export default function PracticeView({ course, onExit }) {
             />
           </div>
 
-          <div style={{ fontSize: 16, lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 20 }}>{item.prompt}</div>
+          <PromptBody prompt={item.prompt} style={{ fontSize: 16, lineHeight: 1.6, marginBottom: 20 }} />
 
           {item.format === FORMATS.MCQ ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
@@ -1011,7 +1012,7 @@ function ResultCard({ result, suspended = false, onSuspend = null, onUnsuspend =
         </span>
       </div>
 
-      <div style={{ fontSize: 15, lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 12 }}>{item.prompt}</div>
+      <PromptBody prompt={item.prompt} style={{ fontSize: 15, lineHeight: 1.6, marginBottom: 12 }} />
 
       <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, marginBottom: 4 }}>YOUR ANSWER</div>
       <div

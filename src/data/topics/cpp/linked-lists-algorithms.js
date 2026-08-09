@@ -353,5 +353,101 @@ export default {
       difficulty: 1,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "linked-lists-algorithms-mcq-01",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What is the running time of the list-length algorithm?\n```\nsize_t count = 0;\nNode *cursor = head;\nwhile (cursor != nullptr) {\n    count++;\n    cursor = cursor->getNext();\n}\n```",
+      choices: [
+        "O(n)",
+        "O(1)",
+        "O(n²)",
+        "O(log n)",
+      ],
+      answerIndex: 0,
+      expected: "O(n)",
+      criteria: [
+        "The cursor visits every node exactly once before reaching nullptr, so the work scales linearly with the list's size.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-mcq-02",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Why must temp->setNext(previous->getNext()) happen BEFORE previous->setNext(temp) when inserting after a pointer?\n```\nNode *temp = new Node(value);\nif (previous != nullptr) {\n    temp->setNext(previous->getNext());\n    previous->setNext(temp);\n}\n```",
+      choices: [
+        "The order doesn't actually matter here",
+        "Otherwise previous->getNext() would already be temp, losing the link to the rest of the list",
+        "It avoids a memory leak in temp itself",
+        "C++ requires setNext calls in alphabetical order",
+      ],
+      answerIndex: 1,
+      expected: "Otherwise previous->getNext() would already be temp, losing the link to the rest of the list",
+      criteria: [
+        "If previous were redirected to temp first, previous->getNext() would return temp instead of the original next node, orphaning the rest of the list.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-mcq-03",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "In the insert algorithm, what does `previous == nullptr` signal?",
+      choices: [
+        "The list is empty, so the new value should be inserted at the head",
+        "An invalid pointer was passed and the program should crash",
+        "The list has exactly one node",
+        "previous points to the last node in the list",
+      ],
+      answerIndex: 0,
+      expected: "The list is empty, so the new value should be inserted at the head",
+      criteria: [
+        "A nullptr previous means there's no node to insert after, which corresponds to an empty list — handled by calling headInsert.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-mcq-04",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "When deleting a node, why does the head case need special handling?\n```\nif (current == head) {\n    head = current->getNext();\n    delete current;\n}\n```",
+      choices: [
+        "The head node can never be deleted",
+        "Deleting the head always empties the whole list",
+        "There's no predecessor node whose next pointer needs updating — head itself must move instead",
+        "head is a const pointer and can't be reassigned",
+      ],
+      answerIndex: 2,
+      expected: "There's no predecessor node whose next pointer needs updating — head itself must move instead",
+      criteria: [
+        "Every other node has a predecessor to re-link, but the head node doesn't — so head itself is advanced to the next node instead.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

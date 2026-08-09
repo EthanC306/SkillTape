@@ -367,5 +367,77 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "templates-mcq-01",
+      topicId: "templates",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What problem do templates solve?",
+      choices: [
+        "Making programs run in constant time",
+        "Allocating memory on the heap",
+        "Writing the same algorithm once instead of overloading it for every data type",
+        "Hiding a class's private data",
+      ],
+      answerIndex: 2,
+      expected: "Writing the same algorithm once instead of overloading it for every data type",
+      criteria: [
+        "Templates let one definition serve every data type, replacing a pile of near-identical overloaded functions.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "templates-mcq-02",
+      topicId: "templates",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Which two keywords can introduce a generic type parameter?",
+      choices: [
+        "typename or class",
+        "auto or const",
+        "struct or union",
+        "generic or template",
+      ],
+      answerIndex: 0,
+      expected: "typename or class",
+      criteria: [
+        "Both typename and class work identically here; this course uses typename because it's more readable.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "templates-mcq-03",
+      topicId: "templates",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What is missing above this function?\n```\nvoid swap (T &first, T &second)\n{\n    T temp = first;\n    first = second;\n    second = temp;\n}\n```",
+      choices: [
+        "using T = int;",
+        "template <typename T>",
+        "#include <template>",
+        "class T;",
+      ],
+      answerIndex: 1,
+      expected: "template <typename T>",
+      criteria: [
+        "Without the template <typename T> line above it, the compiler has no idea what T is.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

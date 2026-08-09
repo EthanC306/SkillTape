@@ -36,11 +36,15 @@ const upsertTopic = db.prepare(`
 `);
 
 // Child rows are replaced wholesale per topic — simpler and more predictable
-// than diffing, and the volume is trivial (~176 cards, ~232 questions).
+// than diffing, and the volume is trivial (~176 cards, ~232 questions). Safe
+// for these three because nothing references them: no per-user state hangs off
+// a card, a legacy question, or a flashcard.
+//
+// `items` is the exception and must NOT be cleared this way — see
+// deleteMissingItems below.
 const clearCards = db.prepare("DELETE FROM cards WHERE topic_id = ?");
 const clearQuestions = db.prepare("DELETE FROM questions WHERE topic_id = ?");
 const clearFlashcards = db.prepare("DELETE FROM flashcards WHERE topic_id = ?");
-const clearItems = db.prepare("DELETE FROM items WHERE topic_id = ?");
 
 const insertCard = db.prepare(`
   INSERT INTO cards (topic_id, position, heading, body, code, accept,
@@ -64,10 +68,24 @@ const insertFlashcard = db.prepare(
   "INSERT INTO flashcards (topic_id, position, front, back) VALUES (?, ?, ?, ?)"
 );
 
-// items (ROADMAP.md A3/A4): itemSchema.js's polymorphic bank. Seeded
-// wholesale like everything else here — the topic module stays the source of
-// truth, this is a one-way bridge into SQLite.
-const insertItem = db.prepare(`
+// items (ROADMAP.md A3/A4): itemSchema.js's polymorphic bank. The topic module
+// stays the source of truth and this is still a one-way bridge into SQLite —
+// but UPSERT, not delete-and-reinsert like the three tables above.
+//
+// This is load-bearing, not a style preference. server/db.js sets
+// `foreign_keys = ON`, and item_review_state, item_attempts and
+// item_suspensions all declare `item_id REFERENCES items(id) ON DELETE
+// CASCADE` (schema.sql). A `DELETE FROM items WHERE topic_id = ?` therefore
+// cascades into every one of them, and reinserting the same id afterward does
+// not bring the children back — so a plain reseed used to destroy all FSRS
+// scheduling, the entire attempt log, and every suspension, for every item,
+// including the ones whose content hadn't changed. Editing one prompt cost you
+// your whole study history.
+//
+// ON CONFLICT(id) keeps the row (and its children) alive while refreshing
+// every content column, which is exactly the "topic module wins" semantics the
+// delete was reaching for.
+const upsertItem = db.prepare(`
   INSERT INTO items (id, topic_id, position, format, origin, prompt, expected,
                      criteria, provenance, generation_meta, difficulty,
                      verified_by_human, retired, choices, answer_index,
@@ -76,7 +94,38 @@ const insertItem = db.prepare(`
           @criteria, @provenance, @generation_meta, @difficulty,
           @verified_by_human, @retired, @choices, @answer_index,
           @time_budget_sec, @extra_atoms)
+  ON CONFLICT(id) DO UPDATE SET topic_id          = excluded.topic_id,
+                                position          = excluded.position,
+                                format            = excluded.format,
+                                origin            = excluded.origin,
+                                prompt            = excluded.prompt,
+                                expected          = excluded.expected,
+                                criteria          = excluded.criteria,
+                                provenance        = excluded.provenance,
+                                generation_meta   = excluded.generation_meta,
+                                difficulty        = excluded.difficulty,
+                                verified_by_human = excluded.verified_by_human,
+                                retired           = excluded.retired,
+                                choices           = excluded.choices,
+                                answer_index      = excluded.answer_index,
+                                time_budget_sec   = excluded.time_budget_sec,
+                                extra_atoms       = excluded.extra_atoms
 `);
+
+// The other half of the upsert: an item deleted from a topic module has to
+// disappear from the bank too. Cascading here IS correct — the item is
+// genuinely gone, so its scheduling state and attempts have nothing left to
+// describe. Built per topic because the id list is variadic.
+function deleteMissingItems(topicId, keepIds) {
+  const placeholders = keepIds.map(() => "?").join(", ");
+  return db
+    .prepare(
+      keepIds.length
+        ? `DELETE FROM items WHERE topic_id = ? AND id NOT IN (${placeholders})`
+        : "DELETE FROM items WHERE topic_id = ?"
+    )
+    .run(topicId, ...keepIds).changes;
+}
 
 /** Flatten the optional { src, alt, caption } figure into three columns. */
 function figureCols(figure) {
@@ -116,7 +165,9 @@ const seed = db.transaction(() => {
     clearCards.run(topic.id);
     clearQuestions.run(topic.id);
     clearFlashcards.run(topic.id);
-    clearItems.run(topic.id);
+    // NOT clearItems — items are upserted below and pruned after, so that
+    // per-user review state and attempts survive a reseed.
+    deleteMissingItems(topic.id, (topic.items ?? []).map((it) => it.id));
 
     (topic.cards ?? []).forEach((card, i) => {
       insertCard.run({
@@ -154,7 +205,7 @@ const seed = db.transaction(() => {
     });
 
     (topic.items ?? []).forEach((it, i) => {
-      insertItem.run({
+      upsertItem.run({
         id: it.id,
         topic_id: topic.id,
         position: i,

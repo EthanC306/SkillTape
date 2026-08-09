@@ -750,5 +750,125 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "iterators-mcq-01",
+      topicId: "iterators",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What does the keyword `this` refer to inside a member function?",
+      choices: [
+        "A copy of the object's data",
+        "A pointer to the object that invoked the function",
+        "The class itself, not any object",
+        "The most recently constructed object",
+      ],
+      answerIndex: 1,
+      expected: "A pointer to the object that invoked the function",
+      criteria: [
+        "this is a pointer that always points to the current object — the one the member function was called on.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-mcq-02",
+      topicId: "iterators",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Why can't a linked list's elements be reached with an integer index the way an array's can?",
+      choices: [
+        "Linked lists are always sorted",
+        "Indexes only work on constant data",
+        "Linked lists have no elements, only pointers",
+        "Its nodes are chained by pointers, so there's no direct offset to element i",
+      ],
+      answerIndex: 3,
+      expected: "Its nodes are chained by pointers, so there's no direct offset to element i",
+      criteria: [
+        "You'd have to walk the chain node by node, which is exactly the complexity iterators are designed to hide.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-mcq-03",
+      topicId: "iterators",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What is the one difference between set and multiset?",
+      choices: [
+        "multiset is sorted, set is not",
+        "set has an iterator, multiset does not",
+        "set cannot hold duplicate elements; multiset can",
+        "multiset can only hold strings",
+      ],
+      answerIndex: 2,
+      expected: "set cannot hold duplicate elements; multiset can",
+      criteria: [
+        "Both keep their elements ordered — only the duplicate rule differs.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-mcq-04",
+      topicId: "iterators",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What does this program print?\n```\nmultiset<string> names;\nnames.insert(\"Jack\");\nnames.insert(\"Janet\");\nnames.insert(\"Chrissy\");\nnames.insert(\"Jack\");\n\nfor (auto it = names.begin(); it != names.end(); it++) {\n    cout << *it << endl;\n}\n```",
+      choices: [
+        "Jack, Janet, Chrissy, Jack",
+        "Chrissy, Jack, Jack, Janet",
+        "Chrissy, Jack, Janet",
+        "Jack, Jack, Janet, Chrissy",
+      ],
+      answerIndex: 1,
+      expected: "Chrissy, Jack, Jack, Janet",
+      criteria: [
+        "A multiset keeps elements sorted and allows duplicates, so both Jacks print, in alphabetical order.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-mcq-05",
+      topicId: "iterators",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Which iterator category allows access by index, as in [i]?",
+      choices: [
+        "Forward",
+        "Bidirectional",
+        "Input",
+        "Random access",
+      ],
+      answerIndex: 3,
+      expected: "Random access",
+      criteria: [
+        "Random access is the most capable category and is the only one supporting subscript-style access.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

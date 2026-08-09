@@ -278,5 +278,77 @@ export default {
       difficulty: 1,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "linked-lists-mcq-01",
+      topicId: "linked-lists",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What is the running time for inserting an element at the beginning of an array/vector?",
+      choices: [
+        "O(n)",
+        "O(1)",
+        "O(log n)",
+        "O(n²)",
+      ],
+      answerIndex: 0,
+      expected: "O(n)",
+      criteria: [
+        "Every existing element must shift over by one position to make room, so the cost scales with the array's size → O(n).",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-mcq-02",
+      topicId: "linked-lists",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What does a linked list's last node's next pointer point to?",
+      choices: [
+        "The first node inserted",
+        "nullptr",
+        "The head node",
+        "Itself",
+      ],
+      answerIndex: 1,
+      expected: "nullptr",
+      criteria: [
+        "The last node's next pointer is nullptr, which is how algorithms know they've reached the end of the list.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-mcq-03",
+      topicId: "linked-lists",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "In a singly linked Node class, what does the next member store?\n```\nclass Node {\nprivate:\n    DataType data;\n    Node *next;\n};\n```",
+      choices: [
+        "The index of the following node",
+        "A pointer to the head of the list",
+        "A pointer to the following node in the list (or nullptr if last)",
+        "A copy of the following node's data",
+      ],
+      answerIndex: 2,
+      expected: "A pointer to the following node in the list (or nullptr if last)",
+      criteria: [
+        "next holds the address of the next node, letting code walk the list one link at a time; it's nullptr on the last node.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

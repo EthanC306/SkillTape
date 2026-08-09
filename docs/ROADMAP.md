@@ -214,6 +214,18 @@ The `**bold**` convention is unaffected — `Inline.jsx` and `fill.js` keep work
 - **Verification pass done (2026-08-01):** all 8 items read against `sources/cpp/dynamic-alloc.md` — each `expected`/`criteria` matches the cited excerpt, anchors resolve to real sections, no claim goes beyond what the source states. `verifiedByHuman` flipped `true` on all 8.
 - `npm run audit:bank` shows `dynamic-alloc` at **zero errors, 8 live / 8 in rotation** (warnings only: the novel-tokens tripwire and one single-source `compare` item, both expected/harmless at this stage).
 
+**Superseded in part (2026-08-09) — "zero MCQ" no longer holds.** The A7 conversion rule
+above (promote legacy MCQs *into* production formats, never carry them across as MCQs) was
+overridden by an explicit call from the bank's owner. `scripts/convertLegacyMcq.mjs`
+promoted 52 legacy MCQs verbatim into `items[]` across the 12 cpp topics that had items,
+targeting ~40% MCQ per topic; `QUOTAS[MCQ]` moved 0.05 → 0.4 to match rather than warn
+forever. What did *not* change: these land `origin: MANUAL` with `provenance: null`, since
+they are hand-written course questions with no source excerpt to cite — the audit lists
+them rather than having a citation invented to quiet it. `verifiedByHuman: true` is
+honest here for the same reason (a human wrote them; no model was involved), but note it
+is a weaker claim than the 2026-08-01 pass above, which was a read-back against a cited
+source. A7's remaining conversion work for these topics is unaffected.
+
 **Done when:** one topic round-trips through `npm run audit:bank` with zero errors (✅) and every item's answer is checkable in seconds against its excerpt (✅ done).
 
 ### A4 — Attempt log + scheduler + drill mode

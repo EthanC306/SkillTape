@@ -327,5 +327,101 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "doubly-linked-lists-mcq-01",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "In the DNode class, what are the three private members?\n```\nclass DNode {\nprivate:\n    int data;\n    DNode *next;\n    DNode *previous;\n};\n```",
+      choices: [
+        "data, next, and previous",
+        "data, head, and tail",
+        "data and next only",
+        "next, previous, and count",
+      ],
+      answerIndex: 0,
+      expected: "data, next, and previous",
+      criteria: [
+        "A doubly linked node stores its data plus pointers to both its next and previous neighbors.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-mcq-02",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Why does inserting after a cursor need four pointer updates instead of two?\n```\ntemp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr)\n    cursor->next->prev = temp;\ncursor->next = temp;\n```",
+      choices: [
+        "Because both temp's own next/prev links and the neighboring nodes' back-links to temp must be set",
+        "Because C++ requires initializing every pointer field twice",
+        "Because cursor must be duplicated",
+        "It doesn't — two updates are always enough",
+      ],
+      answerIndex: 0,
+      expected: "Because both temp's own next/prev links and the neighboring nodes' back-links to temp must be set",
+      criteria: [
+        "A doubly linked insert must wire up temp's next and prev, plus fix up cursor->next and (if it exists) cursor->next's old prev pointer.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-mcq-03",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Why is `if (cursor->next != nullptr)` needed before `cursor->next->prev = temp;`?",
+      choices: [
+        "It's optional and only improves performance",
+        "To avoid dereferencing a null pointer when cursor is the last node in the list",
+        "To decide whether to allocate temp",
+        "To check whether the list has more than one node",
+      ],
+      answerIndex: 1,
+      expected: "To avoid dereferencing a null pointer when cursor is the last node in the list",
+      criteria: [
+        "If cursor is the last node, cursor->next is nullptr, and dereferencing it (cursor->next->prev) would be undefined behavior.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "doubly-linked-lists-mcq-04",
+      topicId: "doubly-linked-lists",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "When deleting the first node in a doubly linked list, what must happen to the new head?\n```\nif (cursor == head) {\n    head = cursor->getNext();\n    if (head != nullptr) {\n        head->setPrevious(nullptr);\n    }\n}\n```",
+      choices: [
+        "Its next pointer must be cleared to nullptr",
+        "Its previous pointer must be cleared to nullptr, since it has no node before it now",
+        "It must be deleted immediately",
+        "Nothing — head can keep its old previous pointer",
+      ],
+      answerIndex: 1,
+      expected: "Its previous pointer must be cleared to nullptr, since it has no node before it now",
+      criteria: [
+        "After removing the old first node, the new first node's previous must be nullptr since nothing precedes it anymore.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

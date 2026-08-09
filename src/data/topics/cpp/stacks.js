@@ -445,5 +445,125 @@ export default {
       difficulty: 1,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "stacks-mcq-01",
+      topicId: "stacks",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Where can entries be inserted and removed in a stack?",
+      choices: [
+        "At either end, whichever is closer",
+        "Only at one end, called the top",
+        "Anywhere in the middle, by index",
+        "Only at the bottom of the structure",
+      ],
+      answerIndex: 1,
+      expected: "Only at one end, called the top",
+      criteria: [
+        "A stack restricts all access to a single end called the top, which is what makes it a stack rather than a general list.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-mcq-02",
+      topicId: "stacks",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "You push 3, then 7, then 5 onto an empty stack. What does the next pop return?",
+      choices: [
+        "3",
+        "7",
+        "5",
+        "The smallest value, 3",
+      ],
+      answerIndex: 2,
+      expected: "5",
+      criteria: [
+        "A stack is Last-In/First-Out, so the most recently pushed item, 5, is the first one back off.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-mcq-03",
+      topicId: "stacks",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "In the array implementation, what does pushing an element do?",
+      choices: [
+        "Shifts every element up one position and stores the item at index 0",
+        "Increments top and stores the item at the top position in the array",
+        "Stores the item at the top position and then increments top",
+        "Stores the item at index 0 and leaves top unchanged",
+      ],
+      answerIndex: 1,
+      expected: "Increments top and stores the item at the top position in the array",
+      criteria: [
+        "top is incremented first so it names a free slot, and the entry is then written at that new top position.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-mcq-04",
+      topicId: "stacks",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What is this assert protecting against?\n```\ntemplate <typename Item>\nvoid Stack<Item>::push(const Item& entry){\n    assert(top < CAPACITY - 1);\n    top++;\n    data[top] = entry;\n}\n```",
+      choices: [
+        "Underflow — popping from an empty stack",
+        "Pushing an item of the wrong type",
+        "Overflow — pushing onto a full stack",
+        "A null pointer being stored in data",
+      ],
+      answerIndex: 2,
+      expected: "Overflow — pushing onto a full stack",
+      criteria: [
+        "If top has already reached the last index, incrementing it would run past the array, which is the overflow condition.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-mcq-05",
+      topicId: "stacks",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Why does size return top + 1?\n```\nsize_t size() const { return top + 1; }\nbool isEmpty() const { return top == -1; }\n```",
+      choices: [
+        "One slot in data is always reserved and never used",
+        "It counts the top element twice on purpose",
+        "The array is one element longer than CAPACITY",
+        "top is an index starting at 0, and an empty stack's top of -1 gives a size of 0",
+      ],
+      answerIndex: 3,
+      expected: "top is an index starting at 0, and an empty stack's top of -1 gives a size of 0",
+      criteria: [
+        "Converting the zero-based index of the top element to a count means adding one, and that also makes the empty case come out as 0.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

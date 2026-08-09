@@ -459,5 +459,125 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "dynamic-classes-mcq-01",
+      topicId: "dynamic-classes",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "When is a destructor called?",
+      choices: [
+        "Automatically, when an object goes out of scope",
+        "Only when you call it explicitly",
+        "Only if the class has no constructor",
+        "Every time a member function runs",
+      ],
+      answerIndex: 0,
+      expected: "Automatically, when an object goes out of scope",
+      criteria: [
+        "Destructors run automatically as an object is destroyed, usually to free dynamically allocated memory.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-classes-mcq-02",
+      topicId: "dynamic-classes",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Which is a valid destructor declaration for class MyString?",
+      choices: [
+        "MyString::destroy();",
+        "~MyString(int size);",
+        "~MyString();",
+        "delete MyString();",
+      ],
+      answerIndex: 2,
+      expected: "~MyString();",
+      criteria: [
+        "Destructors are named ~ClassName, take no parameters, return nothing, and a class may only have one.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-classes-mcq-03",
+      topicId: "dynamic-classes",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "In MyString::MyString(int size), what happens if size is 0 or negative?\n```\nMyString::MyString(int size) {\n  if (size > 0) {\n    str = new char[size];\n    maxLength = size;\n  } else {\n    str = new char[1000];\n    maxLength = 1000;\n  }\n}\n```",
+      choices: [
+        "maxLength is set to 0",
+        "The constructor throws an exception",
+        "str is left pointing to garbage",
+        "It falls back to allocating a 1000-character buffer",
+      ],
+      answerIndex: 3,
+      expected: "It falls back to allocating a 1000-character buffer",
+      criteria: [
+        "The else branch handles a non-positive size by defaulting to a 1000-character buffer.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-classes-mcq-04",
+      topicId: "dynamic-classes",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Why does MyString's copy constructor use strndup instead of copying the pointer str directly?\n```\nMyString::MyString(const MyString& strObject) {\n  maxLength = strObject.length();\n  str = strndup(strObject.str, 1000);\n}\n```",
+      choices: [
+        "So the new object gets its own independent memory instead of sharing the original's",
+        "Because strndup is faster than pointer assignment",
+        "Because str is declared const",
+        "To avoid calling the destructor",
+      ],
+      answerIndex: 0,
+      expected: "So the new object gets its own independent memory instead of sharing the original's",
+      criteria: [
+        "strndup allocates a fresh buffer and copies the characters, so the new object doesn't share memory with the original.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-classes-mcq-05",
+      topicId: "dynamic-classes",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Why must operator= be overloaded for a class like MyString?",
+      choices: [
+        "It's required to make the class printable",
+        "The default assignment would copy the pointer, leaving both objects pointing at the same memory",
+        "operator= doesn't exist unless you define it",
+        "Assignment is illegal for classes with constructors",
+      ],
+      answerIndex: 1,
+      expected: "The default assignment would copy the pointer, leaving both objects pointing at the same memory",
+      criteria: [
+        "Without an overload, assignment copies str's address rather than its contents, so both objects end up sharing one buffer.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

@@ -440,5 +440,125 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "dynamic-arrays-mcq-01",
+      topicId: "dynamic-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "How do you allocate an array of 10 ints on the heap?",
+      choices: [
+        "intArray = new int(10);",
+        "intArray = new int[10];",
+        "int intArray[10] = new;",
+        "intArray = new int, 10;",
+      ],
+      answerIndex: 1,
+      expected: "intArray = new int[10];",
+      criteria: [
+        "new int[10] allocates a dynamic array of 10 ints.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-arrays-mcq-02",
+      topicId: "dynamic-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Which statement correctly frees a dynamically allocated array?\n```\nint *intArray = new int[10];\n```",
+      choices: [
+        "delete intArray;",
+        "intArray.delete();",
+        "delete [] intArray;",
+        "free(intArray);",
+      ],
+      answerIndex: 2,
+      expected: "delete [] intArray;",
+      criteria: [
+        "Arrays allocated with new [...] must be freed with the array form, delete []; plain delete is for single objects.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-arrays-mcq-03",
+      topicId: "dynamic-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What goes wrong here?\n```\nchar *chArray = new char[10];\nchArray += 5;\ndelete [] chArray;\n```",
+      choices: [
+        "chArray leaks memory but nothing else happens",
+        "chArray no longer points at the start of the allocated block, which can corrupt memory",
+        "Nothing — delete[] always finds the original block",
+        "The += operator isn't allowed on pointers",
+      ],
+      answerIndex: 1,
+      expected: "chArray no longer points at the start of the allocated block, which can corrupt memory",
+      criteria: [
+        "delete[] expects the pointer to still reference the start of the block new returned; a shifted pointer can corrupt memory or free memory used elsewhere.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-arrays-mcq-04",
+      topicId: "dynamic-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What does strndup(name, 100) return?",
+      choices: [
+        "true if name fits in 100 characters",
+        "A pointer to a newly allocated copy of name's contents",
+        "The length of name",
+        "A reference to name itself",
+      ],
+      answerIndex: 1,
+      expected: "A pointer to a newly allocated copy of name's contents",
+      criteria: [
+        "strndup allocates new memory, copies up to the given number of characters, and returns a pointer to that new copy.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-arrays-mcq-05",
+      topicId: "dynamic-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "When you write intPtr + i, how much is actually added to the address?",
+      choices: [
+        "i * sizeof(the pointed-to type)",
+        "Just i",
+        "sizeof(intPtr)",
+        "i bytes, regardless of type",
+      ],
+      answerIndex: 0,
+      expected: "i * sizeof(the pointed-to type)",
+      criteria: [
+        "Pointer arithmetic scales by the size of the pointed-to type, so intPtr + i moves i * sizeof(type) bytes.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

@@ -350,5 +350,101 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "multidim-arrays-mcq-01",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "In a multi-dimensional array parameter, which dimension's size can be left out?\n```\nvoid displayPage(const char page[][100], int sizeDimension1);\n```",
+      choices: [
+        "The first dimension's size — every remaining dimension's size must still be given",
+        "Every dimension's size can be left out",
+        "Only the last dimension's size can be left out",
+        "No dimension's size can ever be left out",
+      ],
+      answerIndex: 0,
+      expected: "The first dimension's size — every remaining dimension's size must still be given",
+      criteria: [
+        "Only the first dimension is omitted from the parameter type; page[][100] still states the second dimension explicitly.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-mcq-02",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "In int a[4][5];, what do 4 and 5 represent?\n```\nint a[4][5];\n//4 is the number of rows\n//5 is the number of columns\n```",
+      choices: [
+        "4 columns and 5 rows",
+        "4 rows and 5 columns",
+        "The array's total capacity, 4 times 5",
+        "Two separate one-dimensional arrays",
+      ],
+      answerIndex: 1,
+      expected: "4 rows and 5 columns",
+      criteria: [
+        "The deck's own comment states it directly: the first bracket is rows, the second is columns.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-mcq-03",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "How do you access a single element of a[4][5] at row i, column j?",
+      choices: [
+        "a[i, j]",
+        "a[i+j]",
+        "a[i][j]",
+        "a.at(i, j)",
+      ],
+      answerIndex: 2,
+      expected: "a[i][j]",
+      criteria: [
+        "Each index gets its own bracket pair, so a two-dimensional access is a[i][j], not a comma-separated index.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-mcq-04",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "In the loop that prints a 2D array row by row, why does cout << endl; sit after the inner loop finishes, not inside it?\n```\nfor (i = 0; i < 4; i++){\nfor (j = 0; j < 5; j++){\ncout << a[i][j];\n}\ncout << endl;\n}\n```",
+      choices: [
+        "So a newline prints once per row, after all of that row's columns have printed",
+        "So a newline prints after every single element",
+        "Because endl can't be called from inside a nested loop",
+        "It has no effect on the output either way",
+      ],
+      answerIndex: 0,
+      expected: "So a newline prints once per row, after all of that row's columns have printed",
+      criteria: [
+        "endl outside the inner loop but inside the outer loop fires exactly once per completed row, which is what produces one line per row of output.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

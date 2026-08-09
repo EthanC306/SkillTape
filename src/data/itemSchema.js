@@ -34,9 +34,23 @@ export const FORMATS = {
 /**
  * Target share of a topic's item bank, per format.
  *
- * MCQ is capped at 0.05. Recognizing the right answer among four options is a
- * different skill from producing it on a blank page, and it inflates
- * confidence without moving exam performance.
+ * MCQ was capped at 0.05, on the reasoning that recognizing the right answer
+ * among four options is a different skill from producing it on a blank page,
+ * and that it inflates confidence without moving exam performance. That
+ * reasoning still stands and is why the other formats keep the bulk of the
+ * bank.
+ *
+ * **Raised to 0.4 on 2026-08-09** by an explicit call from the bank's owner:
+ * the 12 converted cpp topics now run ~40% MCQ, promoted from their legacy
+ * questions[] (scripts/convertLegacyMcq.mjs). The cap moved rather than being
+ * left to warn on every topic, because a threshold nobody intends to honour
+ * teaches you to ignore the audit. Two things bought with the trade: MCQ is
+ * the one format Practice grades instantly client-side, so a deck stays
+ * usable when Ollama is down; and it made ~150 already-written course
+ * questions reachable from spaced repetition instead of only Quiz mode.
+ *
+ * Enforced in exactly one place — auditBank() below — as a warning, per topic,
+ * at share > cap + 0.02.
  */
 export const QUOTAS = {
   [FORMATS.RECALL]: 0.25,
@@ -46,7 +60,7 @@ export const QUOTAS = {
   [FORMATS.CLOZE]: 0.1,
   [FORMATS.COMPARE]: 0.1,
   [FORMATS.COMPLEXITY]: 0.05,
-  [FORMATS.MCQ]: 0.05,
+  [FORMATS.MCQ]: 0.4,
 };
 
 /**
@@ -338,24 +352,42 @@ export function auditBank(items, opts = {}) {
 }
 
 /**
- * Migrates a legacy { prompt, choices, answer, explanation } question.
+ * Migrates a legacy { prompt, code, choices, answer, explanation } question
+ * into an MCQ item.
  *
- * Deliberately does NOT invent provenance. Legacy items land as MANUAL +
- * unverified so the audit lists them for backfill instead of silently
- * laundering hand-written content into "extracted".
+ * Deliberately does NOT invent provenance. Legacy items land as MANUAL with
+ * `provenance: null` so the audit lists them rather than silently laundering
+ * hand-written content into "extracted". As of the 2026-08-09 conversion that
+ * is a shipping state, not a staging one: the ~52 MCQs Practice serves are
+ * hand-authored course questions with no source excerpt to cite, and inventing
+ * one to quiet the audit would be exactly the laundering this avoids.
+ *
+ * `q.code` is folded into the prompt as a fenced block — items have no `code`
+ * column (only `cards` and legacy `questions` do). Prompts are rendered by
+ * PromptBody.jsx, which splits on those fences and hands the contents to
+ * CodeBlock, so the fence is load-bearing markup rather than decoration.
+ *
+ * opts:
+ *   id              — override the generated id. Callers converting into the
+ *                     live bank pass `<topic>-mcq-NN`, a namespace that can't
+ *                     collide with /extract's `<topic>-NN` numbering.
+ *   verifiedByHuman — the rotation gate. Only true when a human vouches for
+ *                     the item; a model must never set it (ROADMAP.md:105).
  */
-export function migrateLegacyQuestion(q, topicId, index) {
+export function migrateLegacyQuestion(q, topicId, index, opts = {}) {
+  const { id = `${topicId}-legacy-${index}`, verifiedByHuman = false } = opts;
+  const answerIndex = typeof q.answer === "number" ? q.answer : q.answerIndex;
   return makeItem({
-    id: `${topicId}-legacy-${index}`,
+    id,
     topicId,
     format: FORMATS.MCQ,
     origin: ITEM_ORIGIN.MANUAL,
-    prompt: q.prompt,
+    prompt: q.code ? `${q.prompt}\n\`\`\`\n${q.code}\n\`\`\`` : q.prompt,
     choices: q.choices,
-    answerIndex: typeof q.answer === "number" ? q.answer : q.answerIndex,
-    expected: q.choices?.[q.answer ?? q.answerIndex] ?? "",
+    answerIndex,
+    expected: q.choices?.[answerIndex] ?? "",
     criteria: q.explanation ? [q.explanation] : [],
     provenance: null,
-    verifiedByHuman: false,
+    verifiedByHuman,
   });
 }

@@ -453,5 +453,125 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "derived-classes-mcq-01",
+      topicId: "derived-classes",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What is the relationship between a base class and a derived class?",
+      choices: [
+        "The derived class is a more general version of the base class",
+        "The base class and derived class share no data or functions",
+        "The base class inherits from the derived class",
+        "The derived class inherits the base class's data and functions, then adds its own",
+      ],
+      answerIndex: 3,
+      expected: "The derived class inherits the base class's data and functions, then adds its own",
+      criteria: [
+        "Inheritance flows from base to derived: the derived class gets everything the base class has, plus whatever new members it defines itself.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "derived-classes-mcq-02",
+      topicId: "derived-classes",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What does \"a basketball player is-an athlete\" mean here?",
+      choices: [
+        "is-a denotes inheritance — BasketballPlayer is derived from Athlete",
+        "BasketballPlayer and Athlete are unrelated classes",
+        "Athlete is derived from BasketballPlayer",
+        "Athlete and BasketballPlayer must be the same class",
+      ],
+      answerIndex: 0,
+      expected: "is-a denotes inheritance — BasketballPlayer is derived from Athlete",
+      criteria: [
+        "is-a is the standard way to describe an inheritance relationship: the more specialized class is-a instance of the general one.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "derived-classes-mcq-03",
+      topicId: "derived-classes",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "How do you declare that BasketballPlayer inherits from Athlete?\n```\nclass BasketballPlayer : public Athlete{\n....\n};\n```",
+      choices: [
+        "class BasketballPlayer extends Athlete { ... };",
+        "class BasketballPlayer : public Athlete{ ... };",
+        "class BasketballPlayer(Athlete) { ... };",
+        "class Athlete : public BasketballPlayer{ ... };",
+      ],
+      answerIndex: 1,
+      expected: "class BasketballPlayer : public Athlete{ ... };",
+      criteria: [
+        "C++ denotes inheritance with a colon and the access specifier before the base class name at the class definition.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "derived-classes-mcq-04",
+      topicId: "derived-classes",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Before virtual is added, why does players[i]->display() call Athlete's display for every element, even when players[i] actually points to a BasketballPlayer?\n```\nAthlete* players[5];\nplayers[0] = player1;\nplayers[1] = player2;\nplayers[2] = player3;\nfor (size_t i = 0; i < 3; i++){\nplayers[i]->display();\n}\n```",
+      choices: [
+        "Because BasketballPlayer doesn't actually define its own display function",
+        "Because the array is declared as Athlete*, and without virtual the compiler picks the function based on that declared pointer type, not the object's actual type",
+        "Because arrays of pointers can't call member functions at all",
+        "Because display() is private in Athlete",
+      ],
+      answerIndex: 1,
+      expected: "Because the array is declared as Athlete*, and without virtual the compiler picks the function based on that declared pointer type, not the object's actual type",
+      criteria: [
+        "Without virtual, function calls through a pointer resolve at compile time based on the pointer's declared type, so an Athlete* always calls Athlete's version regardless of what it actually points to.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "derived-classes-mcq-05",
+      topicId: "derived-classes",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What does declaring \"virtual void display();\" in Athlete change?",
+      choices: [
+        "It makes display() run faster",
+        "It makes display() private",
+        "It tells the compiler to look for the actual object's own implementation of display first, falling back to Athlete's if there isn't one",
+        "It deletes Athlete's own display function",
+      ],
+      answerIndex: 2,
+      expected: "It tells the compiler to look for the actual object's own implementation of display first, falling back to Athlete's if there isn't one",
+      criteria: [
+        "virtual switches display() to resolve based on the object's actual runtime type instead of the pointer's declared type.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

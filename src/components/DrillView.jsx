@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 import { FORMATS } from "../data/itemSchema";
 import { getDrillQueue, postDrillAttempt, getDrillExport, postDrillImport } from "../api/client";
+import PromptBody from "./PromptBody";
 
 /**
  * DrillView — closed-book recall practice (ROADMAP.md A4).
@@ -310,7 +311,7 @@ export default function DrillView({ course, onExit }) {
           </span>
         </div>
 
-        <div style={{ fontSize: 16, lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 20 }}>{item.prompt}</div>
+        <PromptBody prompt={item.prompt} style={{ fontSize: 16, lineHeight: 1.6, marginBottom: 20 }} />
 
         {item.format === FORMATS.MCQ ? (
           <>

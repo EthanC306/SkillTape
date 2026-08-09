@@ -475,5 +475,125 @@ export default {
       difficulty: 1,
       verifiedByHuman: true,
     }),
+    makeItem({
+      id: "dynamic-alloc-mcq-01",
+      topicId: "dynamic-alloc",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Which operator returns the memory address of a variable?",
+      choices: [
+        "::",
+        "->",
+        "&",
+        "*",
+      ],
+      answerIndex: 2,
+      expected: "&",
+      criteria: [
+        "The address-of operator, &, returns a variable's memory address, as in &x.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-alloc-mcq-02",
+      topicId: "dynamic-alloc",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Given this declaration, which variable is a pointer?\n```\ndouble *dblPtr, value;\n```",
+      choices: [
+        "Both dblPtr and value",
+        "Only dblPtr",
+        "Neither",
+        "Only value",
+      ],
+      answerIndex: 1,
+      expected: "Only dblPtr",
+      criteria: [
+        "The * binds to the name it precedes, so only dblPtr is a pointer; value is an ordinary double.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-alloc-mcq-03",
+      topicId: "dynamic-alloc",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What does *dblPtr do in this code?\n```\nvalue = 34.5;\ndblPtr = &value;\n*dblPtr = 12.3;\n```",
+      choices: [
+        "Dereferences dblPtr to access/change the memory value refers to",
+        "Deletes the pointer",
+        "Declares a new pointer",
+        "Compares dblPtr to value",
+      ],
+      answerIndex: 0,
+      expected: "Dereferences dblPtr to access/change the memory value refers to",
+      criteria: [
+        "*dblPtr dereferences the pointer, reaching into the memory it points to (the same memory as value).",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-alloc-mcq-04",
+      topicId: "dynamic-alloc",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What does this statement do?\n```\nintPtr = new int(99);\n```",
+      choices: [
+        "Allocates memory for an int and initializes it to 99",
+        "Declares an int variable named 99",
+        "Copies 99 into an existing int",
+        "Deletes intPtr",
+      ],
+      answerIndex: 0,
+      expected: "Allocates memory for an int and initializes it to 99",
+      criteria: [
+        "new int(99) allocates space for one int on the heap and initializes it to 99 in one step.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "dynamic-alloc-mcq-05",
+      topicId: "dynamic-alloc",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Where does memory from the new operator come from?",
+      choices: [
+        "The stack",
+        "A static global array",
+        "The operating system's registry",
+        "The heap",
+      ],
+      answerIndex: 3,
+      expected: "The heap",
+      criteria: [
+        "new allocates memory from the heap.",
+      ],
+      // Hand-authored course question promoted from this topic's legacy
+      // questions[]. No source excerpt exists to cite, so provenance stays
+      // null rather than being invented — see migrateLegacyQuestion.
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };
