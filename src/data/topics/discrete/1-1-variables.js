@@ -43,6 +43,7 @@ export default {
   questions: [
     {
       id: "discrete-1-1-variables-q01",
+      verifiedByHuman: false,
       prompt:
         "“For every real number x, if x is nonzero then x² is positive.” What kind of statement is this?",
       choices: [
@@ -57,6 +58,7 @@ export default {
     },
     {
       id: "discrete-1-1-variables-q02",
+      verifiedByHuman: false,
       prompt: "“Every real number has an additive inverse.” This is an example of a…",
       choices: [
         "universal conditional statement",
@@ -70,6 +72,7 @@ export default {
     },
     {
       id: "discrete-1-1-variables-q03",
+      verifiedByHuman: false,
       prompt:
         "“There is a positive integer that is less than or equal to every positive integer.” What type is this, and why is it true?",
       choices: [
@@ -84,6 +87,7 @@ export default {
     },
     {
       id: "discrete-1-1-variables-q04",
+      verifiedByHuman: false,
       prompt:
         "Rewrite “For every real number x, if x is nonzero then x² is positive” as: “The square of any nonzero real number is ____.” Which word fills the blank?",
       choices: ["nonzero", "positive", "negative", "an integer"],
@@ -93,6 +97,7 @@ export default {
     },
     {
       id: "discrete-1-1-variables-q05",
+      verifiedByHuman: false,
       prompt:
         "Rewrite “Every pot has a lid” as: “For every pot P, there is ____.” Which completion is correct?",
       choices: [
@@ -107,6 +112,7 @@ export default {
     },
     {
       id: "discrete-1-1-variables-q06",
+      verifiedByHuman: false,
       prompt:
         "Which trio of phrases is needed to state the definition of the limit of a sequence?",
       choices: [
@@ -121,6 +127,7 @@ export default {
     },
     {
       id: "discrete-1-1-variables-q07",
+      verifiedByHuman: false,
       prompt:
         "What is the main advantage of introducing a variable to replace an ambiguous word like “it”?",
       choices: [
@@ -135,6 +142,7 @@ export default {
     },
     {
       id: "discrete-1-1-variables-q08",
+      verifiedByHuman: false,
       prompt:
         "In a universal existential statement, how does the object that “exists” relate to the universally chosen object?",
       choices: [

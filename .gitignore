@@ -34,6 +34,7 @@ db/*.db-shm
 *.sqlite
 *.sqlite3
 progress-export-*.json
+data/needs-fixing.json
 
 # --- Environment / secrets ---
 # Vite inlines any VITE_* var into the client bundle. Service-role keys and

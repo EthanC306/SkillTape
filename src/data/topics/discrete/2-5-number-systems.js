@@ -82,6 +82,7 @@ export default {
   questions: [
     {
       id: "discrete-2-5-number-systems-q01",
+      verifiedByHuman: false,
       prompt: "Why is binary (base 2) important in computing?",
       choices: [
         "It is easier for humans to read",
@@ -95,6 +96,7 @@ export default {
     },
     {
       id: "discrete-2-5-number-systems-q02",
+      verifiedByHuman: false,
       prompt: "What is the binary number 1101₂ in decimal?",
       choices: ["11", "13", "14", "26"],
       answer: 1,
@@ -103,6 +105,7 @@ export default {
     },
     {
       id: "discrete-2-5-number-systems-q03",
+      verifiedByHuman: false,
       prompt: "In binary addition, what is 1 + 1?",
       choices: ["1", "2", "10₂", "11₂ (1 carry 1)"],
       answer: 2,
@@ -111,6 +114,7 @@ export default {
     },
     {
       id: "discrete-2-5-number-systems-q04",
+      verifiedByHuman: false,
       prompt: "In a half-adder, the CARRY output is produced by which Boolean expression?",
       choices: ["P ∨ Q", "P ∧ Q", "~P", "P ⊕ Q (exclusive or)"],
       answer: 1,
@@ -119,6 +123,7 @@ export default {
     },
     {
       id: "discrete-2-5-number-systems-q05",
+      verifiedByHuman: false,
       prompt: "Why can't a half-adder alone add the middle columns of a multi-digit binary sum?",
       choices: [
         "It only has one input",
@@ -132,6 +137,7 @@ export default {
     },
     {
       id: "discrete-2-5-number-systems-q06",
+      verifiedByHuman: false,
       prompt: "A full-adder adds three bits. It is typically built from…",
       choices: [
         "one half-adder",
@@ -145,6 +151,7 @@ export default {
     },
     {
       id: "discrete-2-5-number-systems-q07",
+      verifiedByHuman: false,
       prompt: "A circuit that adds two multi-digit binary numbers by chaining adders is called a…",
       choices: ["half-adder", "parallel adder", "inverter", "NAND-gate"],
       answer: 1,
@@ -153,6 +160,7 @@ export default {
     },
     {
       id: "discrete-2-5-number-systems-q08",
+      verifiedByHuman: false,
       prompt: "To find the 8-bit two's complement of a negative number, you…",
       choices: [
         "write it in binary, flip the bits, add 1",
@@ -166,6 +174,7 @@ export default {
     },
     {
       id: "discrete-2-5-number-systems-q09",
+      verifiedByHuman: false,
       prompt: "What is the main advantage of two's complement representation?",
       choices: [
         "It uses fewer bits",
@@ -179,6 +188,7 @@ export default {
     },
     {
       id: "discrete-2-5-number-systems-q10",
+      verifiedByHuman: false,
       prompt: "In two's complement, what does the leading (left-most) bit indicate?",
       choices: [
         "The size of the number",
@@ -192,6 +202,7 @@ export default {
     },
     {
       id: "discrete-2-5-number-systems-q11",
+      verifiedByHuman: false,
       prompt: "How many binary bits does a single hexadecimal digit represent?",
       choices: ["2", "3", "4", "8"],
       answer: 2,
@@ -200,6 +211,7 @@ export default {
     },
     {
       id: "discrete-2-5-number-systems-q12",
+      verifiedByHuman: false,
       prompt: "Convert binary 1010 1001 to hexadecimal.",
       choices: ["A9", "9A", "AB", "129"],
       answer: 0,

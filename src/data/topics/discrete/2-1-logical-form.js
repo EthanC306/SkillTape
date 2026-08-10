@@ -78,6 +78,7 @@ export default {
   questions: [
     {
       id: "discrete-2-1-logical-form-q01",
+      verifiedByHuman: false,
       prompt:
         "In an argument, what is the final claim it is trying to establish called?",
       choices: ["A premise", "The conclusion", "A statement form", "A tautology"],
@@ -87,6 +88,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q02",
+      verifiedByHuman: false,
       prompt: "Logic analyzes an argument's ____, not its ____.",
       choices: [
         "content; form",
@@ -100,6 +102,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q03",
+      verifiedByHuman: false,
       prompt: "Which of the following is a statement?",
       choices: [
         "x + y > 0",
@@ -113,6 +116,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q04",
+      verifiedByHuman: false,
       prompt: "Let h = “It is hot” and s = “It is sunny.” Write “It is not hot but it is sunny.”",
       choices: ["~h ∨ s", "~h ∧ s", "~(h ∧ s)", "h ∧ ~s"],
       answer: 1,
@@ -121,6 +125,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q05",
+      verifiedByHuman: false,
       prompt: "“It is neither hot nor sunny” translates to…",
       choices: ["~h ∨ ~s", "~(h ∧ s)", "~h ∧ ~s", "h ∨ s"],
       answer: 2,
@@ -129,6 +134,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q06",
+      verifiedByHuman: false,
       prompt: "In ~p ∧ q, which operation is performed first?",
       choices: [
         "the ∧, because it's leftmost",
@@ -142,6 +148,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q07",
+      verifiedByHuman: false,
       prompt: "Why is the expression p ∧ q ∨ r considered ambiguous?",
       choices: [
         "∧ and ∨ are coequal, so parentheses are needed",
@@ -155,6 +162,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q08",
+      verifiedByHuman: false,
       prompt: "For statement variables p and q, when is p ∧ q true?",
       choices: [
         "When at least one of p, q is true",
@@ -168,6 +176,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q09",
+      verifiedByHuman: false,
       prompt: "For statement variables p and q, when is p ∨ q false?",
       choices: [
         "Only when both p and q are false",
@@ -181,6 +190,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q10",
+      verifiedByHuman: false,
       prompt: "What does it mean for two statement forms to be logically equivalent (P ≡ Q)?",
       choices: [
         "They are built from exactly the same variables",
@@ -194,6 +204,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q11",
+      verifiedByHuman: false,
       prompt: "To show that two statement forms are NOT logically equivalent, it is enough to…",
       choices: [
         "check that every row matches",
@@ -207,6 +218,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q12",
+      verifiedByHuman: false,
       prompt: "Using De Morgan's laws, the negation of “p ∧ q” is…",
       choices: ["~p ∧ ~q", "~p ∨ ~q", "p ∨ q", "~(p ∨ q)"],
       answer: 1,
@@ -215,6 +227,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q13",
+      verifiedByHuman: false,
       prompt: "Use De Morgan's laws to negate “−1 < x ≤ 4” (i.e. −1 < x and x ≤ 4).",
       choices: [
         "−1 < x or x ≤ 4",
@@ -228,6 +241,7 @@ export default {
     },
     {
       id: "discrete-2-1-logical-form-q14",
+      verifiedByHuman: false,
       prompt: "Which statement form is a tautology (always true)?",
       choices: ["p ∧ ~p", "p ∨ ~p", "p ∧ q", "~(p ∨ p)"],
       answer: 1,

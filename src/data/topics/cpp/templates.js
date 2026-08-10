@@ -80,6 +80,7 @@ export default {
   questions: [
     {
       id: "templates-q01",
+      verifiedByHuman: false,
       prompt: "What problem do templates solve?",
       choices: [
         "Making programs run in constant time regardless of the data they are given",
@@ -93,6 +94,7 @@ export default {
     },
     {
       id: "templates-q02",
+      verifiedByHuman: false,
       prompt: "Which two keywords can introduce a generic type parameter?",
       choices: ["typename or class", "auto or const", "struct or union", "generic or template"],
       answer: 0,
@@ -101,6 +103,7 @@ export default {
     },
     {
       id: "templates-q03",
+      verifiedByHuman: false,
       prompt: "What is missing above this function?",
       code: "void swap (T &first, T &second)\n{\n    T temp = first;\n    first = second;\n    second = temp;\n}",
       choices: [
@@ -115,6 +118,7 @@ export default {
     },
     {
       id: "templates-q04",
+      verifiedByHuman: false,
       prompt: "In `template <typename T>`, what is T?",
       choices: [
         "A required keyword that cannot be renamed to anything else",
@@ -128,6 +132,7 @@ export default {
     },
     {
       id: "templates-q05",
+      verifiedByHuman: false,
       prompt: "After this call, what type does the compiler use for T?",
       code: "char symbol1 = 'A', symbol2 = 'B';\nswap(symbol1, symbol2);",
       choices: ["char", "int", "string", "void"],
@@ -137,6 +142,7 @@ export default {
     },
     {
       id: "templates-q06",
+      verifiedByHuman: false,
       prompt: "Why are the `swap` parameters declared as `T &first, T &second`?",
       code: "template <typename T>\nvoid swap (T &first, T &second)",
       choices: [
@@ -151,6 +157,7 @@ export default {
     },
     {
       id: "templates-q07",
+      verifiedByHuman: false,
       prompt: "How do you declare a Pair object that holds two ints?",
       choices: ["Pair score<int>;", "Pair <int> score;", "Pair score;", "int Pair score;"],
       answer: 1,
@@ -159,6 +166,7 @@ export default {
     },
     {
       id: "templates-q08",
+      verifiedByHuman: false,
       prompt: "Why must you write `Pair <int>` but you can just write `swap(a, b)`?",
       choices: [
         "Classes are always slower than functions",
@@ -172,6 +180,7 @@ export default {
     },
     {
       id: "templates-q09",
+      verifiedByHuman: false,
       prompt: "What is wrong with this out-of-class definition?",
       code: "template <typename T>\nvoid Pair::setFirst(T value)\n{\n    first = value;\n}",
       choices: [
@@ -186,6 +195,7 @@ export default {
     },
     {
       id: "templates-q10",
+      verifiedByHuman: false,
       prompt: "How many template lines does a class with three out-of-class member function definitions need?",
       choices: [
         "One, above the class only",
@@ -199,6 +209,7 @@ export default {
     },
     {
       id: "templates-q11",
+      verifiedByHuman: false,
       prompt: "How do you declare a class template with two independent generic types?",
       choices: [
         "template <typename T1><typename T2>",
@@ -212,6 +223,7 @@ export default {
     },
     {
       id: "templates-q12",
+      verifiedByHuman: false,
       prompt: "What does this function return?",
       code: "template <typename T1, typename T2>\nT2  ClassName <T1, T2>::getvar2 ()\n{\n    return var2;\n}",
       choices: [
@@ -226,6 +238,7 @@ export default {
     },
     {
       id: "templates-q13",
+      verifiedByHuman: false,
       prompt: "In the Pair template class, what type are the private members `first` and `second`?",
       code: "private:\n    T first;\n    T second;",
       choices: [

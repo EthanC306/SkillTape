@@ -95,6 +95,7 @@ export default {
   questions: [
     {
       id: "derived-classes-q01",
+      verifiedByHuman: false,
       prompt: "What is the relationship between a base class and a derived class?",
       choices: [
         "The derived class is a more general version of the base class, and the base class supplies the specifics",
@@ -108,6 +109,7 @@ export default {
     },
     {
       id: "derived-classes-q02",
+      verifiedByHuman: false,
       prompt: "In the Athlete / BasketballPlayer / BaseballPlayer example, which is the base class?",
       choices: ["BasketballPlayer", "BaseballPlayer", "Athlete", "All three are base classes"],
       answer: 2,
@@ -116,6 +118,7 @@ export default {
     },
     {
       id: "derived-classes-q03",
+      verifiedByHuman: false,
       prompt: "What does \"a basketball player is-an athlete\" mean here?",
       choices: [
         "is-a denotes inheritance: BasketballPlayer is derived from Athlete",
@@ -129,6 +132,7 @@ export default {
     },
     {
       id: "derived-classes-q04",
+      verifiedByHuman: false,
       prompt: "How do you declare that BasketballPlayer inherits from Athlete?",
       code: "class BasketballPlayer : public Athlete{\n....\n};",
       choices: [
@@ -143,6 +147,7 @@ export default {
     },
     {
       id: "derived-classes-q05",
+      verifiedByHuman: false,
       prompt: "What is the difference between `public` and `private` inheritance?",
       choices: [
         "private inheritance blocks outside code from calling the base's public functions through a derived object",
@@ -156,6 +161,7 @@ export default {
     },
     {
       id: "derived-classes-q06",
+      verifiedByHuman: false,
       prompt: "Why does BasketballPlayer's constructor write \":`Athlete(newName, newAge)`\" before its body?",
       code:
         "BasketballPlayer::BasketballPlayer(string newName, size_t newAge, double newPpg)\n:Athlete(newName, newAge){\nppg = newPpg;\n}",
@@ -171,6 +177,7 @@ export default {
     },
     {
       id: "derived-classes-q07",
+      verifiedByHuman: false,
       prompt: "What does the call to `Athlete::display()` inside `BasketballPlayer::display()` do?",
       code:
         "void BasketballPlayer::display(){\nAthlete::display(); //call Athlete's display()\ncout << \"PPG: \" << ppg << endl;\n}",
@@ -186,6 +193,7 @@ export default {
     },
     {
       id: "derived-classes-q08",
+      verifiedByHuman: false,
       prompt:
         "Before `virtual` is added, why does `players[i]->display()` call Athlete's display for every element, even when players[i] actually points to a BasketballPlayer?",
       code:
@@ -202,6 +210,7 @@ export default {
     },
     {
       id: "derived-classes-q09",
+      verifiedByHuman: false,
       prompt: "What does declaring \"`virtual void display();`\" in Athlete change?",
       choices: [
         "It makes display() run faster by letting the compiler resolve every call at compile time instead of at run time",
@@ -215,6 +224,7 @@ export default {
     },
     {
       id: "derived-classes-q10",
+      verifiedByHuman: false,
       prompt: "Do BasketballPlayer's and BaseballPlayer's own `display()` overrides need to be marked `virtual` too?",
       choices: [
         "Yes, every override must repeat the virtual keyword or it won't work",
@@ -228,6 +238,7 @@ export default {
     },
     {
       id: "derived-classes-q11",
+      verifiedByHuman: false,
       prompt: "What does \"polymorphism\" mean here?",
       choices: [
         "A compiler error caused by inheriting the same function from two different base classes",
@@ -241,6 +252,7 @@ export default {
     },
     {
       id: "derived-classes-q12",
+      verifiedByHuman: false,
       prompt:
         "After adding `virtual`, what does the loop print for players[1], a BasketballPlayer named Jim with `ppg` 33.5?",
       code:
@@ -252,6 +264,7 @@ export default {
     },
     {
       id: "derived-classes-q13",
+      verifiedByHuman: false,
       prompt: "Why can an `Athlete*` array legally hold BasketballPlayer and BaseballPlayer pointers?",
       choices: [
         "Because C++ allows any pointer type to hold any object",

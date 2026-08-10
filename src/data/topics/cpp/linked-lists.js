@@ -50,6 +50,7 @@ export default {
   questions: [
     {
       id: "linked-lists-q01",
+      verifiedByHuman: false,
       prompt:
         "What is the running time for inserting an element at the beginning of an array/vector?",
       choices: [
@@ -64,6 +65,7 @@ export default {
     },
     {
       id: "linked-lists-q02",
+      verifiedByHuman: false,
       prompt: "What does a linked list's last node's next pointer point to?",
       choices: [
         "The first node inserted",
@@ -77,6 +79,7 @@ export default {
     },
     {
       id: "linked-lists-q03",
+      verifiedByHuman: false,
       prompt: "In a singly linked Node class, what does the next member store?",
       code: "class Node {\nprivate:\n    DataType data;\n    Node *next;\n};",
       choices: [
@@ -91,6 +94,7 @@ export default {
     },
     {
       id: "linked-lists-q04",
+      verifiedByHuman: false,
       prompt: "What does this code produce?",
       code: "Node *head;\nhead = nullptr;",
       choices: [
@@ -105,6 +109,7 @@ export default {
     },
     {
       id: "linked-lists-q05",
+      verifiedByHuman: false,
       prompt: "Why does Node provide two `getNext()` overloads?",
       code: "const Node* getNext() const { return next; }\nNode* getNext() { return next; }",
       choices: [
@@ -119,6 +124,7 @@ export default {
     },
     {
       id: "linked-lists-q06",
+      verifiedByHuman: false,
       prompt: "After `head = new Node(); head->setData(50);`, what does `head->getNext()` return?",
       choices: [
         "nullptr",
@@ -132,6 +138,7 @@ export default {
     },
     {
       id: "linked-lists-q07",
+      verifiedByHuman: false,
       prompt:
         "Why is inserting at the `head` of a linked list an O(1) operation, unlike inserting at the front of a vector?",
       choices: [
@@ -146,6 +153,7 @@ export default {
     },
     {
   id: "linked-lists-q08",
+  verifiedByHuman: false,
   prompt: "What is the running time for inserting an element in a sorted array/vector?",
   choices: [
     "O(1)",
@@ -159,6 +167,7 @@ export default {
 },
 {
   id: "linked-lists-q09",
+  verifiedByHuman: false,
   prompt: "What is the running time for deleting an element in the middle of an array/vector?",
   choices: [
     "O(n)",
@@ -172,6 +181,7 @@ export default {
 },
 {
   id: "linked-lists-q10",
+  verifiedByHuman: false,
   prompt: "In a linked list, each object is called a ___.",
   choices: [
     "cursor",
@@ -185,6 +195,7 @@ export default {
 },
 {
   id: "linked-lists-q11",
+  verifiedByHuman: false,
   prompt: "Each node in a linked list is a(n) ___.",
   choices: [
     "primitive value",
@@ -463,6 +474,156 @@ export default {
       },
       difficulty: 2,
       verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-08",
+      topicId: "linked-lists",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Define a linked list and a node. Blank page, no diagram: write the sentences.",
+      expected:
+        "A linked list is a sequence of objects where each object points to the next in the list. Each object is called a node. A node holds data plus a pointer to the next node.",
+      criteria: [
+        "Says sequence of objects, each pointing to the next",
+        "Names the object a node",
+        "Says a node holds both data and a next pointer",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#what-is-a-linked-list",
+        excerpt:
+          "A linked list is a sequence of objects where each object points to the next in the list\n- Each object is called a node\n- A node includes data and a pointer to the next node in the list",
+        citation: "Lecture Deck 03.1",
+      },
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-09",
+      topicId: "linked-lists",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "How is the beginning of a list marked, and how do you know you have reached the end? Give both.",
+      expected:
+        "The beginning is marked with a pointer, conventionally called head. The last node's next pointer is nullptr, so cursor == nullptr means you have run off the end.",
+      criteria: [
+        "Names head as the pointer to the beginning",
+        "Says the last node's next is nullptr",
+        "Connects nullptr to the loop termination test",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#what-is-a-linked-list",
+        excerpt:
+          "The beginning of the list is marked with a pointer (e.g., head)\n- The last node in the list is pointing to nullptr",
+        citation: "Lecture Deck 03.1",
+      },
+      difficulty: 1,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-10",
+      topicId: "linked-lists",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "4 minutes, no compiler. Write the full Node class for a list of ints: DataType alias, constructor with default arguments, `setData`, `setNext`, `getData`, and both `getNext` overloads. Private data last.",
+      expected:
+        "class Node\n{\npublic:\n    using DataType = int;\n\n    Node(const DataType newData = DataType(),\n         Node *newNext = nullptr){\n        data = newData;\n        next = newNext;\n    }\n\n    void setData(const DataType &newData){\n        data = newData;\n    }\n    void setNext(Node *newNext){\n        next = newNext;\n    }\n\n    DataType getData() const{\n        return data;\n    }\n    const Node* getNext() const{\n        return next;\n    }\n    Node* getNext(){\n        return next;\n    }\n\nprivate:\n    DataType data;\n    Node *next;\n};",
+      criteria: [
+        "using DataType = int; alias present",
+        "Constructor has default arguments DataType() and nullptr",
+        "getData is marked const",
+        "Both getNext overloads present, const version returns const Node*",
+        "data and next are private",
+      ],
+      timeBudgetSec: 240,
+      // The class is spread over four slides in 03.1; provenance points at the
+      // constructor slide and extraAtoms carries the rest so a reviewer can
+      // check every member against a real anchor.
+      extraAtoms: ["#node-setters", "#node-getters", "#node-private-members"],
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#node-constructor",
+        excerpt:
+          "class Node\n{\npublic:\n//use the data type int for data, similar to typedef\nusing DataType = int;\n//constructor\nNode(const DataType newData = DataType(),\nNode *newNext = nullptr){\ndata = newData;\nnext = newNext;\n}",
+        citation: "Lecture Deck 03.1",
+      },
+      difficulty: 2,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-11",
+      topicId: "linked-lists",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "```\nNode *head;\nhead = new Node();\nhead->setData(50);\n```\nWhat are `head->getData()` and `head->getNext()` after these three lines, and why?",
+      expected:
+        "head->getData() is 50. head->getNext() is nullptr. The default constructor arguments are DataType() and nullptr, so the new node starts as data = 0, next = nullptr; setData then overwrites data with 50 and never touches next.",
+      criteria: [
+        "getData() is 50",
+        "getNext() is nullptr",
+        "Attributes nullptr to the constructor's default argument, not to setData",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#allocating-and-using-a-node",
+        excerpt:
+          "- head starts pointing to a node with data: ? and next: nullptr\n- after setData(50), head points to a node with data: 50 and next: nullptr",
+        citation: "Lecture Deck 03.1",
+      },
+      difficulty: 2,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-12",
+      topicId: "linked-lists",
+      format: FORMATS.CLOZE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Fill both blanks in the Node constructor signature and say what each default buys you:\n```\nNode(const DataType newData = _______,\n     Node *newNext = _______){\n```",
+      expected:
+        "DataType() and nullptr. DataType() value-initializes the payload, so an int node starts at 0 rather than garbage, and the alias means the default follows the type if DataType changes. nullptr means a node built with no arguments is already a valid one-node list terminator, so new Node() needs no follow-up setNext.",
+      criteria: [
+        "First blank is DataType(), not 0",
+        "Second blank is nullptr, not NULL",
+        "Explains why DataType() is used instead of a literal",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#node-constructor",
+        excerpt:
+          "Node(const DataType newData = DataType(),\nNode *newNext = nullptr){\ndata = newData;\nnext = newNext;\n}",
+        citation: "Lecture Deck 03.1",
+      },
+      difficulty: 1,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-13",
+      topicId: "linked-lists",
+      format: FORMATS.COMPARE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "`const Node* getNext() const` versus `Node* getNext()`. State the discriminating difference and what breaks if the class only has the second one.",
+      expected:
+        "They differ by the constness of the object they can be called on. The const version is selected when the Node is const and hands back a const Node*, so the caller cannot modify the rest of the chain through it. With only the non-const version, calling getNext() on a const Node is a compile error, so any const member function or const Node& parameter can no longer traverse the list at all.",
+      criteria: [
+        "Difference is const-ness of the receiver object, not the return type alone",
+        "const version returns const Node* to preserve the guarantee",
+        "Says traversal from a const context fails to compile without it",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.1-linked-lists",
+        anchor: "#node-getters",
+        excerpt:
+          "const Node* getNext() const{ //get the next field as constant\nreturn next;\n}\nNode* getNext(){ //get the next field\nreturn next;\n}",
+        citation: "Lecture Deck 03.1",
+      },
+      difficulty: 2,
+      verifiedByHuman: false,
     }),
   ],
 };

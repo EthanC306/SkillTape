@@ -60,6 +60,7 @@ export default {
   questions: [
     {
       id: "dynamic-arrays-q01",
+      verifiedByHuman: false,
       prompt: "Given `int *intPtr; int numbers[10]; intPtr = numbers;`, what does intPtr point to?",
       choices: [
         "Nothing until new is called",
@@ -73,6 +74,7 @@ export default {
     },
     {
       id: "dynamic-arrays-q02",
+      verifiedByHuman: false,
       prompt: "How do you allocate an array of 10 ints on the heap?",
       choices: [
         "intArray = new int(10);",
@@ -85,6 +87,7 @@ export default {
     },
     {
       id: "dynamic-arrays-q03",
+      verifiedByHuman: false,
       prompt: "Which statement correctly frees a dynamically allocated array?",
       code: "int *intArray = new int[10];",
       choices: [
@@ -99,6 +102,7 @@ export default {
     },
     {
       id: "dynamic-arrays-q04",
+      verifiedByHuman: false,
       prompt: "What goes wrong here?",
       code: "char *chArray = new char[10];\nchArray += 5;\ndelete [] chArray;",
       choices: [
@@ -113,6 +117,7 @@ export default {
     },
     {
       id: "dynamic-arrays-q05",
+      verifiedByHuman: false,
       prompt: "Why does `void someFunction(int *intPtr);` accept an array argument?",
       choices: [
         "An array name decays to a pointer to its first element",
@@ -126,6 +131,7 @@ export default {
     },
     {
       id: "dynamic-arrays-q06",
+      verifiedByHuman: false,
       prompt: "In this swap function, what does `*intPtr1 = *intPtr2;` do?",
       code: "void swap(int *intPtr1, int *intPtr2) {\n  int temp = *intPtr1;\n  *intPtr1 = *intPtr2;\n  *intPtr2 = temp;\n}",
       choices: [
@@ -140,6 +146,7 @@ export default {
     },
     {
       id: "dynamic-arrays-q07",
+      verifiedByHuman: false,
       prompt: "To call `swap(int *intPtr1, int *intPtr2)` on ordinary ints x and y, you write:",
       choices: [
         "swap(&x, &y);",
@@ -153,6 +160,7 @@ export default {
     },
     {
       id: "dynamic-arrays-q08",
+      verifiedByHuman: false,
       prompt: "What does `strndup(name, 100)` return?",
       choices: [
         "true, as long as name fits inside 100 characters",
@@ -166,6 +174,7 @@ export default {
     },
     {
       id: "dynamic-arrays-q09",
+      verifiedByHuman: false,
       prompt: "What's the advantage of `strndup` over `new` plus `strncpy`?",
       choices: [
         "It never allocates on the heap",
@@ -179,6 +188,7 @@ export default {
     },
     {
       id: "dynamic-arrays-q10",
+      verifiedByHuman: false,
       prompt: "In this loop, what does `*(intPtr + i)` do?",
       code: "for (i = 0; i < size; i++) {\n  cout << *(intPtr + i) << ' ';\n}",
       choices: [
@@ -193,6 +203,7 @@ export default {
     },
     {
       id: "dynamic-arrays-q11",
+      verifiedByHuman: false,
       prompt: "When you write `intPtr + i`, how much is actually added to the address?",
       choices: [
         "i * sizeof(the pointed-to type)",
@@ -206,6 +217,7 @@ export default {
     },
     {
       id: "dynamic-arrays-q12",
+      verifiedByHuman: false,
       prompt:
         "What lets a dynamic array's size be decided while the program runs (unlike a plain declared array)?",
       code: "cin >> size;\nintArray = new int[size];",

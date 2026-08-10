@@ -70,6 +70,7 @@ export default {
   questions: [
     {
       id: "dynamic-classes-q01",
+      verifiedByHuman: false,
       prompt: "When is a destructor called?",
       choices: [
         "Automatically, when an object goes out of scope",
@@ -83,6 +84,7 @@ export default {
     },
     {
       id: "dynamic-classes-q02",
+      verifiedByHuman: false,
       prompt: "Which is a valid destructor declaration for class `MyString`?",
       choices: [
         "MyString::destroy();",
@@ -96,6 +98,7 @@ export default {
     },
     {
       id: "dynamic-classes-q03",
+      verifiedByHuman: false,
       prompt: "What does this destructor do?",
       code: "MyString::~MyString() {\n  delete[] str;\n}",
       choices: [
@@ -110,6 +113,7 @@ export default {
     },
     {
       id: "dynamic-classes-q04",
+      verifiedByHuman: false,
       prompt: "In `MyString`::`MyString(int size)`, what happens if size is 0 or negative?",
       code: "MyString::MyString(int size) {\n  if (size > 0) {\n    str = new char[size];\n    maxLength = size;\n  } else {\n    str = new char[1000];\n    maxLength = 1000;\n  }\n}",
       choices: [
@@ -124,6 +128,7 @@ export default {
     },
     {
       id: "dynamic-classes-q05",
+      verifiedByHuman: false,
       prompt:
         "`void printString(MyString strObject);` is called with an existing `MyString`. Without a copy constructor, what goes wrong when `printString` returns?",
       choices: [
@@ -138,6 +143,7 @@ export default {
     },
     {
       id: "dynamic-classes-q06",
+      verifiedByHuman: false,
       prompt: "What must a copy constructor's parameter be?",
       choices: [
         "A const reference to the same class",
@@ -151,6 +157,7 @@ export default {
     },
     {
       id: "dynamic-classes-q07",
+      verifiedByHuman: false,
       prompt: "A copy constructor runs automatically in which situations?",
       choices: [
         "Only when explicitly written as CopyOf(obj) somewhere in the program",
@@ -164,6 +171,7 @@ export default {
     },
     {
       id: "dynamic-classes-q08",
+      verifiedByHuman: false,
       prompt: "Why does `MyString`'s copy constructor use `strndup` instead of copying the pointer str directly?",
       code: "MyString::MyString(const MyString& strObject) {\n  maxLength = strObject.length();\n  str = strndup(strObject.str, 1000);\n}",
       choices: [
@@ -178,6 +186,7 @@ export default {
     },
     {
       id: "dynamic-classes-q09",
+      verifiedByHuman: false,
       prompt: "Why must `operator=` be overloaded for a class like `MyString`?",
       choices: [
         "It's required to make the class printable",
@@ -191,6 +200,7 @@ export default {
     },
     {
       id: "dynamic-classes-q10",
+      verifiedByHuman: false,
       prompt: "In `MyString`'s overloaded `operator=`, why check `if (newLength > maxLength)` before deleting str?",
       code: "if (newLength > maxLength) {\n  delete [] str;\n  maxLength = newLength;\n  str = strndup(rightSide.str, 1000);\n} else {\n  strncpy(str, rightSide.str, 1000);\n}",
       choices: [
@@ -205,6 +215,7 @@ export default {
     },
     {
       id: "dynamic-classes-q11",
+      verifiedByHuman: false,
       prompt: "A class allocates memory with new in its constructor. Which three member functions should it define together?",
       choices: [
         "getString, setString, and length",
@@ -218,6 +229,7 @@ export default {
     },
     {
       id: "dynamic-classes-q12",
+      verifiedByHuman: false,
       prompt: "Why does `createNewArray` take arr as `double*&` instead of `double*`?",
       code: "void createNewArray(double*& arr, size_t n) {\n  arr = new double[n];\n}",
       choices: [
@@ -232,6 +244,7 @@ export default {
     },
     {
       id: "dynamic-classes-q13",
+      verifiedByHuman: false,
       prompt: "Given `ItemType *itemPtr = new ItemType;`, which two lines do the same thing?",
       code: "(*itemPtr).number = 5555;\nitemPtr->number = 5555;",
       choices: [

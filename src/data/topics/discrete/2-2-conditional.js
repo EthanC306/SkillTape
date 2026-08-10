@@ -63,6 +63,7 @@ export default {
   questions: [
     {
       id: "discrete-2-2-conditional-q01",
+      verifiedByHuman: false,
       prompt: "In what single case is the conditional p → q false?",
       choices: [
         "When p is false and q is true",
@@ -76,6 +77,7 @@ export default {
     },
     {
       id: "discrete-2-2-conditional-q02",
+      verifiedByHuman: false,
       prompt: "“If 0 = 1, then 1 = 2” is… ",
       choices: [
         "false, on the grounds that 1 ≠ 2",
@@ -89,6 +91,7 @@ export default {
     },
     {
       id: "discrete-2-2-conditional-q03",
+      verifiedByHuman: false,
       prompt: "Which is logically equivalent to p → q?",
       choices: ["p ∧ q", "~p ∨ q", "p ∨ ~q", "q → p"],
       answer: 1,
@@ -97,6 +100,7 @@ export default {
     },
     {
       id: "discrete-2-2-conditional-q04",
+      verifiedByHuman: false,
       prompt: "What is the negation of “If my car is in the shop, then I can't get to class”?",
       choices: [
         "If my car is not in the shop, then I can get to class",
@@ -110,6 +114,7 @@ export default {
     },
     {
       id: "discrete-2-2-conditional-q05",
+      verifiedByHuman: false,
       prompt: "The contrapositive of “If p then q” is…",
       choices: ["q → p", "~p → ~q", "~q → ~p", "p ∧ ~q"],
       answer: 2,
@@ -118,6 +123,7 @@ export default {
     },
     {
       id: "discrete-2-2-conditional-q06",
+      verifiedByHuman: false,
       prompt: "Which statement is logically EQUIVALENT to “If today is Easter, then tomorrow is Monday”?",
       choices: [
         "If tomorrow is Monday, then today is Easter (converse)",
@@ -131,6 +137,7 @@ export default {
     },
     {
       id: "discrete-2-2-conditional-q07",
+      verifiedByHuman: false,
       prompt: "The converse of p → q is q → p, and the inverse is ~p → ~q. How are the converse and inverse related?",
       choices: [
         "They are each equivalent to the original conditional p → q",
@@ -144,6 +151,7 @@ export default {
     },
     {
       id: "discrete-2-2-conditional-q08",
+      verifiedByHuman: false,
       prompt: "“John breaks the record only if he runs under four minutes.” This means:",
       choices: [
         "If John runs under four minutes, then he breaks the record",
@@ -157,6 +165,7 @@ export default {
     },
     {
       id: "discrete-2-2-conditional-q09",
+      verifiedByHuman: false,
       prompt: "“q is a necessary condition for p” translates to…",
       choices: ["p → q", "q → p", "p ∧ q", "p ↔ q"],
       answer: 0,
@@ -165,6 +174,7 @@ export default {
     },
     {
       id: "discrete-2-2-conditional-q10",
+      verifiedByHuman: false,
       prompt: "The biconditional p ↔ q is true exactly when…",
       choices: [
         "at least one of p and q is true",
@@ -178,6 +188,7 @@ export default {
     },
     {
       id: "discrete-2-2-conditional-q11",
+      verifiedByHuman: false,
       prompt: "“p if and only if q” is equivalent to which conjunction?",
       choices: [
         "(p → q) ∧ (q → p)",
@@ -191,6 +202,7 @@ export default {
     },
     {
       id: "discrete-2-2-conditional-q12",
+      verifiedByHuman: false,
       prompt: "In the full order of operations, which connective is evaluated FIRST?",
       choices: ["→", "∧", "∨", "~"],
       answer: 3,

@@ -113,6 +113,7 @@ export default {
   questions: [
     {
       id: "iterators-q01",
+      verifiedByHuman: false,
       prompt: "What does the keyword `this` refer to inside a member function?",
       choices: [
         "A copy of the object's data",
@@ -126,6 +127,7 @@ export default {
     },
     {
       id: "iterators-q02",
+      verifiedByHuman: false,
       prompt: "Why can't a linked list's elements be reached with an integer index the way an array's can?",
       choices: [
         "Linked lists are always sorted",
@@ -139,6 +141,7 @@ export default {
     },
     {
       id: "iterators-q03",
+      verifiedByHuman: false,
       prompt: "What is the one difference between set and multiset?",
       choices: [
         "multiset is sorted, set is not",
@@ -152,6 +155,7 @@ export default {
     },
     {
       id: "iterators-q04",
+      verifiedByHuman: false,
       prompt: "What does this program print?",
       code: "multiset<string> names;\nnames.insert(\"Jack\");\nnames.insert(\"Janet\");\nnames.insert(\"Chrissy\");\nnames.insert(\"Jack\");\n\nfor (auto it = names.begin(); it != names.end(); it++) {\n    cout << *it << endl;\n}",
       choices: [
@@ -166,6 +170,7 @@ export default {
     },
     {
       id: "iterators-q05",
+      verifiedByHuman: false,
       prompt: "In this loop, what is the real type of `it`?",
       code: "multiset<string> names;\nfor (auto it = names.begin(); it != names.end(); it++) { ... }",
       choices: [
@@ -180,6 +185,7 @@ export default {
     },
     {
       id: "iterators-q06",
+      verifiedByHuman: false,
       prompt: "Which iterator category allows access by index, as in `[i]`?",
       choices: ["Forward", "Bidirectional", "Input", "Random access"],
       answer: 3,
@@ -188,6 +194,7 @@ export default {
     },
     {
       id: "iterators-q07",
+      verifiedByHuman: false,
       prompt: "In the iterator hierarchy, which is true?",
       choices: [
         "A forward iterator can do everything a bidirectional iterator can",
@@ -201,6 +208,7 @@ export default {
     },
     {
       id: "iterators-q08",
+      verifiedByHuman: false,
       prompt: "What is `difference_type` used for?",
       code: "using iterator_category = forward_iterator_tag;\nusing difference_type = ptrdiff_t;\nusing value_type = ItDataType;",
       choices: [
@@ -215,6 +223,7 @@ export default {
     },
     {
       id: "iterators-q09",
+      verifiedByHuman: false,
       prompt: "What does `operator*` return, and why a reference?",
       code: "ItDataType &operator*() const {\n    return current->getData();\n}",
       choices: [
@@ -229,6 +238,7 @@ export default {
     },
     {
       id: "iterators-q10",
+      verifiedByHuman: false,
       prompt: "What distinguishes the postfix ++ overload from the prefix one?",
       code: "Iterator &operator++() { ... }\nIterator operator++(int) { ... }",
       choices: [
@@ -243,6 +253,7 @@ export default {
     },
     {
       id: "iterators-q11",
+      verifiedByHuman: false,
       prompt: "What does this postfix ++ return?",
       code: "Iterator operator++(int) {\n    Iterator original = *this;\n    current = current->getNext();\n    return original;\n}",
       choices: [
@@ -257,6 +268,7 @@ export default {
     },
     {
       id: "iterators-q12",
+      verifiedByHuman: false,
       prompt: "How do two iterators decide whether they are equal?",
       code: "bool operator==(const Iterator other) const {\n    return current == other.current;\n}",
       choices: [
@@ -271,6 +283,7 @@ export default {
     },
     {
       id: "iterators-q13",
+      verifiedByHuman: false,
       prompt: "What does `end()` return, and why does that stop the loop?",
       code: "Iterator<DataType> end() {\n    return Iterator<DataType>();\n}",
       choices: [
@@ -285,6 +298,7 @@ export default {
     },
     {
       id: "iterators-q14",
+      verifiedByHuman: false,
       prompt: "In the ConstIterator, what changes compared with the ordinary Iterator?",
       code: "const ItDataType &operator*() const { ... }\nprivate:\n    const Node<ItDataType> *current;",
       choices: [

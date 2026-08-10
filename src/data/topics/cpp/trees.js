@@ -213,6 +213,7 @@ export default {
   questions: [
     {
       id: "trees-q01",
+      verifiedByHuman: false,
       prompt: "On the deck's table of ordered data, which operation is an array already good at before trees are introduced?",
       choices: ["Search, at O(log2n)", "Insert, at O(n)", "Remove, at O(n)", "All three, at O(log2n)"],
       answer: 0,
@@ -220,6 +221,7 @@ export default {
     },
     {
       id: "trees-q02",
+      verifiedByHuman: false,
       prompt: "What is the depth of the root of a binary tree?",
       choices: ["1", "0", "The number of levels in the tree", "Undefined until it has children"],
       answer: 1,
@@ -227,6 +229,7 @@ export default {
     },
     {
       id: "trees-q03",
+      verifiedByHuman: false,
       prompt: "How many parents does the root have, and how many does every other node have?",
       choices: [
         "Zero, and exactly one",
@@ -239,6 +242,7 @@ export default {
     },
     {
       id: "trees-q04",
+      verifiedByHuman: false,
       prompt: "What makes a binary tree a Full Binary Tree?",
       choices: [
         "Every leaf has the same depth and every non-leaf has two children",
@@ -251,6 +255,7 @@ export default {
     },
     {
       id: "trees-q05",
+      verifiedByHuman: false,
       prompt: "In BNode's constructor, what are left and right set to if the caller supplies only a value?",
       code:
         "BNode(DataType newData = DataType(),\n      BNode* newLeft = nullptr, BNode* newRight = nullptr){\n    data = newData;\n    left = newLeft;\n    right = newRight;\n}",
@@ -265,6 +270,7 @@ export default {
     },
     {
       id: "trees-q06",
+      verifiedByHuman: false,
       prompt: "In `void insert(DataType newData) { treeInsert(root, newData); }`, which root is being passed?",
       choices: [
         "A fresh node allocated by the wrapper",
@@ -277,6 +283,7 @@ export default {
     },
     {
       id: "trees-q07",
+      verifiedByHuman: false,
       prompt: "What does this traversal print for the deck's example tree?",
       code:
         "        50\n      /    \\\n    40      60\n   /  \\    /  \\\n  35  45  55  70\n /              \\\n10              80\n\nprintInorder(root->left);\ncout << root->data << endl;\nprintInorder(root->right);",
@@ -291,6 +298,7 @@ export default {
     },
     {
       id: "trees-q08",
+      verifiedByHuman: false,
       prompt: "Which traversal prints the deck's example tree as 50 40 35 10 45 60 55 70 80?",
       choices: ["Postorder", "Inorder", "Preorder", "Level order"],
       answer: 2,
@@ -298,6 +306,7 @@ export default {
     },
     {
       id: "trees-q09",
+      verifiedByHuman: false,
       prompt: "In a postorder traversal, when is a node processed?",
       choices: [
         "After its left subtree but before its right",
@@ -310,6 +319,7 @@ export default {
     },
     {
       id: "trees-q10",
+      verifiedByHuman: false,
       prompt: "What is treeSize's base case, and what does it return?",
       code:
         "size_t BSTree<DataType>::treeSize(BNode<DataType>* root) {\n    if(root == nullptr){\n        return 0;\n    }\n    return 1 + treeSize(root->left) + treeSize(root->right);\n}",
@@ -324,6 +334,7 @@ export default {
     },
     {
       id: "trees-q11",
+      verifiedByHuman: false,
       prompt: "Why is inorder on a BST guaranteed to print sorted order rather than happening to?",
       choices: [
         "Because insert sorts the values as it places them",
@@ -336,6 +347,7 @@ export default {
     },
     {
       id: "trees-q12",
+      verifiedByHuman: false,
       prompt: "Why is the second test written as `else if (newData > root->data)` rather than a bare `else`?",
       code:
         "if (newData < root->data){\n    treeInsert(root->left, newData);\n}\nelse if (newData > root->data){\n    treeInsert(root->right, newData);\n}\n//else, already in the tree, ignore it",
@@ -350,6 +362,7 @@ export default {
     },
     {
       id: "trees-q13",
+      verifiedByHuman: false,
       prompt: "You remove the & from treeInsert's `BNode<DataType>* &root`. It still compiles. What happens at runtime?",
       choices: [
         "The new node is attached, but the tree leaks its old root",
@@ -362,6 +375,7 @@ export default {
     },
     {
       id: "trees-q14",
+      verifiedByHuman: false,
       prompt: "What is treeSize's time complexity?",
       code:
         "size_t BSTree<DataType>::treeSize(BNode<DataType>* root) {\n    if(root == nullptr){\n        return 0;\n    }\n    return 1 + treeSize(root->left) + treeSize(root->right);\n}",
@@ -376,6 +390,7 @@ export default {
     },
     {
       id: "trees-q15",
+      verifiedByHuman: false,
       prompt: "On the deck's final table, what disadvantage does it list for binary search trees?",
       choices: [
         "They require resizing and copying",

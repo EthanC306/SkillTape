@@ -76,6 +76,7 @@ export default {
   questions: [
     {
       id: "queues-q01",
+      verifiedByHuman: false,
       prompt: "Where can entries be inserted and removed in a queue?",
       choices: [
         "At the rear for insertion, at the front for removal",
@@ -89,6 +90,7 @@ export default {
     },
     {
       id: "queues-q02",
+      verifiedByHuman: false,
       prompt: "You enqueue 3, then 7, then 5 onto an empty queue. What does the next dequeue return?",
       choices: ["The largest value, 7", "5", "7", "3"],
       answer: 3,
@@ -97,6 +99,7 @@ export default {
     },
     {
       id: "queues-q03",
+      verifiedByHuman: false,
       prompt: "What is queue overflow?",
       choices: [
         "Adding an entry to a queue that is already full",
@@ -110,6 +113,7 @@ export default {
     },
     {
       id: "queues-q04",
+      verifiedByHuman: false,
       prompt: "What is queue underflow?",
       choices: [
         "Adding an entry to a queue that is already full",
@@ -123,6 +127,7 @@ export default {
     },
     {
       id: "queues-q05",
+      verifiedByHuman: false,
       prompt: "Why can't a plain array implementation just treat the last array index as a fixed `rear` boundary?",
       choices: [
         "Because rear must always be lower than front",
@@ -136,6 +141,7 @@ export default {
     },
     {
       id: "queues-q06",
+      verifiedByHuman: false,
       prompt: "What does `nextIndex` do?",
       code:
         "size_t nextIndex(size_t index) const{\n    return (index + 1) % CAPACITY;\n}",
@@ -151,6 +157,7 @@ export default {
     },
     {
       id: "queues-q07",
+      verifiedByHuman: false,
       prompt: "For an empty queue, what is true of `front` and `rear`?",
       choices: [
         "front equals nextIndex(rear)",
@@ -164,6 +171,7 @@ export default {
     },
     {
       id: "queues-q08",
+      verifiedByHuman: false,
       prompt: "Why does the constructor set `rear` to `CAPACITY - 1` instead of 0?",
       code:
         "template <class Item>\nQueue<Item>::Queue( )\n{\n    numItems = 0;\n    front = 0;\n    rear = CAPACITY - 1;\n}",
@@ -179,6 +187,7 @@ export default {
     },
     {
       id: "queues-q09",
+      verifiedByHuman: false,
       prompt: "What is this `assert` protecting against?",
       code:
         "template <class Item>\nvoid Queue<Item>::push(const Item& entry)\n{\n    assert(numItems < CAPACITY);\n    rear = nextIndex(rear);\n    data[rear] = entry;\n    numItems++;\n}",
@@ -194,6 +203,7 @@ export default {
     },
     {
       id: "queues-q10",
+      verifiedByHuman: false,
       prompt: "Why does `push` advance `rear` before writing the entry?",
       code:
         "rear = nextIndex(rear);\ndata[rear] = entry;\nnumItems++;",
@@ -209,6 +219,7 @@ export default {
     },
     {
       id: "queues-q11",
+      verifiedByHuman: false,
       prompt: "What does this `pop` return?",
       code:
         "Item removedItem = data[front];\nfront = nextIndex(front);\nnumItems--;\nreturn removedItem;",
@@ -224,6 +235,7 @@ export default {
     },
     {
       id: "queues-q12",
+      verifiedByHuman: false,
       prompt: "What is the difference between `peek` and `pop` on this queue?",
       choices: [
         "peek reads the front item; pop removes it",
@@ -237,6 +249,7 @@ export default {
     },
     {
       id: "queues-q13",
+      verifiedByHuman: false,
       prompt: "In the linked list implementation, which node is the `rear` of the queue?",
       choices: [
         "The head node",
@@ -250,6 +263,7 @@ export default {
     },
     {
       id: "queues-q14",
+      verifiedByHuman: false,
       prompt: "What do `frontPtr` and `rearPtr` point to in the linked-list queue?",
       choices: [
         "frontPtr is an index, not a pointer",

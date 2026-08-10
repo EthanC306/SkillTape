@@ -59,6 +59,7 @@ export default {
   questions: [
     {
       id: "containers-q01",
+      verifiedByHuman: false,
       prompt: "What is a container class?",
       choices: [
         "A special kind of loop",
@@ -72,6 +73,7 @@ export default {
     },
     {
       id: "containers-q02",
+      verifiedByHuman: false,
       prompt: "What makes a sequence class different from a plain container?",
       choices: [
         "It can only hold integers",
@@ -85,6 +87,7 @@ export default {
     },
     {
       id: "containers-q03",
+      verifiedByHuman: false,
       prompt: "In the Bag class, what does `used` track?",
       code: "int data[CAPACITY];\nsize_t used;",
       choices: [
@@ -99,6 +102,7 @@ export default {
     },
     {
       id: "containers-q04",
+      verifiedByHuman: false,
       prompt: "What is `CAPACITY` in the Bag class?",
       choices: [
         "A static constant capacity",
@@ -112,6 +116,7 @@ export default {
     },
     {
       id: "containers-q05",
+      verifiedByHuman: false,
       prompt: "What kind of type is `size_t`?",
       choices: [
         "A container class",
@@ -125,6 +130,7 @@ export default {
     },
     {
       id: "containers-q06",
+      verifiedByHuman: false,
       prompt: "What does this line do?",
       code: "typedef int Integer;",
       choices: [
@@ -139,6 +145,7 @@ export default {
     },
     {
       id: "containers-q07",
+      verifiedByHuman: false,
       prompt: "Which line is the modern equivalent of `typedef int Integer;`?",
       choices: [
         "#define Integer int",
@@ -152,6 +159,7 @@ export default {
     },
     {
       id: "containers-q08",
+      verifiedByHuman: false,
       prompt: "Why is `size()` marked `const`?",
       code: "size_t size() const;",
       choices: [
@@ -166,6 +174,7 @@ export default {
     },
     {
       id: "containers-q09",
+      verifiedByHuman: false,
       prompt: "What's the difference between `erase` and `eraseAll`?",
       choices: [
         "eraseAll only works on sorted bags",
@@ -179,6 +188,7 @@ export default {
     },
     {
       id: "containers-q10",
+      verifiedByHuman: false,
       prompt: "Why is `operator<<` declared a `friend` of the Bag class?",
       choices: [
         "Because it is a member function",
@@ -192,6 +202,7 @@ export default {
     },
     {
       id: "containers-q11",
+      verifiedByHuman: false,
       prompt: "Which STL container stores unique, sorted elements?",
       choices: [
         "multiset",
@@ -205,6 +216,7 @@ export default {
     },
     {
       id: "containers-q12",
+      verifiedByHuman: false,
       prompt: "What does `insert` return when the bag is already full?",
       choices: [
         "false",

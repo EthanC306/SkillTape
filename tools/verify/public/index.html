@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SkillTape Verify</title>
+    <style>
+      :root {
+        --bg: #12141a;
+        --panel: #1a1d26;
+        --panel-2: #21252f;
+        --line: #2e3340;
+        --text: #e6e8ee;
+        --muted: #949bad;
+        --green: #3ecf8e;
+        --red: #f0616d;
+        --amber: #e3b341;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+
+      .wrap {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 24px 20px 80px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+
+      .topbar h1 {
+        font-size: 17px;
+        margin: 0;
+        letter-spacing: 0.3px;
+      }
+
+      .progress {
+        color: var(--muted);
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      .card-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel-2);
+      }
+
+      .badge {
+        font-size: 11px;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 5px;
+        border: 1px solid var(--line);
+        color: var(--muted);
+      }
+
+      .badge.format {
+        color: var(--bg);
+        background: var(--green);
+        border-color: var(--green);
+        font-weight: 600;
+      }
+
+      .badge.legacy {
+        color: var(--amber);
+        border-color: var(--amber);
+      }
+
+      .id {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .cols {
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+      }
+
+      @media (max-width: 900px) {
+        .cols {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .col {
+        padding: 20px;
+        min-width: 0;
+      }
+
+      .col + .col {
+        border-left: 1px solid var(--line);
+        background: #171a22;
+      }
+
+      @media (max-width: 900px) {
+        .col + .col {
+          border-left: none;
+          border-top: 1px solid var(--line);
+        }
+      }
+
+      .label {
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 22px 0 8px;
+      }
+
+      .col > .label:first-child {
+        margin-top: 0;
+      }
+
+      .prompt {
+        font-size: 17px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+      }
+
+      .body {
+        white-space: pre-wrap;
+      }
+
+      .mono {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 13.5px;
+        line-height: 1.55;
+        background: #0e1015;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px 14px;
+        overflow-x: auto;
+      }
+
+      .excerpt {
+        white-space: pre-wrap;
+        background: #0e1015;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--amber);
+        border-radius: 6px;
+        padding: 12px 14px;
+        color: #d3d7e2;
+        font-size: 14px;
+      }
+
+      ul.criteria,
+      ul.choices {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      ul.criteria li,
+      ul.choices li {
+        margin-bottom: 6px;
+      }
+
+      ul.choices li.correct {
+        color: var(--green);
+        font-weight: 600;
+      }
+
+      .meta {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .meta div {
+        margin-bottom: 4px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 14px;
+        justify-content: center;
+        padding: 20px;
+        border-top: 1px solid var(--line);
+        background: var(--panel-2);
+      }
+
+      button {
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        padding: 12px 34px;
+        color: var(--bg);
+      }
+
+      button:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+
+      .ok {
+        background: var(--green);
+      }
+
+      .no {
+        background: var(--red);
+      }
+
+      .hint {
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 14px;
+      }
+
+      .empty {
+        text-align: center;
+        padding: 70px 20px;
+        color: var(--muted);
+        font-size: 17px;
+      }
+
+      .error {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--red);
+        color: var(--red);
+        background: rgba(240, 97, 109, 0.08);
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="topbar">
+        <h1>SkillTape Verify</h1>
+        <div class="progress" id="progress"></div>
+      </div>
+      <div id="root"></div>
+      <div class="error hidden" id="error"></div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

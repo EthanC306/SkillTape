@@ -72,6 +72,7 @@ export default {
   questions: [
     {
       id: "discrete-1-2-sets-q01",
+      verifiedByHuman: false,
       prompt:
         "Let A = {1, 2, 3}, B = {3, 1, 2}, and C = {1, 1, 2, 3, 3}. How are A, B, and C related?",
       choices: [
@@ -86,6 +87,7 @@ export default {
     },
     {
       id: "discrete-1-2-sets-q02",
+      verifiedByHuman: false,
       prompt: "Is {0} = 0?",
       choices: [
         "Yes, they both represent zero",
@@ -99,6 +101,7 @@ export default {
     },
     {
       id: "discrete-1-2-sets-q03",
+      verifiedByHuman: false,
       prompt: "How many elements are in the set {1, {1}}?",
       choices: ["1", "2", "3", "Infinitely many"],
       answer: 1,
@@ -107,6 +110,7 @@ export default {
     },
     {
       id: "discrete-1-2-sets-q04",
+      verifiedByHuman: false,
       prompt: "Which statement is TRUE?",
       choices: [
         "2 ⊆ {1, 2, 3}",
@@ -120,6 +124,7 @@ export default {
     },
     {
       id: "discrete-1-2-sets-q05",
+      verifiedByHuman: false,
       prompt: "What is the difference between ∈ and ⊆?",
       choices: [
         "∈ relates an element to a set; ⊆ relates a set to a set",
@@ -133,6 +138,7 @@ export default {
     },
     {
       id: "discrete-1-2-sets-q06",
+      verifiedByHuman: false,
       prompt:
         "Let B = ℤ⁺ (positive integers) and C = {100, 200, 300}. Is C a proper subset of B?",
       choices: [
@@ -147,6 +153,7 @@ export default {
     },
     {
       id: "discrete-1-2-sets-q07",
+      verifiedByHuman: false,
       prompt: "Is (1, 2) = (2, 1)?",
       choices: [
         "Yes, the two pairs contain exactly the same numbers",
@@ -160,6 +167,7 @@ export default {
     },
     {
       id: "discrete-1-2-sets-q08",
+      verifiedByHuman: false,
       prompt: "If A = {x, y} and B = {1, 2, 3}, how many elements are in A × B?",
       choices: ["5", "6", "2", "9"],
       answer: 1,
@@ -168,6 +176,7 @@ export default {
     },
     {
       id: "discrete-1-2-sets-q09",
+      verifiedByHuman: false,
       prompt: "In general, is A × B the same set as B × A?",
       choices: [
         "Yes, Cartesian product is symmetric",
@@ -181,6 +190,7 @@ export default {
     },
     {
       id: "discrete-1-2-sets-q10",
+      verifiedByHuman: false,
       prompt: "Which set does the builder notation { x ∈ ℤ | −2 < x < 3 } describe?",
       choices: [
         "{−2, −1, 0, 1, 2, 3}",
@@ -194,6 +204,7 @@ export default {
     },
     {
       id: "discrete-1-2-sets-q11",
+      verifiedByHuman: false,
       prompt: "Which reserved symbol denotes the set of all integers?",
       choices: ["ℝ", "ℚ", "ℤ", "ℕ"],
       answer: 2,
@@ -202,6 +213,7 @@ export default {
     },
     {
       id: "discrete-1-2-sets-q12",
+      verifiedByHuman: false,
       prompt: "Is the statement C ⊆ C true for every set C?",
       choices: [
         "No, a set can't be a subset of itself",

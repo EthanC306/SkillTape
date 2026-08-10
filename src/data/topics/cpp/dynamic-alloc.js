@@ -69,6 +69,7 @@ export default {
   questions: [
     {
       id: "dynamic-alloc-q01",
+      verifiedByHuman: false,
       prompt: "What is a pointer?",
       choices: [
         "A function that allocates memory and hands back what it reserved",
@@ -82,6 +83,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q02",
+      verifiedByHuman: false,
       prompt: "Which operator returns the memory address of a variable?",
       choices: [
         "::",
@@ -95,6 +97,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q03",
+      verifiedByHuman: false,
       prompt: "Given this declaration, which variable is a pointer?",
       code: "double *dblPtr, value;",
       choices: [
@@ -109,6 +112,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q04",
+      verifiedByHuman: false,
       prompt: "What does `*dblPtr` do in this code?",
       code: "value = 34.5;\ndblPtr = &value;\n*dblPtr = 12.3;",
       choices: [
@@ -123,6 +127,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q05",
+      verifiedByHuman: false,
       prompt: "What does this statement do?",
       code: "intPtr = new int(99);",
       choices: [
@@ -137,6 +142,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q06",
+      verifiedByHuman: false,
       prompt: "Where does memory from the `new` operator come from?",
       choices: [
         "The stack",
@@ -149,6 +155,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q07",
+      verifiedByHuman: false,
       prompt: "After `intPtr = new int;` with no initializer, what does intPtr point to?",
       choices: [
         "Always 0",
@@ -162,6 +169,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q08",
+      verifiedByHuman: false,
       prompt: "What does the `delete` operator do?",
       choices: [
         "Deletes the pointer variable itself, so the name can no longer be used",
@@ -174,6 +182,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q09",
+      verifiedByHuman: false,
       prompt: "In this code, what is intPtr2 after `delete intPtr1;`?",
       code: "int *intPtr1, *intPtr2;\nintPtr1 = new int(99);\nintPtr2 = intPtr1;\ndelete intPtr1;",
       choices: [
@@ -188,6 +197,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q10",
+      verifiedByHuman: false,
       prompt: "What is nullptr?",
       choices: [
         "An integer equal to -1",
@@ -201,6 +211,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q11",
+      verifiedByHuman: false,
       prompt: "What happens if the `new` operator fails to find enough memory?",
       choices: [
         "It throws an exception",
@@ -214,6 +225,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q12",
+      verifiedByHuman: false,
       prompt: "Which of these still exists in memory after `run()` returns?",
       code: "static int a = 5;\n\nvoid run() {\n    int b = 5;\n    int *c = new int(5);\n}",
       choices: [
@@ -228,6 +240,7 @@ export default {
     },
     {
       id: "dynamic-alloc-q13",
+      verifiedByHuman: false,
       prompt: "Which line correctly uses `auto`?",
       choices: [
         "value = auto(2.3);",

@@ -122,3 +122,5 @@ function Count({ n, label, activeColor }) {
 function Dot() {
   return <span style={{ color: PALETTE.line, fontSize: 12 }}>·</span>;
 }
+
+

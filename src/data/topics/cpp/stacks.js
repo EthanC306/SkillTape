@@ -88,6 +88,7 @@ export default {
   questions: [
     {
       id: "stacks-q01",
+      verifiedByHuman: false,
       prompt: "Where can entries be inserted and removed in a stack?",
       choices: [
         "At either end, whichever is closer",
@@ -101,6 +102,7 @@ export default {
     },
     {
       id: "stacks-q02",
+      verifiedByHuman: false,
       prompt: "You `push` 3, then 7, then 5 onto an empty stack. What does the next `pop` return?",
       choices: ["3", "7", "5", "The smallest value, 3"],
       answer: 2,
@@ -109,6 +111,7 @@ export default {
     },
     {
       id: "stacks-q03",
+      verifiedByHuman: false,
       prompt: "What is stack underflow?",
       choices: [
         "Trying to push an item onto a full stack",
@@ -122,6 +125,7 @@ export default {
     },
     {
       id: "stacks-q04",
+      verifiedByHuman: false,
       prompt: "In the array implementation, what is top set to when the stack is empty?",
       choices: ["-1", "0", "CAPACITY", "nullptr"],
       answer: 0,
@@ -130,6 +134,7 @@ export default {
     },
     {
       id: "stacks-q05",
+      verifiedByHuman: false,
       prompt: "In the array implementation, what does pushing an element do?",
       choices: [
         "Shifts every element up one position and stores the item at index 0",
@@ -143,6 +148,7 @@ export default {
     },
     {
       id: "stacks-q06",
+      verifiedByHuman: false,
       prompt: "What is this `assert` protecting against?",
       code: "template <typename Item>\nvoid Stack<Item>::push(const Item& entry){\n    assert(top < CAPACITY - 1);\n    top++;\n    data[top] = entry;\n}",
       choices: [
@@ -157,6 +163,7 @@ export default {
     },
     {
       id: "stacks-q07",
+      verifiedByHuman: false,
       prompt: "Why does size return `top + 1`?",
       code: "size_t size() const { return top + 1; }\nbool isEmpty() const { return top == -1; }",
       choices: [
@@ -171,6 +178,7 @@ export default {
     },
     {
       id: "stacks-q08",
+      verifiedByHuman: false,
       prompt: "Why does this `pop` return `data[top + 1]` instead of `data[top]`?",
       code: "template <typename Item>\nItem Stack<Item>::pop() {\n    assert(!isEmpty());\n    top--;\n    return data[top + 1];\n}",
       choices: [
@@ -185,6 +193,7 @@ export default {
     },
     {
       id: "stacks-q09",
+      verifiedByHuman: false,
       prompt: "What is the difference between `peek` and `pop`?",
       choices: [
         "peek returns the bottom item; pop returns the top item",
@@ -198,6 +207,7 @@ export default {
     },
     {
       id: "stacks-q10",
+      verifiedByHuman: false,
       prompt: "What does `assert` do when its condition is true?",
       choices: [
         "It prints a confirmation message",
@@ -211,6 +221,7 @@ export default {
     },
     {
       id: "stacks-q11",
+      verifiedByHuman: false,
       prompt: "In the linked list implementation, what marks an empty stack?",
       choices: [
         "topPtr is pointing to nullptr",
@@ -224,6 +235,7 @@ export default {
     },
     {
       id: "stacks-q12",
+      verifiedByHuman: false,
       prompt: "What list operation is this `push` performing?",
       code: "template <typename Item>\nvoid Stack<Item>::push(const Item &entry){\n    // insert at the begining\n    Node<Item> *temp =\n            new Node<Item>(entry, topPtr);\n    topPtr = temp;\n    numItems++;\n}",
       choices: [
@@ -238,6 +250,7 @@ export default {
     },
     {
       id: "stacks-q13",
+      verifiedByHuman: false,
       prompt: "Why does `pop` save `topPtr` in `delPtr` before advancing it?",
       code: "Node<Item> *delPtr = topPtr;\nItem topItem = topPtr->getData();\ntopPtr = topPtr->getNext();\ndelete delPtr;\nnumItems--;\nreturn topItem;",
       choices: [
@@ -252,6 +265,7 @@ export default {
     },
     {
       id: "stacks-q14",
+      verifiedByHuman: false,
       prompt: "Why should the linked list stack have a destructor, a copy constructor, and an overloaded assignment operator?",
       choices: [
         "Templates require all three to compile",

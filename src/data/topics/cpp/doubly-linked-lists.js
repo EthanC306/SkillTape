@@ -55,6 +55,7 @@ export default {
   questions: [
     {
       id: "doubly-linked-lists-q01",
+      verifiedByHuman: false,
       prompt: "What does a doubly linked list add compared to a singly linked list?",
       choices: [
         "A guarantee that the list can never be empty once built",
@@ -68,6 +69,7 @@ export default {
     },
     {
       id: "doubly-linked-lists-q02",
+      verifiedByHuman: false,
       prompt: "In the `DNode` class, what are the three private members?",
       code: "class DNode {\nprivate:\n    int data;\n    DNode *next;\n    DNode *previous;\n};",
       choices: [
@@ -82,6 +84,7 @@ export default {
     },
     {
       id: "doubly-linked-lists-q03",
+      verifiedByHuman: false,
       prompt:
         "In `insertAfter(head, cursor, value)`, what happens if `head` == `nullptr`?",
       code: "if (head == nullptr) {\n    head = temp;\n    temp->next = nullptr;\n    temp->prev = nullptr;\n    return;\n}",
@@ -97,6 +100,7 @@ export default {
     },
     {
       id: "doubly-linked-lists-q04",
+      verifiedByHuman: false,
       prompt: "Why does inserting after a `cursor` need four pointer updates instead of two?",
       code: "temp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr)\n    cursor->next->prev = temp;\ncursor->next = temp;",
       choices: [
@@ -111,6 +115,7 @@ export default {
     },
     {
       id: "doubly-linked-lists-q05",
+      verifiedByHuman: false,
       prompt: "Why is `if (cursor->next != nullptr)` needed before `cursor->next->prev = temp;`?",
       choices: [
         "It's optional, and skipping it only costs a little performance on long lists",
@@ -124,6 +129,7 @@ export default {
     },
     {
       id: "doubly-linked-lists-q06",
+      verifiedByHuman: false,
       prompt: "When deleting the first node in a doubly linked list, what must happen to the new `head`?",
       code: "if (cursor == head) {\n    head = cursor->getNext();\n    if (head != nullptr) {\n        head->setPrevious(nullptr);\n    }\n}",
       choices: [
@@ -138,6 +144,7 @@ export default {
     },
     {
       id: "doubly-linked-lists-q07",
+      verifiedByHuman: false,
       prompt:
         "What is the key efficiency advantage of deleting a middle node in a doubly linked list versus a singly linked list?",
       code: "DNode *after = cursor->getNext();\nDNode *before = cursor->getPrevious();\nbefore->setNext(after);\nafter->setPrevious(before);",
@@ -153,6 +160,7 @@ export default {
     },
     {
       id: "doubly-linked-lists-q08",
+      verifiedByHuman: false,
       prompt: "Deleting a node in a doubly linked list has how many distinct cases?",
       choices: [
         "One: the same logic always applies",

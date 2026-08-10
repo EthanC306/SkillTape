@@ -88,6 +88,7 @@ export default {
   questions: [
     {
       id: "discrete-1-4-graphs-q01",
+      verifiedByHuman: false,
       prompt: "In a graph, what are the dots and the line segments called?",
       choices: [
         "Nodes and links",
@@ -101,6 +102,7 @@ export default {
     },
     {
       id: "discrete-1-4-graphs-q02",
+      verifiedByHuman: false,
       prompt: "What is a loop in a graph?",
       choices: [
         "An edge that connects a vertex to itself",
@@ -114,6 +116,7 @@ export default {
     },
     {
       id: "discrete-1-4-graphs-q03",
+      verifiedByHuman: false,
       prompt: "Two edges that connect the very same pair of vertices are called…",
       choices: ["adjacent", "incident", "parallel", "isolated"],
       answer: 2,
@@ -122,6 +125,7 @@ export default {
     },
     {
       id: "discrete-1-4-graphs-q04",
+      verifiedByHuman: false,
       prompt: "A vertex that has no edge connected to it is described as…",
       choices: ["parallel", "isolated", "a loop", "adjacent"],
       answer: 1,
@@ -130,6 +134,7 @@ export default {
     },
     {
       id: "discrete-1-4-graphs-q05",
+      verifiedByHuman: false,
       prompt:
         "Edge e₁ has endpoints {v₁, v₂}. Which statement uses the terminology correctly?",
       choices: [
@@ -144,6 +149,7 @@ export default {
     },
     {
       id: "discrete-1-4-graphs-q06",
+      verifiedByHuman: false,
       prompt: "What makes a directed graph (digraph) different from an ordinary graph?",
       choices: [
         "Its edges may be curved",
@@ -157,6 +163,7 @@ export default {
     },
     {
       id: "discrete-1-4-graphs-q07",
+      verifiedByHuman: false,
       prompt:
         "Vertex v₃ has two ordinary edges plus one loop attached to it. What is deg(v₃)?",
       figure: {
@@ -171,6 +178,7 @@ export default {
     },
     {
       id: "discrete-1-4-graphs-q08",
+      verifiedByHuman: false,
       prompt: "What is the degree of an isolated vertex?",
       choices: ["0", "1", "2", "Undefined"],
       answer: 0,
@@ -179,6 +187,7 @@ export default {
     },
     {
       id: "discrete-1-4-graphs-q09",
+      verifiedByHuman: false,
       prompt:
         "In the periodicals knowledge base: “New York Times → big-city daily,” “big-city daily → newspaper,” and “newspaper → matte (paper-finish).” What paper finish does the New York Times use?",
       choices: ["Glossy", "Matte", "It cannot be determined", "Both"],
@@ -188,6 +197,7 @@ export default {
     },
     {
       id: "discrete-1-4-graphs-q10",
+      verifiedByHuman: false,
       prompt:
         "You want to color a map so no two adjacent countries share a color. How do you model it as a graph?",
       choices: [
@@ -202,6 +212,7 @@ export default {
     },
     {
       id: "discrete-1-4-graphs-q11",
+      verifiedByHuman: false,
       prompt:
         "Two drawings look different but have the same vertex set, edge set, and edge-endpoint function. What can you conclude?",
       choices: [
@@ -216,6 +227,7 @@ export default {
     },
     {
       id: "discrete-1-4-graphs-q12",
+      verifiedByHuman: false,
       prompt:
         "When coloring a graph's vertices, a good strategy at each step is to color…",
       choices: [

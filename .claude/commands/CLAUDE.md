@@ -24,3 +24,6 @@ count++;
 Run `npm run dev` to start it.
 Don't bump the version in package.json by hand, I have a script for that.
 Stop writing so many comments.
+
+After every implementation clean up dead code, long comments, em dashes and ternaries ? , {$} etc
+Write code as simple as you can and readable to all levels of programming without losing quality. 

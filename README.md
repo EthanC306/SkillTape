@@ -78,12 +78,55 @@ npm run db:seed     # load/refresh curriculum content into the database
 npm run build       # production build → dist/
 npm run preview     # serve the production build locally
 npm run audit:bank  # validate the question bank (see below)
+npm run verify      # review unverified questions in a local UI (see below)
 ```
  
 The app needs **both** `dev` and `dev:server` running to load content. See `docs/BACKEND.md` for the backend architecture, the two-process setup, and the database.
  
 `npm run audit:bank` currently fails, and that's expected. It checks the bank against the planned item schema, which the existing MCQ content predates, so every legacy question is reported as missing `id`, `format`, and `provenance`. It'll pass once the bank is migrated; until then, treat its output as the migration to-do list, not a regression.
  
+## Verifying questions
+
+`verifiedByHuman` is the accuracy gate. Nothing else in the repo establishes that a question is factually right: the audit script checks structure, and `/extract` is forbidden from ever setting the flag. `npm run verify` is the human pass that does.
+
+It boots a small local review UI, separate from the app, that serves every question still marked `verifiedByHuman: false` one card at a time.
+
+**1. Start it.** The browser opens itself, and the app does not need to be running.
+
+```bash
+npm run verify                                     # everything unverified
+npm run verify -- --topic bigo                     # one topic
+npm run verify -- --only items                     # just the source-grounded items
+npm run verify -- --only legacy --topic discrete   # just that course's quiz MCQs
+```
+
+`--topic` accepts a topic id or a course id (`cpp`, `discrete`). `--port` defaults to 4200.
+
+**2. Review.** `J` or `→` verifies, `F` or `←` flags the question as broken and asks for a reason. Each click rewrites that one line in the seed file straight away, so Ctrl-C is a safe exit and quitting mid-session loses nothing.
+
+**3. Check the diff.** One changed line per question, so it reviews quickly.
+
+```bash
+git diff --stat
+cat data/needs-fixing.json   # what you flagged, with your reasons (gitignored)
+```
+
+**4. Reseed, if you verified items.**
+
+```bash
+npm run db:seed
+```
+
+Only matters for `items`. Practice, Drill, and Exam read the `items` table and gate on `verified_by_human`, so verifying an item is what puts it into rotation. Legacy `questions[]` rows have no such column and Quiz serves them regardless, so verifying one is a record that you checked it, nothing more.
+
+To see what's left without booting anything:
+
+```bash
+grep -rc "verifiedByHuman: false" src/data/topics/ | grep -v ':0'
+```
+
+Legacy questions were authored before the flag existed. `node scripts/backfillVerifiedFlag.mjs` wrote an explicit `verifiedByHuman: false` into all 316 of them so the state is visible in the file rather than implied by an absent key. It is idempotent and takes `--dry-run`; it only needs running again if a batch of questions is ever authored without the flag.
+
 ## Running with Docker
  
 ```bash
@@ -225,7 +268,13 @@ Relatedly, `nsis.artifactName` in `electron-builder.yml` is set to a space-free 
 ├── vite.config.js              # React plugin, sourcemaps, @ → src alias
 ├── scripts/
 │   ├── auditBank.js            # question-bank validator (npm run audit:bank)
+│   ├── backfillVerifiedFlag.mjs # one-time: writes verifiedByHuman onto legacy questions
 │   └── release.mjs             # publishes a GitHub release apps can see (npm run release:win)
+├── tools/
+│   └── verify/                 # local question-review UI (npm run verify)
+│       ├── server.js           # Express app, CLI args, item index
+│       ├── flag.js             # the scoped verifiedByHuman edit, shared with the backfill
+│       └── public/             # the single-page card UI
 ├── electron/
 │   ├── main.cjs                # Main process: backend child processes, window, auto-update
 │   └── preload.cjs             # contextBridge: version + updater state, nothing else

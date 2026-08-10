@@ -68,6 +68,7 @@ export default {
   questions: [
     {
       id: "linked-lists-algorithms-q01",
+      verifiedByHuman: false,
       prompt: "What is the running time of the list-length algorithm?",
       code: "size_t count = 0;\nNode *cursor = head;\nwhile (cursor != nullptr) {\n    count++;\n    cursor = cursor->getNext();\n}",
       choices: [
@@ -82,6 +83,7 @@ export default {
     },
     {
       id: "linked-lists-algorithms-q02",
+      verifiedByHuman: false,
       prompt: "What does `search()` return if target is not found in the list?",
       code: "Node* search(int target) {\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        if (cursor->getData() == target) return cursor;\n        cursor = cursor->getNext();\n    }\n    return nullptr;\n}",
       choices: [
@@ -96,6 +98,7 @@ export default {
     },
     {
       id: "linked-lists-algorithms-q03",
+      verifiedByHuman: false,
       prompt: "Why is `head` insert an O(1) operation?",
       code: "Node *temp = new Node(value);\ntemp->setNext(head);\nhead = temp;",
       choices: [
@@ -110,6 +113,7 @@ export default {
     },
     {
       id: "linked-lists-algorithms-q04",
+      verifiedByHuman: false,
       prompt:
         "Why must `temp->setNext(previous->getNext())` happen BEFORE `previous->setNext(temp)` when inserting after a pointer?",
       code: "Node *temp = new Node(value);\nif (previous != nullptr) {\n    temp->setNext(previous->getNext());\n    previous->setNext(temp);\n}",
@@ -125,6 +129,7 @@ export default {
     },
     {
       id: "linked-lists-algorithms-q05",
+      verifiedByHuman: false,
       prompt: "In the insert algorithm, what does `previous == nullptr` signal?",
       choices: [
         "The list is empty, so insert at the head",
@@ -138,6 +143,7 @@ export default {
     },
     {
       id: "linked-lists-algorithms-q06",
+      verifiedByHuman: false,
       prompt: "When deleting a node, why does the `head` case need special handling?",
       code: "if (current == head) {\n    head = current->getNext();\n    delete current;\n}",
       choices: [
@@ -152,6 +158,7 @@ export default {
     },
     {
       id: "linked-lists-algorithms-q07",
+      verifiedByHuman: false,
       prompt: "In the general (middle-of-list) delete case, why is a `previous` pointer needed?",
       code: "Node *previous = head;\nwhile (previous->getNext() != current) {\n    previous = previous->getNext();\n}\nprevious->setNext(current->getNext());\ndelete current;",
       choices: [
@@ -166,6 +173,7 @@ export default {
     },
     {
       id: "linked-lists-algorithms-q08",
+      verifiedByHuman: false,
       prompt: "Why keep a separate `tail` pointer if a program frequently appends to the end of a list?",
       choices: [
         "It's required before the list destructor can free anything",
@@ -179,6 +187,7 @@ export default {
     },
     {
       id: "linked-lists-algorithms-q09",
+      verifiedByHuman: false,
       prompt: "What is the running time of `search()` in the worst case?",
       choices: [
         "O(1)",
@@ -528,10 +537,307 @@ export default {
       criteria: [
         "Every other node has a predecessor to re-link, but the head node doesn't, so head itself is advanced to the next node instead.",
       ],
-     
+
       provenance: null,
       difficulty: 2,
       verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-10",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Name the three cases `deleteNode` must handle, in the order the slide gives them.",
+      expected:
+        "1. current is pointing to nullptr: nothing to delete, return.\n2. current is pointing to the head: head must move to current->getNext().\n3. current is somewhere else: find previous by traversal and link around it.",
+      criteria: [
+        "Names all three cases",
+        "Says the head case requires head itself to move",
+        "Says the middle case requires finding previous first",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#delete-node-possibilities",
+        excerpt:
+          "Delete a node pointed to by a pointer called current\n- Three possibilities\n1. current is pointing to nullptr\n2. is pointing to the head (head will have a new pointer)\n3. current is pointing somewhere else including nullptr",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 2,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-11",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "What is a tail pointer for, and what does it buy you?",
+      expected:
+        "tail always points at the last node in the list. Keeping it means appending to the end is O(1) instead of an O(n) traversal to find the last node. It must be updated as elements are added to the end.",
+      criteria: [
+        "Says tail points to the last element",
+        "Says appends become O(1)",
+        "Mentions tail must be maintained/updated",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#list-tail",
+        excerpt:
+          "If we're accessing the end of the list regularly (e.g., adding at the end of the list), we can improve the performance by keeping track of the end of the list (tail)\n- tail always points the last element of the list\n- As we add elements to the end of the list, tail changes accordingly",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 1,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-12",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "2 minutes. Write the loop that counts the nodes in a list given `head`. Then write the loop that prints every node's data. Both from the cursor skeleton.",
+      expected:
+        "size_t count = 0;\nNode *cursor = head;\nwhile (cursor != nullptr){\n    count++;\n    cursor = cursor->getNext();\n}\n\nNode *cursor = head;\nwhile (cursor != nullptr){\n    cout << cursor->getData() << endl;\n    cursor = cursor->getNext();\n}",
+      criteria: [
+        "cursor initialized to head, not to head->getNext()",
+        "Loop condition is cursor != nullptr",
+        "cursor = cursor->getNext() is the last statement in the body",
+        "Both loops are the same skeleton with different guts",
+      ],
+      timeBudgetSec: 120,
+      extraAtoms: ["#output-list"],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#list-length-algorithm",
+        excerpt:
+          "size_t count = 0;\nNode *cursor = head;\nWhile(cursor != nullptr){\ncount++;\ncursor = cursor->getNext();\n}\n//count holds the number of nodes in the list",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 1,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-13",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "3 minutes. Write `search(int target)` returning a pointer to the matching node, or `nullptr` if absent. Then state its running time and why.",
+      expected:
+        "Node* search(int target)\n{\n    Node *cursor = head;\n    while (cursor != nullptr){\n        if (cursor->getData() == target){\n            return cursor;\n        }\n        cursor = cursor->getNext();\n    }\n    return nullptr;\n}\n\nO(n). There is no index arithmetic on a linked list, so the only way to reach node k is to walk k links. Worst case the target is last or absent and every node is visited.",
+      criteria: [
+        "Returns cursor on match, not cursor->getData()",
+        "Returns nullptr after the loop, not inside it",
+        "States O(n)",
+        "Justifies O(n) by having to traverse, no random access",
+      ],
+      timeBudgetSec: 180,
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#search-function",
+        excerpt:
+          "Node* search(int target)\n{ Node *cursor = head;\nwhile(cursor != nullptr){\nif(cursor->getData() == target){\nreturn cursor;\n}\ncursor = cursor->getNext();\n}\nreturn nullptr;\n}",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 2,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-14",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.WRITE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "5 minutes. Write `deleteNode(Node *current)` covering all three cases. `head` is a member of the class.",
+      expected:
+        "void deleteNode(Node *current){\n    if (current == nullptr){ //nothing to delete\n        return;\n    }\n    if (current == head){ //first node\n        head = current->getNext();\n        delete current;\n    }\n    else{ //find the previous pointer of current\n        Node *previous = head;\n        while (previous->getNext() != current){\n            previous = previous->getNext();\n        }\n        //skip over current in the list and delete it\n        previous->setNext(current->getNext());\n        delete current;\n    }\n}",
+      criteria: [
+        "nullptr guard comes first",
+        "Head case moves head before deleting",
+        "Middle case walks previous using previous->getNext() != current",
+        "previous->setNext(current->getNext()) happens BEFORE delete current",
+      ],
+      timeBudgetSec: 300,
+      extraAtoms: ["#delete-node-cont"],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#delete-node-function",
+        excerpt:
+          "void deleteNode(Node *current){\nif(current == nullptr){//nothing to delete\nreturn;\n}\nif(current == head){//first node\nhead = current->getNext();\ndelete current;\n}",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 3,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-15",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "List is `head -> 50 -> 30 -> nullptr`. Run:\n```\nNode *temp = new Node(99);\ntemp->setNext(head);\nhead = temp;\n```\nDraw the list after each of the three lines. Give the final traversal order.",
+      expected:
+        "Line 1: temp -> 99 -> ? (next is uninitialized/nullptr, temp is not yet attached; head still -> 50 -> 30 -> nullptr)\nLine 2: temp -> 99 -> 50 -> 30 -> nullptr, and head still points at 50. Two pointers now aim into the same chain.\nLine 3: head moves to temp. head -> 99 -> 50 -> 30 -> nullptr\n\nTraversal order: 99, 50, 30.",
+      criteria: [
+        "After line 2, head still points at 50 (has not moved yet)",
+        "Recognizes the list is briefly reachable from two pointers",
+        "Final order is 99, 50, 30",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#head-insert-algorithm",
+        excerpt:
+          "//create a node and initialize it to value\nNode *temp = new Node(value);\n//Attach it to the head\ntemp->setNext(head);\n//move head to the beginning of the list\nhead = temp;",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 2,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-16",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "List is `head -> 50 -> 30 -> 60 -> 90 -> nullptr`. `previous` points at the node holding 90 (the last node). Run:\n```\nNode *temp = new Node(99);\ntemp->setNext(previous->getNext());\nprevious->setNext(temp);\n```\nWhat is the list now? The slide asks whether this works when previous is the last node: answer it.",
+      expected:
+        "previous->getNext() is nullptr, so temp->next becomes nullptr, and then previous->next becomes temp. List is 50 -> 30 -> 60 -> 90 -> 99 -> nullptr. Yes, it works: the last node is not a special case, because copying its nullptr into temp is exactly what makes temp the new terminator.",
+      criteria: [
+        "Final list is 50, 30, 60, 90, 99",
+        "Says temp->next receives nullptr",
+        "Answers yes, and explains WHY no special case is needed",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#insert-after-previous-pointer",
+        excerpt:
+          "Case 2: previous is pointing to non-nullptr node\nNode *temp = new Node(value);\nif(previous != nullptr){\ntemp->setNext(previous->getNext());\nprevious->setNext(temp);\n}",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 3,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-17",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.ERROR,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "This destructor is from the slides. It has a real bug. Find it and name what rule it violates.\n```\nList::~List()\n{\n    Node *cursor = head;\n    while(cursor != nullptr){\n        deleteNode(cursor);\n        cursor = cursor->getNext();\n    }\n}\n```",
+      expected:
+        "deleteNode frees the node cursor points at, and the very next line reads cursor->getNext() out of that freed memory. That is a use-after-free / dangling pointer read. The rule: capture the next pointer BEFORE deleting.\n\nFix:\nNode *nextUp = cursor->getNext();\ndeleteNode(cursor);\ncursor = nextUp;\n\nIt is also O(n^2), because deleteNode re-walks from head to find previous on every call.",
+      criteria: [
+        "Identifies the read of cursor->getNext() after cursor is deleted",
+        "Names it use-after-free / dangling pointer",
+        "States the fix: save next before deleting",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#list-destructor",
+        excerpt:
+          "List::~List()\n{\n//deallocate all the nodes\nNode *cursor = head;\nwhile(cursor != nullptr){\ndeleteNode(cursor);\ncursor = cursor->getNext();\n}\n}",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 3,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-18",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.ERROR,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "List is `head -> 50 -> 30 -> 60 -> nullptr`, `previous` points at 50.\n```\nNode *temp = new Node(99);\nprevious->setNext(temp);\ntemp->setNext(previous->getNext());\n```\nTwo lines are in the wrong order. Say exactly what the list becomes and why.",
+      expected:
+        "After line 2, previous->next is temp, so line 3 reads previous->getNext() and gets temp itself. temp->next = temp, a self-loop. The list is 50 -> 99 -> 99 -> 99 ... forever, and 30 and 60 are leaked, unreachable and never freed. Rule: read the old next before you overwrite it.",
+      criteria: [
+        "Identifies temp->next = temp, a self-loop / infinite list",
+        "Says 30 and 60 become unreachable (leaked)",
+        "States the general rule about reading before overwriting",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#insert-after-previous-pointer",
+        excerpt:
+          "Node *temp = new Node(value);\nif(previous != nullptr){\ntemp->setNext(previous->getNext());\nprevious->setNext(temp);\n}",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 2,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-19",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.ERROR,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Two separate problems. Name both.\n```\nvoid deleteNode(Node *current){\n    if (current == head){\n        delete current;\n        head = current->getNext();\n    }\n}\n```",
+      expected:
+        "First: head = current->getNext() reads current after it has been deleted, a use-after-free. The two lines must swap, so head moves before the delete. Second: the nullptr guard is missing, so deleteNode(nullptr) dereferences a null pointer. The middle-of-list case is also absent entirely.",
+      criteria: [
+        "Identifies the read-after-delete ordering bug",
+        "Says head must be reassigned before delete",
+        "Identifies the missing nullptr guard",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#delete-node-function",
+        excerpt:
+          "if(current == nullptr){//nothing to delete\nreturn;\n}\nif(current == head){//first node\nhead = current->getNext();\ndelete current;\n}",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 2,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-20",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.CLOZE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Fill the blank. Walking to find the predecessor of `current`:\n```\nNode *previous = head;\nwhile (previous->_______ != current){\n    previous = previous->getNext();\n}\n```\nWhat goes in the blank, and what breaks if you write `previous != current` instead?",
+      expected:
+        "getNext(). Writing previous != current stops with previous ON current, one node too far, so you have lost the predecessor and previous->setNext(current->getNext()) would make current point past itself instead of unlinking it. You must stop one node early.",
+      criteria: [
+        "Blank is getNext()",
+        "Explains that previous != current overshoots by one node",
+        "Connects it to needing the predecessor, not the node itself",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#delete-node-cont",
+        excerpt:
+          "else{ //find the previous pointer of current\nNode *previous = head;\nwhile(previous->getNext() != current){\nprevious = previous->getNext();\n}\n//skip over current in the list and delete it\nprevious->setNext(current->getNext());\ndelete current;\n}",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 2,
+      verifiedByHuman: false,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-21",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.COMPLEXITY,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Give running times AND one-line justifications for: insert at front of a vector, insert at front of a linked list, delete from the middle of a vector, delete a node given a pointer to its predecessor.",
+      // The author's version was a markdown table; item.expected renders as
+      // pre-wrap text with no markdown, so the rows are flattened to lines.
+      expected:
+        "Vector front insert: O(n), every existing element shifts up one slot.\nLinked list head insert: O(1), two pointer writes, no element moves.\nVector middle delete: O(n), everything after the hole shifts down.\nList delete given prev: O(1), one setNext, contiguity is never required.\n\nThe whole trade: arrays pay on structural change and win on indexing; lists pay on indexing and win on structural change.",
+      criteria: [
+        "All four times correct: O(n), O(1), O(n), O(1)",
+        "Vector costs justified by shifting elements",
+        "List O(1) justified by a fixed number of pointer writes",
+        "States the general array-vs-list trade",
+      ],
+      provenance: {
+        sourceId: "cpp-slides-03.2-linked-lists-algorithms",
+        anchor: "#head-insert-concept",
+        excerpt:
+          "This is an O(1) algorithm. Much faster than inserting at the beginning of an array/vector",
+        citation: "Lecture Deck 03.2",
+      },
+      difficulty: 2,
+      verifiedByHuman: false,
     }),
   ],
 };

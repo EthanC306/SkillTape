@@ -59,6 +59,7 @@ export default {
   questions: [
     {
       id: "multidim-arrays-q01",
+      verifiedByHuman: false,
       prompt: "What does `char page[30][100];` declare?",
       choices: [
         "A single array of 30 characters",
@@ -72,6 +73,7 @@ export default {
     },
     {
       id: "multidim-arrays-q02",
+      verifiedByHuman: false,
       prompt: "What is `page`'s base type, given `char page[30][100];`?",
       choices: [
         "A single char",
@@ -85,6 +87,7 @@ export default {
     },
     {
       id: "multidim-arrays-q03",
+      verifiedByHuman: false,
       prompt: "In a multi-dimensional array parameter, which dimension's size can be left out?",
       code: "void displayPage(const char page[][100], int sizeDimension1);",
       choices: [
@@ -99,6 +102,7 @@ export default {
     },
     {
       id: "multidim-arrays-q04",
+      verifiedByHuman: false,
       prompt: "In `int a[4][5];`, what do 4 and 5 represent?",
       code: "int a[4][5];\n//4 is the number of rows\n//5 is the number of columns",
       choices: [
@@ -113,6 +117,7 @@ export default {
     },
     {
       id: "multidim-arrays-q05",
+      verifiedByHuman: false,
       prompt: "How do you access a single element of a[4][5] at row i, column j?",
       choices: ["a[i, j]", "a[i+j]", "a[i][j]", "a.at(i, j)"],
       answer: 2,
@@ -121,6 +126,7 @@ export default {
     },
     {
       id: "multidim-arrays-q06",
+      verifiedByHuman: false,
       prompt:
         "In the loop that prints a 2D array row by row, why does `cout << endl;` sit after the inner loop finishes, not inside it?",
       code: "for (i = 0; i < 4; i++){\nfor (j = 0; j < 5; j++){\ncout << a[i][j];\n}\ncout << endl;\n}",
@@ -136,6 +142,7 @@ export default {
     },
     {
       id: "multidim-arrays-q07",
+      verifiedByHuman: false,
       prompt:
         "Given `int a[10][10];` int `numRows`=5, `numCols`=8; and the loop for (i=0;i<`numRows`;i++) `sort(a[i], numCols)`;, what is `a[i]`?",
       code:
@@ -152,6 +159,7 @@ export default {
     },
     {
       id: "multidim-arrays-q08",
+      verifiedByHuman: false,
       prompt: "For `int a[3][4][5];`, what is the type of `a[i]`?",
       code:
         "int a[3][4][5];\nfor(i = 0; i < 3; i++){\nfor(j = 0; j < 4; j++){\nfor(k = 0; k < 5; k++){\ncin >> a[i][j][k];\n}\n}\n}",
@@ -162,6 +170,7 @@ export default {
     },
     {
       id: "multidim-arrays-q09",
+      verifiedByHuman: false,
       prompt: "For `int a[3][4][5];`, what is the type of `a[i][j][k]`?",
       choices: [
         "A two-dimensional array",
@@ -175,6 +184,7 @@ export default {
     },
     {
       id: "multidim-arrays-q10",
+      verifiedByHuman: false,
       prompt: "How many nested loops are needed to fill `int a[3][4][5];` element by element with `cin`?",
       choices: ["One", "Two", "Three", "Four, one per dimension plus one"],
       answer: 2,
@@ -183,6 +193,7 @@ export default {
     },
     {
       id: "multidim-arrays-q11",
+      verifiedByHuman: false,
       prompt:
         "Why does declaring a formal parameter as `const char page[][100]` still require the 100, when a plain 1D array parameter like `const char a[]` needs no size at all?",
       choices: [

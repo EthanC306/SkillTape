@@ -11,6 +11,7 @@ import {
   formatDifficulty,
   formatRetrievability,
   formatDueLabel,
+  NO_VALUE,
 } from "../src/data/fsrsFormat.js";
 
 const DAY = 1440; // minutes
@@ -57,31 +58,35 @@ test("formatIntervalBetween is the same scale over two instants", () => {
   const now = Date.UTC(2026, 7, 10);
   assert.equal(formatIntervalBetween(now, now + 3 * 86400000), "3d");
   assert.equal(formatIntervalBetween(now, now + 600000), "10m");
+  // An already-elapsed due date is the common case on the due strip.
+  assert.equal(formatIntervalBetween(now, now - 600000), "now");
 });
 
-test("stability is one decimal, and an unscheduled card is an em dash", () => {
+test("stability is one decimal, and an unscheduled card shows the placeholder", () => {
   assert.equal(formatStability(2.3065), "2.3");
   assert.equal(formatStability(3), "3");
   assert.equal(formatStability(50.704), "51");
-  // Never "0.0" — a card with no stability has not been reviewed, and a
-  // zero would read as one that has decayed to nothing.
-  assert.equal(formatStability(0), "—");
-  assert.equal(formatStability(null), "—");
-  assert.equal(formatStability(undefined), "—");
+  // Never "0.0". A card with no stability has not been reviewed, and a zero
+  // would read as one that has decayed to nothing.
+  assert.equal(formatStability(0), NO_VALUE);
+  assert.equal(formatStability(null), NO_VALUE);
+  assert.equal(formatStability(undefined), NO_VALUE);
 });
 
-test("difficulty keeps its decimal across the whole 1..10 range", () => {
+test("difficulty carries one decimal, and the top of the range is not special", () => {
   assert.equal(formatDifficulty(2.1043), "2.1");
+  assert.equal(formatDifficulty(9.5), "9.5"); // unlike stability, no >=10 cutover
   assert.equal(formatDifficulty(10), "10");
-  assert.equal(formatDifficulty(null), "—");
+  assert.equal(formatDifficulty(0), NO_VALUE);
+  assert.equal(formatDifficulty(null), NO_VALUE);
 });
 
 test("retrievability is a whole percent, and null is not 0%", () => {
   assert.equal(formatRetrievability(0.8879), "89%");
   assert.equal(formatRetrievability(1), "100%");
   assert.equal(formatRetrievability(0), "0%");
-  assert.equal(formatRetrievability(null), "—");
-  assert.equal(formatRetrievability(undefined), "—");
+  assert.equal(formatRetrievability(null), NO_VALUE);
+  assert.equal(formatRetrievability(undefined), NO_VALUE);
 });
 
 test("formatDueLabel reads as a sentence fragment at every distance", () => {

@@ -77,6 +77,7 @@ export default {
   questions: [
     {
       id: "discrete-1-3-relations-functions-q01",
+      verifiedByHuman: false,
       prompt:
         "Define R from A = {1, 2} to B = {1, 2, 3} by: x R y means (x − y)/2 is an integer. Which pair is in R?",
       choices: ["(1, 2)", "(2, 3)", "(2, 2)", "(1, 2) and (2, 3)"],
@@ -86,6 +87,7 @@ export default {
     },
     {
       id: "discrete-1-3-relations-functions-q02",
+      verifiedByHuman: false,
       prompt:
         "A relation R is defined from A = {1, 2} to B = {1, 2, 3}. What are its domain and co-domain?",
       choices: [
@@ -100,6 +102,7 @@ export default {
     },
     {
       id: "discrete-1-3-relations-functions-q03",
+      verifiedByHuman: false,
       prompt: "Fundamentally, what IS a relation from A to B?",
       choices: [
         "A subset of the Cartesian product A × B",
@@ -113,6 +116,7 @@ export default {
     },
     {
       id: "discrete-1-3-relations-functions-q04",
+      verifiedByHuman: false,
       prompt: "What are the two properties a relation F must satisfy to be a function from A to B?",
       choices: [
         "Every element of A is used, and none maps twice",
@@ -126,6 +130,7 @@ export default {
     },
     {
       id: "discrete-1-3-relations-functions-q05",
+      verifiedByHuman: false,
       prompt:
         "In the arrow diagram, the element 4 has two arrows coming out of it, one to 1 and one to 3. Is R a function?",
       figure: {
@@ -145,6 +150,7 @@ export default {
     },
     {
       id: "discrete-1-3-relations-functions-q06",
+      verifiedByHuman: false,
       prompt:
         "S is defined from A = {2, 4, 6} to B = {1, 3, 5} by y = x + 1. Why is S NOT a function?",
       choices: [
@@ -159,6 +165,7 @@ export default {
     },
     {
       id: "discrete-1-3-relations-functions-q07",
+      verifiedByHuman: false,
       prompt: "If a function T is given by T(2) = 5, T(4) = 1, T(6) = 1, is T a valid function?",
       choices: [
         "No, two inputs, 4 and 6, both share the single output 1",
@@ -172,6 +179,7 @@ export default {
     },
     {
       id: "discrete-1-3-relations-functions-q08",
+      verifiedByHuman: false,
       prompt:
         "Let S be all strings over {a, b} and L(s) = the length of s. What is L(abaaba)?",
       choices: ["3", "5", "6", "it is undefined"],
@@ -181,6 +189,7 @@ export default {
     },
     {
       id: "discrete-1-3-relations-functions-q09",
+      verifiedByHuman: false,
       prompt:
         "Define C on strings by C(s) = the string s with an 'a' appended on the LEFT. What is C(bbb)?",
       choices: ["bbba", "abbb", "bbb", "aaa"],
@@ -190,6 +199,7 @@ export default {
     },
     {
       id: "discrete-1-3-relations-functions-q10",
+      verifiedByHuman: false,
       prompt:
         "On ℝ, let f(x) = |x| and g(x) = √(x²). Does f = g?",
       choices: [
@@ -204,6 +214,7 @@ export default {
     },
     {
       id: "discrete-1-3-relations-functions-q11",
+      verifiedByHuman: false,
       prompt: "“A function is a special kind of relation.” Is this accurate?",
       choices: [
         "Yes, every function is a relation",
@@ -217,6 +228,7 @@ export default {
     },
     {
       id: "discrete-1-3-relations-functions-q12",
+      verifiedByHuman: false,
       prompt:
         "On an arrow diagram, which situation is ALLOWED for a function from A to B?",
       choices: [

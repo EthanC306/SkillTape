@@ -17,6 +17,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "audit:bank": "node scripts/auditBank.js",
+    "verify": "node tools/verify/server.js",
     "electron:dev": "vite build && electron .",
     "electron:rebuild": "electron-rebuild -f -w better-sqlite3,bcrypt",
     "electron:clean-native": "rm -rf node_modules/bcrypt/build node_modules/better-sqlite3/build",

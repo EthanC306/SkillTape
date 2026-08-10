@@ -97,6 +97,7 @@ export default {
   questions: [
     {
       id: "recursion-q01",
+      verifiedByHuman: false,
       prompt: "What makes a definition a recursive definition?",
       choices: [
         "It defines something in terms of itself, plus a non-recursive base case",
@@ -110,6 +111,7 @@ export default {
     },
     {
       id: "recursion-q02",
+      verifiedByHuman: false,
       prompt: "In the definition \"an ancestor is a parent or one of their (parent's) ancestors,\" which part is the base case?",
       choices: [
         "\"one of their ancestors\"",
@@ -123,6 +125,7 @@ export default {
     },
     {
       id: "recursion-q03",
+      verifiedByHuman: false,
       prompt: "What happens on the run-time stack every time a function is called?",
       choices: [
         "The stack is cleared and rebuilt",
@@ -136,6 +139,7 @@ export default {
     },
     {
       id: "recursion-q04",
+      verifiedByHuman: false,
       prompt: "`main` calls `function1`, `function1` calls `function2`, and `function2` calls `function3`. How many activation records sit above `main`'s on the run-time stack?",
       choices: ["1", "4", "0", "3"],
       answer: 3,
@@ -144,6 +148,7 @@ export default {
     },
     {
       id: "recursion-q05",
+      verifiedByHuman: false,
       prompt: "Which pair is the base case and the recursive rule for factorial?",
       choices: [
         "Base case 1! = 1; recursive rule n! = (n-1)! * (n-2)!",
@@ -157,6 +162,7 @@ export default {
     },
     {
       id: "recursion-q06",
+      verifiedByHuman: false,
       prompt: "In this recursive factorial, what stops the recursion?",
       code:
         "double factorial(int n){\n    if (n == 0) //Base case\n    {\n        return 1;\n    }\n    return  n * factorial(n - 1);\n}",
@@ -172,6 +178,7 @@ export default {
     },
     {
       id: "recursion-q07",
+      verifiedByHuman: false,
       prompt: "What are the two steps in the deck's recipe for designing a recursive function?",
       choices: [
         "Write the loop version first, then convert it mechanically into a recursive one",
@@ -185,6 +192,7 @@ export default {
     },
     {
       id: "recursion-q08",
+      verifiedByHuman: false,
       prompt: "What is the base case of this function, and how is it expressed?",
       code:
         "void revPrintRec(int numbers[], size_t numItems){\n    //base case do nothing when numItems is <= 0\n    if (numItems > 0)\n    {\n        cout << setw(4) << numbers[numItems-1];\n        revPrintRec(numbers, numItems - 1);\n    }\n}",
@@ -200,6 +208,7 @@ export default {
     },
     {
       id: "recursion-q09",
+      verifiedByHuman: false,
       prompt: "Given numbers = {10, 20, 30} and `numItems` = 3, what does `revPrintRec` print?",
       code:
         "void revPrintRec(int numbers[], size_t numItems){\n    if (numItems > 0)\n    {\n        cout << setw(4) << numbers[numItems-1];\n        revPrintRec(numbers, numItems - 1);\n    }\n}",
@@ -215,6 +224,7 @@ export default {
     },
     {
       id: "recursion-q10",
+      verifiedByHuman: false,
       prompt: "These two functions differ only in the order of two statements. What does the second one print?",
       code:
         "void printListRec(Node* head){        // A\n    if (head != nullptr)\n    {\n        cout << setw(4) << head->num;\n        printListRec(head->next);\n    }\n}\n\nvoid printListRec(Node* head){        // B\n    if (head != nullptr)\n    {\n        printListRec(head->next);\n        cout << setw(4) << head->num;\n    }\n}",
@@ -230,6 +240,7 @@ export default {
     },
     {
       id: "recursion-q11",
+      verifiedByHuman: false,
       prompt: "Why do recursive functions use more memory than their iterative equivalents?",
       choices: [
         "They copy the entire data structure again on every single call",
@@ -243,6 +254,7 @@ export default {
     },
     {
       id: "recursion-q12",
+      verifiedByHuman: false,
       prompt: "What are the base cases of this recursive Fibonacci, and how many recursive calls does the non-base path make?",
       code:
         "double fibRec(int n){\n    if (n == 1 || n == 2) //base cases\n    {\n        return 1;\n    }\n    return fibRec(n - 1) + fibRec(n - 2);\n}",
@@ -258,6 +270,7 @@ export default {
     },
     {
       id: "recursion-q13",
+      verifiedByHuman: false,
       prompt: "Looking at the call tree for `fib(6)`, what is the problem with the naive recursive Fibonacci?",
       choices: [
         "It recomputes the same values repeatedly, each call spawning two more",
@@ -271,6 +284,7 @@ export default {
     },
     {
       id: "recursion-q14",
+      verifiedByHuman: false,
       prompt: "Which claim about recursion does the deck make?",
       choices: [
         "Recursion is always faster than iteration",

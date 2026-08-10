@@ -57,6 +57,7 @@ export default {
   questions: [
     {
       id: "discrete-2-4-circuits-q01",
+      verifiedByHuman: false,
       prompt: "Why do engineers model a circuit as a “black box”?",
       choices: [
         "To hide the answer from users",
@@ -70,6 +71,7 @@ export default {
     },
     {
       id: "discrete-2-4-circuits-q02",
+      verifiedByHuman: false,
       prompt: "A black box has 3 input signals. How many rows does its input/output table have?",
       choices: ["3", "6", "8", "9"],
       answer: 2,
@@ -78,6 +80,7 @@ export default {
     },
     {
       id: "discrete-2-4-circuits-q03",
+      verifiedByHuman: false,
       prompt: "An AND-gate outputs 1 when…",
       choices: [
         "at least one input is 1",
@@ -91,6 +94,7 @@ export default {
     },
     {
       id: "discrete-2-4-circuits-q04",
+      verifiedByHuman: false,
       prompt: "A NOT-gate receives input 0. What is its output?",
       choices: ["0", "1", "unchanged", "undefined"],
       answer: 1,
@@ -99,6 +103,7 @@ export default {
     },
     {
       id: "discrete-2-4-circuits-q05",
+      verifiedByHuman: false,
       prompt: "Which logical connectives correspond to the NOT, AND, and OR gates?",
       choices: ["→, ↔, ~", "~, ∧, ∨", "∧, ∨, →", "∨, ∧, ~"],
       answer: 1,
@@ -107,6 +112,7 @@ export default {
     },
     {
       id: "discrete-2-4-circuits-q06",
+      verifiedByHuman: false,
       prompt: "In a circuit diagram, a black dot where two wires meet indicates…",
       choices: [
         "the wires are connected",
@@ -120,6 +126,7 @@ export default {
     },
     {
       id: "discrete-2-4-circuits-q07",
+      verifiedByHuman: false,
       prompt: "Two circuits are considered equivalent when they…",
       choices: [
         "look identical",
@@ -133,6 +140,7 @@ export default {
     },
     {
       id: "discrete-2-4-circuits-q08",
+      verifiedByHuman: false,
       prompt: "Why is a simpler equivalent circuit preferable in an integrated circuit?",
       choices: [
         "It looks nicer",
@@ -146,6 +154,7 @@ export default {
     },
     {
       id: "discrete-2-4-circuits-q09",
+      verifiedByHuman: false,
       prompt: "To build a circuit from an input/output table, you write an AND term for each row where the output is ___ and OR them together.",
       choices: ["0", "1", "either", "the last"],
       answer: 1,
@@ -154,6 +163,7 @@ export default {
     },
     {
       id: "discrete-2-4-circuits-q10",
+      verifiedByHuman: false,
       prompt: "A disjunction of conjunctions (an OR of ANDs) built from a truth table is said to be in…",
       choices: [
         "conjunctive normal form (product-of-sums)",
@@ -167,6 +177,7 @@ export default {
     },
     {
       id: "discrete-2-4-circuits-q11",
+      verifiedByHuman: false,
       prompt: "A NAND-gate outputs 0…",
       choices: [
         "only when both inputs are 1",
@@ -180,6 +191,7 @@ export default {
     },
     {
       id: "discrete-2-4-circuits-q12",
+      verifiedByHuman: false,
       prompt: "The symbols | and ↓ stand for which gates?",
       choices: [
         "| is NOR (Peirce arrow), ↓ is NAND (Sheffer stroke)",
