@@ -213,10 +213,27 @@ CREATE TABLE IF NOT EXISTS item_review_state (
   lapses         INTEGER NOT NULL DEFAULT 0,
   leech          INTEGER NOT NULL DEFAULT 0,  -- 0/1, set once lapses >= 3 (A8)
   last_reviewed_at INTEGER,                   -- epoch ms, NULL before the first review
+  elapsed_days   INTEGER NOT NULL DEFAULT 0,
+  scheduled_days INTEGER NOT NULL DEFAULT 0,
+  -- Which of FSRS's learning/relearning steps this card is on. Without it a
+  -- card in `learning` restarts at step 0 every review and never graduates.
+  learning_steps INTEGER NOT NULL DEFAULT 0,
+  -- For the double-submit guard only (isDuplicateReview in fsrs.js). The grade
+  -- HISTORY lives in item_attempts; this is one value, overwritten each time.
+  last_grade     INTEGER,
   PRIMARY KEY (user_id, item_id)
 );
 CREATE INDEX IF NOT EXISTS idx_item_review_due ON item_review_state(user_id, due_on);
 
+-- The append-only review log.
+--
+-- The `*_before` columns hold the card state the scheduler SAW, captured
+-- before it ran, not the state it produced. Without them the history cannot be
+-- replayed, which is the whole reason the FSRS optimizer will want it. NULL on
+-- rows written before those columns existed, and on abandoned rows.
+--
+-- NEVER update or delete a row here. Undo is a compensating write against
+-- item_review_state, never a mutation of the log.
 CREATE TABLE IF NOT EXISTS item_attempts (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id    INTEGER NOT NULL DEFAULT 0,
@@ -227,7 +244,16 @@ CREATE TABLE IF NOT EXISTS item_attempts (
   seconds    INTEGER NOT NULL,
   tab_blurs  INTEGER NOT NULL DEFAULT 0,
   note       TEXT,
-  abandoned  INTEGER NOT NULL DEFAULT 0  -- 0/1 — "End drill" mid-item (A4 escape hatch)
+  abandoned  INTEGER NOT NULL DEFAULT 0, -- 0/1, "End drill" mid-item (A4 escape hatch)
+  state_before      INTEGER,
+  stability_before  REAL,
+  difficulty_before REAL,
+  elapsed_days      INTEGER,
+  scheduled_days    INTEGER,
+  -- Which weight set produced the row. Logs written under the shipped defaults
+  -- have to stay distinguishable from logs written under optimizer-fitted
+  -- weights, or a later fit trains on its own output. See fsrs.js.
+  params_version    TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_item_attempts_user ON item_attempts(user_id, ts);
 CREATE INDEX IF NOT EXISTS idx_item_attempts_item ON item_attempts(item_id, ts);
@@ -247,3 +273,17 @@ CREATE TABLE IF NOT EXISTS item_suspensions (
   PRIMARY KEY (user_id, item_id)
 );
 CREATE INDEX IF NOT EXISTS idx_item_suspensions_user ON item_suspensions(user_id);
+
+-- ── Scheduler settings ──────────────────────────────────────────────────────
+-- One row per user, same user_id = 0 anonymous convention as item_review_state.
+-- Server-side rather than localStorage because the scheduler runs here: these
+-- four are inputs to FSRS, not display preferences. The visual toggles (due
+-- strip, inspector) stay in localStorage.
+CREATE TABLE IF NOT EXISTS scheduler_settings (
+  user_id           INTEGER PRIMARY KEY DEFAULT 0,
+  request_retention REAL    NOT NULL DEFAULT 0.9,     -- 0.70 .. 0.97
+  maximum_interval  INTEGER NOT NULL DEFAULT 36500,   -- days
+  daily_new_limit   INTEGER NOT NULL DEFAULT 10,      -- new items introduced per day
+  enable_fuzz       INTEGER NOT NULL DEFAULT 1,       -- 0/1
+  updated_at        INTEGER NOT NULL
+);

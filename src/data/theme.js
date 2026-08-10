@@ -74,6 +74,11 @@ export const PALETTE = {
   goodSoft: "rgba(127,184,148,0.15)",
   bad: "#c97b7b",
   badSoft: "rgba(201,123,123,0.15)",
+  // The fourth semantic role, for the FSRS grade bar's Hard button. Hard is
+  // neither a failure nor a pass, so good/bad would both misreport it. Same
+  // warm sand as the amber theme preset so it stays inside the tonal family.
+  warn: "#d9ab6e",
+  warnSoft: "rgba(217,171,110,0.15)",
 };
 
 export const RAMP = {

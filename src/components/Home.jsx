@@ -1,5 +1,6 @@
 import React from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
+import DueStrip from "./fsrs/DueStrip";
 
 /**
  * Home — the topic list for the current class.
@@ -30,6 +31,14 @@ import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
  *                              batch-graded at the end by a local Ollama model.
  *   onReport()              — open the reporting dashboard (ROADMAP.md A6):
  *                              coverage, accuracy, and leeches for this course.
+ *   counts                  - FSRS due/learning/new counts for this course, or
+ *                              null (plans/fsrs_ui.md Phase 4). Feeds the strip
+ *                              above the grid and the per-topic due figures.
+ *   onReviewAhead()         - start a Drill session over the next-soonest items
+ *                              when nothing is actually due.
+ *   onLab()                 - open the scheduler sandbox.
+ *   showDueStrip            - feature flag. When false the strip is
+ *                              gone and this is exactly the pre-1.0.16 screen.
  */
 export default function Home({
   topics,
@@ -45,6 +54,10 @@ export default function Home({
   onExam,
   onPractice,
   onReport,
+  counts,
+  onReviewAhead,
+  onLab,
+  showDueStrip = true,
 }) {
   const ctrlBtn = (active) => ({
     fontFamily: HEADING,
@@ -60,6 +73,11 @@ export default function Home({
 
   return (
     <div>
+      {/* What's actually due, and one click into it. Hidden in select mode:
+          the screen is being used to build a Master Set then, not to review. */}
+      {showDueStrip && !selectMode && (
+        <DueStrip counts={counts} onReview={onDrill} onAhead={onReviewAhead} onLab={onLab} />
+      )}
       {/* Intro line on the left; Select + MASTER SET controls at the top right. */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
         <p style={{ color: PALETTE.muted, fontSize: 14, margin: 0, maxWidth: 560 }}>
@@ -128,6 +146,7 @@ export default function Home({
           const selected = selectMode && selectedIds.includes(t.id);
           const history = p?.history ?? [];
           const last = history.length ? history[history.length - 1] : null;
+          const topicCounts = counts?.byTopic?.[t.id];
           return (
             <div
               key={t.id}
@@ -169,10 +188,52 @@ export default function Home({
                   ✓
                 </span>
               )}
-              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{t.title}</div>
+              {/* ONE scheduler slot per card, top-right, showing the most
+                  urgent thing only: due beats unseen, and a card with nothing
+                  outstanding says nothing at all. An earlier pass put "N due"
+                  here AND "· N new" inline on the count line below; two slots
+                  for one idea wrapped that line on most cards and left the grid
+                  visibly ragged. */}
+              {showDueStrip && topicCounts && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 12,
+                    right: 14,
+                    display: "flex",
+                    gap: 6,
+                    fontFamily: MONO,
+                    fontSize: 11,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {topicCounts.leeches > 0 && (
+                    <span
+                      style={{ color: PALETTE.bad }}
+                      title={`${topicCounts.leeches} leech${
+                        topicCounts.leeches === 1 ? "" : "es"
+                      }, pulled from rotation. Triage them in Report.`}
+                    >
+                      {topicCounts.leeches}⚑
+                    </span>
+                  )}
+                  {topicCounts.due > 0 ? (
+                    <span style={{ color: PALETTE.accent }} title="Items due for review right now">
+                      {topicCounts.due} due
+                    </span>
+                  ) : topicCounts.fresh > 0 ? (
+                    <span style={{ color: PALETTE.muted }} title="Items you haven't seen yet">
+                      {topicCounts.fresh} new
+                    </span>
+                  ) : null}
+                </div>
+              )}
+              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4, paddingRight: 62 }}>{t.title}</div>
               <div style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted, marginBottom: 14 }}>
                 {t.subtitle}
               </div>
+              {/* The existing best-score line, untouched. It is earned progress;
+                  the scheduler badge supplements it rather than crowding it. */}
               <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, marginBottom: 6 }}>
                 {t.questions.length} questions{p ? ` · best ${p.best}/${p.total}` : " · not attempted"}
               </div>

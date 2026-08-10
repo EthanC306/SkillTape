@@ -12,6 +12,12 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, "..");
 
 // db/ is already covered by .gitignore ("Drill data / local progress").
+//
+// SKILLTAPE_DB is not only for Docker/Electron. Test files that import
+// anything out of routes/drill.js reach this module, which opens a database
+// and runs the guarded ALTER TABLEs below at import time, so they each point
+// it at a throwaway path (test/helpers/testDb.js). Without that, running the
+// test suite migrates the developer's real progress database.
 const DB_DIR = path.join(ROOT, "db");
 export const DB_PATH = process.env.SKILLTAPE_DB || path.join(DB_DIR, "skilltape.db");
 
@@ -73,5 +79,30 @@ ensureColumn("attempts", "question_revision", "question_revision INTEGER");
 db.exec(
   "CREATE INDEX IF NOT EXISTS idx_attempts_question_stable ON attempts(question_stable_id, created_at)"
 );
+
+// Scheduler replay columns on the review log. Same guarded-ALTER story as
+// everything above. All six are nullable with no default on purpose: a row
+// written before these existed genuinely does not know what the card looked
+// like going in, and NULL says so, where a 0 would be a plausible-looking lie
+// the optimizer would later train on.
+for (const [column, type] of [
+  ["state_before", "INTEGER"],
+  ["stability_before", "REAL"],
+  ["difficulty_before", "REAL"],
+  ["elapsed_days", "INTEGER"],
+  ["scheduled_days", "INTEGER"],
+  ["params_version", "TEXT"],
+]) {
+  ensureColumn("item_attempts", column, `${column} ${type}`);
+}
+
+// These do carry NOT NULL DEFAULT 0, unlike the log columns above. A missing
+// value here really is equivalent to 0 (a card mid-way through its learning
+// steps just restarts at step 0), and the scheduler reads them on every call,
+// so a NULL would have to be defaulted at every read site instead of once.
+ensureColumn("item_review_state", "elapsed_days", "elapsed_days INTEGER NOT NULL DEFAULT 0");
+ensureColumn("item_review_state", "scheduled_days", "scheduled_days INTEGER NOT NULL DEFAULT 0");
+ensureColumn("item_review_state", "learning_steps", "learning_steps INTEGER NOT NULL DEFAULT 0");
+ensureColumn("item_review_state", "last_grade", "last_grade INTEGER");
 
 export default db;

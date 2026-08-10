@@ -1,9 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 import { FORMATS } from "../data/itemSchema";
+import { deriveGrade, GRADE_LABELS } from "../data/grading";
+import {
+  formatInterval,
+  formatDueLabel,
+  formatStability,
+  formatDifficulty,
+  formatRetrievability,
+} from "../data/fsrsFormat";
 import { getDrillQueue, postDrillAttempt, getDrillExport, postDrillImport } from "../api/client";
 import PromptBody from "./PromptBody";
 import Inline from "./Inline";
+import GradeBar from "./fsrs/GradeBar";
 
 /**
  * DrillView — closed-book recall practice (ROADMAP.md A4).
@@ -26,11 +35,20 @@ import Inline from "./Inline";
  * itself isn't auto-graded (free text has no reliable checker); it rides
  * along in the attempt log as `note`.
  *
+ * Since 1.0.16 (plans/fsrs_ui.md Phase 5) the four grade buttons carry the
+ * interval each one produces, so the scheduling decision is legible at the
+ * moment it's made rather than discovered days later. MCQ items still
+ * auto-grade, but the derived rating is now shown as a suggestion on the same
+ * bar and can be overridden, since the machine's read of a click is not always the
+ * user's read of how the recall felt.
+ *
  * Props:
  *   course   — which course's due items to pull ("cpp" | "discrete").
  *   onExit() — return to the course topic list.
+ *   ahead    - pull the next-soonest items instead of only what's due.
+ *   inspector - render the per-item scheduler readout, off by default.
  */
-export default function DrillView({ course, onExit }) {
+export default function DrillView({ course, onExit, ahead = false, inspector = false }) {
   const [queue, setQueue] = useState(null); // null = loading
   const [error, setError] = useState(null);
   const [index, setIndex] = useState(0);
@@ -40,8 +58,17 @@ export default function DrillView({ course, onExit }) {
   const [tabBlurs, setTabBlurs] = useState(0); // for the current item
   const [startedAt, setStartedAt] = useState(() => Date.now());
   const [now, setNow] = useState(() => Date.now()); // ticks once/sec for the on-screen timer
-  const [session, setSession] = useState({ reviewed: 0, grades: [0, 0, 0, 0], leeches: 0, tabBlurs: 0 });
+  const [session, setSession] = useState({
+    reviewed: 0,
+    grades: [0, 0, 0, 0],
+    leeches: 0,
+    tabBlurs: 0,
+    // The soonest due date any item in this session came away with, for the
+    // "when does the next one come back" line on the summary.
+    nextDueOn: null,
+  });
   const [finished, setFinished] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [importState, setImportState] = useState(null); // null | "importing" | "done" | error string
   const fileInputRef = useRef(null);
 
@@ -76,7 +103,7 @@ export default function DrillView({ course, onExit }) {
 
   useEffect(() => {
     let cancelled = false;
-    getDrillQueue(course, 20)
+    getDrillQueue(course, 20, { ahead })
       .then((items) => {
         if (!cancelled) setQueue(items);
       })
@@ -86,7 +113,7 @@ export default function DrillView({ course, onExit }) {
     return () => {
       cancelled = true;
     };
-  }, [course]);
+  }, [course, ahead]);
 
   const item = queue?.[index] ?? null;
   const elapsedSec = Math.floor((now - startedAt) / 1000);
@@ -113,11 +140,14 @@ export default function DrillView({ course, onExit }) {
         tabBlurs,
         abandoned,
       });
+      const dueOn = res.review?.dueOn ?? null;
       setSession((s) => ({
         reviewed: s.reviewed + (abandoned ? 0 : 1),
         grades: abandoned ? s.grades : s.grades.map((n, i) => (i === grade ? n + 1 : n)),
         leeches: s.leeches + (res.review?.leech ? 1 : 0),
         tabBlurs: s.tabBlurs + tabBlurs,
+        nextDueOn:
+          dueOn == null ? s.nextDueOn : s.nextDueOn == null ? dueOn : Math.min(s.nextDueOn, dueOn),
       }));
     } catch {
       // Best-effort, matching useProgress.js's stance: a failed write doesn't
@@ -127,12 +157,21 @@ export default function DrillView({ course, onExit }) {
 
   /** Normal path: record a real grade, then move to the next item or the summary. */
   async function submit({ grade }) {
-    await recordAttempt({ grade });
-    if (index + 1 < queue.length) {
-      setIndex((i) => i + 1);
-      resetForNextItem();
-    } else {
-      setFinished(true);
+    // Guards the double-click the server also guards against, one layer earlier:
+    // here it stops the SECOND item from being graded with the first item's
+    // click, which no server-side check could catch.
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await recordAttempt({ grade });
+      if (index + 1 < queue.length) {
+        setIndex((i) => i + 1);
+        resetForNextItem();
+      } else {
+        setFinished(true);
+      }
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -142,12 +181,35 @@ export default function DrillView({ course, onExit }) {
     setRevealed(true);
   }
 
-  function submitMcq() {
-    // Machine-graded: correct maps to "Good" (2), incorrect to "Again" (0) —
-    // the two ends of the 0-3 scale, since there's no partial credit on a
-    // multiple-choice click the way there is on a self-graded checklist.
-    submit({ grade: selected === item.answerIndex ? 2 : 0 });
-  }
+  /**
+   * What the auto-grader makes of this item, or null where nothing was
+   * machine-graded. MCQ is a clean binary; a free-text answer the user typed
+   * has no checker, so the four buttons stand on their own there.
+   */
+  const suggestedGrade =
+    revealed && item?.format === FORMATS.MCQ && selected != null
+      ? deriveGrade({ correct: selected === item.answerIndex })
+      : null;
+
+  // 1-4 to grade, Enter to take the suggestion. A drill session is dozens of
+  // items of read-think-grade, and reaching for the mouse on every one of them
+  // is most of the friction. Bound only while the grade bar is actually up, so
+  // typing "4" into the answer textarea can never submit an Easy.
+  useEffect(() => {
+    if (!revealed || finished || submitting) return undefined;
+    function onKey(e) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key >= "1" && e.key <= "4") {
+        e.preventDefault();
+        submit({ grade: Number(e.key) - 1 });
+      } else if (e.key === "Enter" && suggestedGrade != null) {
+        e.preventDefault();
+        submit({ grade: suggestedGrade });
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   /** Escape hatch (A4): end the session NOW, not after the current item — but
    * log an in-progress item as abandoned rather than silently discarding it. */
@@ -196,13 +258,6 @@ export default function DrillView({ course, onExit }) {
     color: PALETTE.text,
   };
 
-  const gradeBtns = [
-    ["Again", PALETTE.bad],
-    ["Hard", PALETTE.accent],
-    ["Good", PALETTE.good],
-    ["Easy", PALETTE.good],
-  ];
-
   // ── Loading / error / empty-queue states ──────────────────────────────────
 
   if (error) {
@@ -249,9 +304,19 @@ export default function DrillView({ course, onExit }) {
           <div style={{ fontFamily: HEADING, fontSize: 44, fontWeight: 500, color: PALETTE.accent }}>
             {session.reviewed}
           </div>
-          <div style={{ color: PALETTE.muted, marginTop: 4, marginBottom: 20 }}>
+          <div style={{ color: PALETTE.muted, marginTop: 4, marginBottom: 6 }}>
             item{session.reviewed === 1 ? "" : "s"} reviewed, closed-book
           </div>
+          {/* Phase 5: close the loop out loud. The point of grading was to move
+              these items somewhere, and this is where that lands. */}
+          {session.nextDueOn != null && (
+            <div style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted, marginBottom: 18 }}>
+              soonest back {formatDueLabel(session.nextDueOn)}
+              {session.nextDueOn > Date.now()
+                ? ` · in ${formatInterval((session.nextDueOn - Date.now()) / 60000)}`
+                : ""}
+            </div>
+          )}
           <div
             style={{
               display: "flex",
@@ -264,10 +329,11 @@ export default function DrillView({ course, onExit }) {
               flexWrap: "wrap",
             }}
           >
-            <span>again {session.grades[0]}</span>
-            <span>hard {session.grades[1]}</span>
-            <span>good {session.grades[2]}</span>
-            <span>easy {session.grades[3]}</span>
+            {GRADE_LABELS.map((label, g) => (
+              <span key={label}>
+                {label.toLowerCase()} {session.grades[g]}
+              </span>
+            ))}
             <span>tab blurs {session.tabBlurs}</span>
             {session.leeches > 0 && (
               <span style={{ color: PALETTE.bad }}>
@@ -351,9 +417,14 @@ export default function DrillView({ course, onExit }) {
               })}
             </div>
             {revealed && (
-              <button onClick={submitMcq} style={{ ...navBtn, marginTop: 16, border: `1px solid ${PALETTE.accent}`, background: PALETTE.accentSoft, color: PALETTE.accent, fontWeight: 500 }}>
-                {index + 1 < queue.length ? "Next item" : "Finish session"}
-              </button>
+              <div style={{ marginTop: 16 }}>
+                <GradeBar
+                  preview={item.preview}
+                  onGrade={(grade) => submit({ grade })}
+                  suggested={suggestedGrade}
+                  disabled={submitting}
+                />
+              </div>
             )}
           </>
         ) : !revealed ? (
@@ -444,31 +515,61 @@ export default function DrillView({ course, onExit }) {
             <div style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted, marginBottom: 8 }}>
               Hit 3 of 4 checklist points? That's a 2 (Good), not a 3 (Easy).
             </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {gradeBtns.map(([label, color], g) => (
-                <button
-                  key={label}
-                  onClick={() => submit({ grade: g })}
-                  style={{
-                    fontFamily: HEADING,
-                    fontSize: 13,
-                    padding: "9px 18px",
-                    borderRadius: RADII.md,
-                    cursor: "pointer",
-                    border: `1px solid ${color}`,
-                    background: "transparent",
-                    color,
-                    fontWeight: 500,
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <GradeBar
+              preview={item.preview}
+              onGrade={(grade) => submit({ grade })}
+              suggested={null}
+              disabled={submitting}
+            />
           </div>
         )}
+
+        {inspector && <Inspector item={item} now={now} />}
       </div>
     </DrillShell>
+  );
+}
+
+/**
+ * Phase 7's diagnostics row: everything the scheduler is holding about this
+ * item, on one line, off unless switched on in settings.
+ *
+ * Rendered under the item rather than above it on purpose. Seeing "stability
+ * 0.2, 3 lapses" before you answer tells you the answer is going to be hard,
+ * which is a hint the closed-book rule is supposed to deny you.
+ */
+function Inspector({ item, now }) {
+  const r = item.review;
+  const fields = [
+    ["state", r?.stateName ?? "new"],
+    ["stability", formatStability(r?.stability)],
+    ["difficulty", formatDifficulty(r?.difficulty)],
+    ["retrievability", formatRetrievability(r?.retrievability)],
+    ["reps", r?.reps ?? 0],
+    ["lapses", r?.lapses ?? 0],
+    ["due", formatDueLabel(r?.dueOn ?? null, now)],
+  ];
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "4px 14px",
+        marginTop: 18,
+        paddingTop: 12,
+        borderTop: `1px solid ${PALETTE.line}`,
+        fontFamily: MONO,
+        fontSize: 11,
+        color: PALETTE.muted,
+      }}
+    >
+      <span style={{ color: PALETTE.line }}>{item.id}</span>
+      {fields.map(([k, v]) => (
+        <span key={k}>
+          {k} <span style={{ color: PALETTE.text }}>{v}</span>
+        </span>
+      ))}
+    </div>
   );
 }
 

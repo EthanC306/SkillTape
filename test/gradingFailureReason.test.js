@@ -9,8 +9,16 @@
 // and that the text names the fix.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { gradingFailureReason } from "../server/routes/drill.js";
-import { OllamaUnavailableError, OllamaBadResponseError } from "../server/ollama.js";
+import { isolatedTestDb } from "./helpers/testDb.js";
+
+// gradingFailureReason is a pure function, but it lives in routes/drill.js,
+// which imports server/db.js, which opens a database and migrates it at import
+// time. Point that somewhere disposable BEFORE the import below, or this test
+// migrates whatever database it finds. See helpers/testDb.js.
+isolatedTestDb(import.meta.url);
+
+const { gradingFailureReason } = await import("../server/routes/drill.js");
+const { OllamaUnavailableError, OllamaBadResponseError } = await import("../server/ollama.js");
 
 const CTX = { model: "qwen3.5:9b", host: "http://127.0.0.1:11434" };
 

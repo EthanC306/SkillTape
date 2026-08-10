@@ -4,6 +4,8 @@ import shuffle from "./utils/shuffle";
 import useProgress from "./hooks/useProgress";
 import useTopics from "./hooks/useTopics";
 import useAuth from "./hooks/useAuth";
+import useSchedulerCounts from "./hooks/useSchedulerCounts";
+import useSchedulerFlags from "./hooks/useSchedulerFlags";
 import { putCards, putFlashcards } from "./api/client";
 import Header from "./components/Header";
 import Home from "./components/Home";
@@ -14,6 +16,7 @@ import DrillView from "./components/DrillView";
 import ExamView from "./components/ExamView";
 import PracticeView from "./components/PracticeView";
 import ReportView from "./components/ReportView";
+import FsrsLab from "./components/FsrsLab";
 
 /**
  * Status — the panel shown while the curriculum is loading, or when it can't
@@ -70,6 +73,10 @@ export default function App({ course }) {
   const { progress, recordRun } = useProgress();
   const { topics: allTopics, loading, error, reload } = useTopics();
   const auth = useAuth();
+  // What's due in this course, for Home's strip and per-topic figures
+  // (plans/fsrs_ui.md Phase 4), plus the two visual scheduler toggles.
+  const { counts, refresh: refreshCounts } = useSchedulerCounts(course);
+  const { dueStrip, inspector } = useSchedulerFlags();
   const [topicId, setTopicId] = useState(null);
   const [mode, setMode] = useState("learn");
 
@@ -97,7 +104,14 @@ export default function App({ course }) {
   // own "End drill" button is meant to be the only way out while it's open,
   // and leaving Header's home-logo link on screen would give a second, less
   // honest one.
-  const [drilling, setDrilling] = useState(false);
+  // null when no session is open, otherwise { ahead }. `ahead: true` is the
+  // "Review ahead" path, which pulls the next-soonest items when nothing is due.
+  const [drilling, setDrilling] = useState(null);
+
+  // The scheduler sandbox (plans/fsrs_ui.md Phase 7). Keeps nav chrome visible,
+  // like `reporting` and unlike `drilling`: it's a teaching page, not a
+  // closed-book session, and there is nothing here to be honest about.
+  const [lab, setLab] = useState(false);
 
   // Same rationale as `drilling`, for the exam simulator (ROADMAP.md A5).
   const [examining, setExamining] = useState(false);
@@ -222,7 +236,17 @@ export default function App({ course }) {
       }}
     >
       {drilling ? (
-        <DrillView course={course} onExit={() => setDrilling(false)} />
+        <DrillView
+          course={course}
+          ahead={drilling.ahead}
+          inspector={inspector}
+          onExit={() => {
+            setDrilling(null);
+            // The point of Phase 4's strip: finish a session, land back on
+            // Home, and watch the number you just worked through drop.
+            refreshCounts();
+          }}
+        />
       ) : examining ? (
         <ExamView course={course} onExit={() => setExamining(false)} />
       ) : practicing ? (
@@ -245,6 +269,8 @@ export default function App({ course }) {
             <MasterQuizView topic={masterTopic} onExit={exitMasterSet} />
           ) : reporting ? (
             <ReportView course={course} onExit={() => setReporting(false)} />
+          ) : lab ? (
+            <FsrsLab onExit={() => setLab(false)} />
           ) : !topic ? (
             <Home
               topics={topics}
@@ -256,10 +282,14 @@ export default function App({ course }) {
               onToggleSelectMode={toggleSelectMode}
               onMasterSet={buildMasterSet}
               onShowHistory={setHistoryTopicId}
-              onDrill={() => setDrilling(true)}
+              onDrill={() => setDrilling({ ahead: false })}
               onExam={() => setExamining(true)}
               onPractice={() => setPracticing(true)}
               onReport={() => setReporting(true)}
+              counts={counts}
+              onReviewAhead={() => setDrilling({ ahead: true })}
+              onLab={() => setLab(true)}
+              showDueStrip={dueStrip}
             />
           ) : (
             <TopicView

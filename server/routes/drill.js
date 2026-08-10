@@ -6,7 +6,22 @@
 import { Router } from "express";
 import db from "../db.js";
 import { getSessionUser } from "../auth.js";
-import { scheduleReview } from "../fsrs.js";
+import {
+  scheduleReview,
+  previewRatings,
+  getRetrievability,
+  forgettingCurve,
+  recomputeDue,
+  normalizeSettings,
+  isDuplicateReview,
+  deriveGrade,
+  dueBoundary,
+  startOfDay,
+  stateName,
+  DEFAULT_SETTINGS,
+  PARAMS_VERSION,
+  State,
+} from "../fsrs.js";
 import { applyWriteCap } from "../../src/data/itemSchema.js";
 import {
   chatJSON,
@@ -105,8 +120,10 @@ const getReviewState = db.prepare(
 
 const upsertReviewState = db.prepare(`
   INSERT INTO item_review_state
-    (user_id, item_id, state, difficulty, stability, due_on, reps, lapses, leech, last_reviewed_at)
-  VALUES (@user_id, @item_id, @state, @difficulty, @stability, @due_on, @reps, @lapses, @leech, @last_reviewed_at)
+    (user_id, item_id, state, difficulty, stability, due_on, reps, lapses, leech,
+     last_reviewed_at, elapsed_days, scheduled_days, learning_steps, last_grade)
+  VALUES (@user_id, @item_id, @state, @difficulty, @stability, @due_on, @reps, @lapses, @leech,
+          @last_reviewed_at, @elapsed_days, @scheduled_days, @learning_steps, @last_grade)
   ON CONFLICT(user_id, item_id) DO UPDATE SET
     state = excluded.state,
     difficulty = excluded.difficulty,
@@ -115,45 +132,129 @@ const upsertReviewState = db.prepare(`
     reps = excluded.reps,
     lapses = excluded.lapses,
     leech = excluded.leech,
-    last_reviewed_at = excluded.last_reviewed_at
+    last_reviewed_at = excluded.last_reviewed_at,
+    elapsed_days = excluded.elapsed_days,
+    scheduled_days = excluded.scheduled_days,
+    learning_steps = excluded.learning_steps,
+    last_grade = excluded.last_grade
 `);
 
 const insertItemAttempt = db.prepare(`
-  INSERT INTO item_attempts (user_id, item_id, ts, mode, grade, seconds, tab_blurs, note, abandoned)
-  VALUES (@user_id, @item_id, @ts, @mode, @grade, @seconds, @tab_blurs, @note, @abandoned)
+  INSERT INTO item_attempts
+    (user_id, item_id, ts, mode, grade, seconds, tab_blurs, note, abandoned,
+     state_before, stability_before, difficulty_before, elapsed_days, scheduled_days, params_version)
+  VALUES
+    (@user_id, @item_id, @ts, @mode, @grade, @seconds, @tab_blurs, @note, @abandoned,
+     @state_before, @stability_before, @difficulty_before, @elapsed_days, @scheduled_days, @params_version)
 `);
 
-/** Apply one graded review: schedule via FSRS, persist state, log the attempt. Returns the new review row. */
-function applyReview({ userId, item, grade, ts, mode, seconds, tabBlurs, note }) {
-  const existing = getReviewState.get(userId, item.id) ?? null;
-  const next = scheduleReview(existing, item.format, grade, new Date(ts));
-
-  upsertReviewState.run({
-    user_id: userId,
-    item_id: item.id,
-    state: next.state,
-    difficulty: next.difficulty,
-    stability: next.stability,
-    due_on: next.dueOn,
-    reps: next.reps,
-    lapses: next.lapses,
-    leech: next.leech ? 1 : 0,
-    last_reviewed_at: next.lastReviewedAt,
-  });
-
+/** An abandoned or otherwise unscheduled attempt: logged, but the scheduler never saw it. */
+function logUnscheduledAttempt(row) {
   insertItemAttempt.run({
-    user_id: userId,
-    item_id: item.id,
-    ts,
-    mode,
-    grade,
-    seconds,
-    tab_blurs: tabBlurs,
-    note: note ?? null,
-    abandoned: 0,
+    state_before: null,
+    stability_before: null,
+    difficulty_before: null,
+    elapsed_days: null,
+    scheduled_days: null,
+    params_version: null,
+    ...row,
   });
+}
 
-  return next;
+// ── Scheduler settings (Phase 6) ────────────────────────────────────────────
+
+const getSettingsRow = db.prepare("SELECT * FROM scheduler_settings WHERE user_id = ?");
+const upsertSettingsRow = db.prepare(`
+  INSERT INTO scheduler_settings
+    (user_id, request_retention, maximum_interval, daily_new_limit, enable_fuzz, updated_at)
+  VALUES (@user_id, @request_retention, @maximum_interval, @daily_new_limit, @enable_fuzz, @updated_at)
+  ON CONFLICT(user_id) DO UPDATE SET
+    request_retention = excluded.request_retention,
+    maximum_interval = excluded.maximum_interval,
+    daily_new_limit = excluded.daily_new_limit,
+    enable_fuzz = excluded.enable_fuzz,
+    updated_at = excluded.updated_at
+`);
+
+/** This user's scheduler settings, defaulted and clamped. Never returns null. */
+function settingsFor(userId) {
+  return normalizeSettings(getSettingsRow.get(userId) ?? DEFAULT_SETTINGS);
+}
+
+/**
+ * Apply one graded review: schedule via FSRS, persist state, log the attempt.
+ *
+ * The two writes are ONE transaction. They were two loose statements before:
+ * a crash between them left a card rescheduled with no log row, which is
+ * exactly the gap the review log exists to not have.
+ */
+const applyReview = db.transaction(
+  ({ userId, item, grade, ts, mode, seconds, tabBlurs, note, settings }) => {
+    const existing = getReviewState.get(userId, item.id) ?? null;
+    const next = scheduleReview(existing, item.format, grade, new Date(ts), settings);
+
+    upsertReviewState.run({
+      user_id: userId,
+      item_id: item.id,
+      state: next.state,
+      difficulty: next.difficulty,
+      stability: next.stability,
+      due_on: next.dueOn,
+      reps: next.reps,
+      lapses: next.lapses,
+      leech: next.leech ? 1 : 0,
+      last_reviewed_at: next.lastReviewedAt,
+      elapsed_days: next.elapsedDays,
+      scheduled_days: next.scheduledDays,
+      learning_steps: next.learningSteps,
+      last_grade: grade,
+    });
+
+    insertItemAttempt.run({
+      user_id: userId,
+      item_id: item.id,
+      ts,
+      mode,
+      grade,
+      seconds,
+      tab_blurs: tabBlurs,
+      note: note ?? null,
+      abandoned: 0,
+      state_before: next.before.state,
+      stability_before: next.before.stability,
+      difficulty_before: next.before.difficulty,
+      elapsed_days: next.before.elapsedDays,
+      scheduled_days: next.scheduledDays,
+      params_version: next.paramsVersion,
+    });
+
+    return next;
+  }
+);
+
+/** `?tz=` is the client's Date.getTimezoneOffset(), so day boundaries are ITS day. See fsrs.js. */
+function tzOffsetOf(req) {
+  const tz = parseInt(req.query.tz, 10);
+  return Number.isFinite(tz) && Math.abs(tz) <= 900 ? tz : undefined;
+}
+
+/**
+ * Counted from the first-ever graded attempt per item rather than from
+ * item_review_state, because a reset card is genuinely new again.
+ */
+const countNewToday = db.prepare(`
+  SELECT COUNT(*) AS n FROM (
+    SELECT item_id, MIN(ts) AS first_ts
+    FROM item_attempts
+    WHERE user_id = ? AND abandoned = 0 AND grade IS NOT NULL
+    GROUP BY item_id
+  ) WHERE first_ts >= ?
+`);
+
+/** Remaining new-item budget for today, given this user's daily limit. */
+function newBudget(userId, settings, now, tzOffset) {
+  const used = countNewToday.get(userId, startOfDay(now, tzOffset)).n;
+  return Math.max(0, settings.dailyNewLimit - used);
 }
 
 // ── Practice mode grading (Ollama) ──────────────────────────────────────
@@ -486,46 +587,197 @@ router.get("/ollama-status", async (req, res) => {
 //                   triaged. /exam ignores both — an exam draws from the whole
 //                   verified bank regardless of what you've parked.
 //
-// New items (no review row) sort first — COALESCE(due_on, 0) treats "never
-// reviewed" as maximally overdue. Fine at this bank's size; if the bank grows
-// enough that new-item flooding becomes a real problem, that's a
-// new-cards-per-day cap to add later, not a reason to hold this back now.
+// Ordering is Phase 2's, in three buckets: learning/relearning first (their
+// steps are minutes and a stale one derails the rest of the session), then
+// review items oldest-overdue-first, then new items capped by the daily limit.
+// The daily cap is why this is two queries rather than one clever ORDER BY:
+// a single LIMIT can't say "at most N of the third bucket".
+//
+// `?ahead=1` keeps the ordering but drops the due filter, so an empty queue
+// pulls the next-soonest items instead of returning nothing.
+
+// Every column the client needs, shared by both halves of the queue query.
+const QUEUE_COLUMNS = `items.id, items.topic_id, items.position, items.format, items.origin,
+        items.prompt, items.expected, items.criteria, items.provenance,
+        items.difficulty, items.choices, items.answer_index, items.time_budget_sec,
+        items.extra_atoms`;
+
+const ELIGIBLE = `items.verified_by_human = 1
+     AND items.retired = 0
+     AND NOT EXISTS (SELECT 1 FROM item_suspensions s WHERE s.user_id = @userId AND s.item_id = items.id)`;
+
+/**
+ * THE definition of "due", shared by the queue and the counts so the number on
+ * the button is the number of items the session serves. See dueBoundary() in
+ * server/fsrs.js for why it has two halves.
+ *
+ * Learning and relearning cards (states 1 and 3) are on minute-scale steps and
+ * respect the actual clock. Everything else is day-granular and counts as due
+ * any time before the end of the caller's local day.
+ *
+ * Callers must bind both @nowMs and @dayEnd.
+ */
+const IS_DUE = `(CASE WHEN rs.state IN (1, 3) THEN rs.due_on <= @nowMs ELSE rs.due_on <= @dayEnd END)`;
+
+const selectDueItems = db.prepare(`
+  SELECT ${QUEUE_COLUMNS}, rs.*
+  FROM items
+  JOIN topics ON topics.id = items.topic_id
+  JOIN item_review_state rs ON rs.item_id = items.id AND rs.user_id = @userId
+  WHERE topics.course_id = @course AND ${ELIGIBLE}
+    AND rs.leech = 0
+    AND (@ahead = 1 OR ${IS_DUE})
+  ORDER BY
+    CASE WHEN rs.state IN (1, 3) THEN 0 ELSE 1 END ASC,
+    rs.due_on ASC,
+    items.position ASC
+  LIMIT @limit
+`);
+
+const selectNewItems = db.prepare(`
+  SELECT ${QUEUE_COLUMNS}
+  FROM items
+  JOIN topics ON topics.id = items.topic_id
+  WHERE topics.course_id = @course AND ${ELIGIBLE}
+    AND NOT EXISTS (
+      SELECT 1 FROM item_review_state rs WHERE rs.user_id = @userId AND rs.item_id = items.id
+    )
+  ORDER BY items.position ASC
+  LIMIT @limit
+`);
+
+/** One queue row -> the item the client drills, with its scheduling state and the four predicted intervals attached. */
+function toQueueItem(r, now, settings) {
+  const review = r.due_on == null ? null : r;
+  return {
+    ...rowToItem(r),
+    review: review && {
+      dueOn: review.due_on,
+      reps: review.reps,
+      lapses: review.lapses,
+      leech: Boolean(review.leech),
+      state: review.state,
+      stateName: stateName(review.state),
+      stability: review.stability,
+      difficulty: review.difficulty,
+      lastReviewedAt: review.last_reviewed_at,
+      retrievability: getRetrievability(review, now, settings),
+    },
+    // The four intervals the grade bar renders, from one repeat() call per
+    // item. The client never derives one.
+    preview: previewRatings(review, r.format, now, settings),
+  };
+}
+
 router.get("/queue", (req, res) => {
   const user = getSessionUser(req);
   const userId = user?.id ?? ANON_USER_ID;
   const course = req.query.course;
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), MAX_ITEMS);
+  const ahead = req.query.ahead === "1" ? 1 : 0;
 
   if (!course) return res.status(400).json({ error: "course query param required" });
 
-  const rows = db
-    .prepare(
-      `SELECT items.id, items.topic_id, items.position, items.format, items.origin,
-              items.prompt, items.expected, items.criteria, items.provenance,
-              items.difficulty, items.choices, items.answer_index, items.time_budget_sec,
-              items.extra_atoms,
-              rs.due_on, rs.reps, rs.lapses, rs.leech
-       FROM items
-       JOIN topics ON topics.id = items.topic_id
-       LEFT JOIN item_review_state rs ON rs.item_id = items.id AND rs.user_id = ?
-       WHERE topics.course_id = ?
-         AND items.verified_by_human = 1
-         AND items.retired = 0
-         AND (rs.item_id IS NULL OR (rs.leech = 0 AND rs.due_on <= ?))
-         AND NOT EXISTS (SELECT 1 FROM item_suspensions s WHERE s.user_id = ? AND s.item_id = items.id)
-       ORDER BY COALESCE(rs.due_on, 0) ASC, items.position ASC
-       LIMIT ?`
-    )
-    // Positional binds: rs.user_id, course_id, due_on, suspensions user_id, LIMIT.
-    // The user id appears twice — the LEFT JOIN's copy and the NOT EXISTS's.
-    .all(userId, course, Date.now(), userId, limit);
+  const settings = settingsFor(userId);
+  const now = new Date();
+  const tz = tzOffsetOf(req);
 
-  res.json(
-    rows.map((r) => ({
-      ...rowToItem(r),
-      review: r.due_on == null ? null : { dueOn: r.due_on, reps: r.reps, lapses: r.lapses, leech: Boolean(r.leech) },
-    }))
-  );
+  const due = selectDueItems.all({
+    userId,
+    course,
+    ahead,
+    nowMs: now.getTime(),
+    dayEnd: dueBoundary(now, tz),
+    limit,
+  });
+
+  // Review-ahead already has more than enough to show; don't also flood it with
+  // new material the user didn't ask for.
+  const newRoom = ahead ? 0 : Math.min(limit - due.length, newBudget(userId, settings, now, tz));
+  const fresh = newRoom > 0 ? selectNewItems.all({ userId, course, limit: newRoom }) : [];
+
+  res.json([...due, ...fresh].map((r) => toQueueItem(r, now, settings)));
+});
+
+// `reviewable` is what the "Start review (N)" button shows, and it has to be
+// the number GET /queue hands back for the same clock. Both read from IS_DUE
+// and newBudget(); if they ever disagree, one of them stopped.
+const countBuckets = db.prepare(`
+  SELECT
+    SUM(CASE WHEN rs.state IN (1, 3) AND ${IS_DUE} THEN 1 ELSE 0 END) AS learning,
+    SUM(CASE WHEN rs.state NOT IN (1, 3) AND ${IS_DUE} THEN 1 ELSE 0 END) AS due,
+    SUM(CASE WHEN NOT ${IS_DUE} THEN 1 ELSE 0 END) AS later,
+    MIN(CASE WHEN NOT ${IS_DUE} THEN rs.due_on END) AS next_due_on
+  FROM items
+  JOIN topics ON topics.id = items.topic_id
+  JOIN item_review_state rs ON rs.item_id = items.id AND rs.user_id = @userId
+  WHERE topics.course_id = @course AND ${ELIGIBLE} AND rs.leech = 0
+`);
+
+const countNewAvailable = db.prepare(`
+  SELECT COUNT(*) AS n
+  FROM items
+  JOIN topics ON topics.id = items.topic_id
+  WHERE topics.course_id = @course AND ${ELIGIBLE}
+    AND NOT EXISTS (
+      SELECT 1 FROM item_review_state rs WHERE rs.user_id = @userId AND rs.item_id = items.id
+    )
+`);
+
+// Per-topic, for the figure on each topic card. Counts due-or-new the same way
+// the totals above do, so a card's number and the strip's number are the same
+// arithmetic at two granularities.
+const countByTopic = db.prepare(`
+  SELECT items.topic_id AS topic_id,
+    SUM(CASE WHEN rs.item_id IS NOT NULL AND rs.leech = 0 AND ${IS_DUE} THEN 1 ELSE 0 END) AS due,
+    SUM(CASE WHEN rs.item_id IS NULL THEN 1 ELSE 0 END) AS fresh,
+    SUM(CASE WHEN rs.leech = 1 THEN 1 ELSE 0 END) AS leeches,
+    COUNT(*) AS total
+  FROM items
+  JOIN topics ON topics.id = items.topic_id
+  LEFT JOIN item_review_state rs ON rs.item_id = items.id AND rs.user_id = @userId
+  WHERE topics.course_id = @course AND ${ELIGIBLE}
+  GROUP BY items.topic_id
+`);
+
+router.get("/counts", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  const course = req.query.course;
+  if (!course) return res.status(400).json({ error: "course query param required" });
+
+  const settings = settingsFor(userId);
+  const now = new Date();
+  const tz = tzOffsetOf(req);
+  const args = { userId, course, nowMs: now.getTime(), dayEnd: dueBoundary(now, tz) };
+
+  const b = countBuckets.get(args);
+  // Its own argument object: better-sqlite3 rejects a named parameter the
+  // statement doesn't use, and this query has no @boundary in it.
+  const newAvailable = countNewAvailable.get({ userId, course }).n;
+  const budget = newBudget(userId, settings, now, tz);
+  const fresh = Math.min(newAvailable, budget);
+
+  // Kept as two separate figures rather than one summed "due" per topic: the
+  // new-item budget is global, so a per-topic total that folded it in would
+  // count the same handful of new items once per topic and never add up to the
+  // strip's number.
+  const byTopic = {};
+  for (const r of countByTopic.all(args)) {
+    byTopic[r.topic_id] = { due: r.due, fresh: r.fresh, leeches: r.leeches, total: r.total };
+  }
+
+  res.json({
+    due: b.due ?? 0,
+    learning: b.learning ?? 0,
+    new: fresh,
+    newAvailable,
+    newBudget: budget,
+    later: b.later ?? 0,
+    nextDueOn: b.next_due_on ?? null,
+    reviewable: (b.due ?? 0) + (b.learning ?? 0) + fresh,
+    byTopic,
+  });
 });
 
 // GET /api/drill/exam?course=cpp&count=20&minutes=50
@@ -761,7 +1013,148 @@ router.get("/report", (req, res) => {
 });
 
 
+// ── Scheduler settings + simulation (Phases 6 and 7) ────────────────────────
+
+/** The four FSRS inputs, plus the read-only facts the settings panel displays alongside them. */
+router.get("/settings", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  res.json({ ...settingsFor(userId), paramsVersion: PARAMS_VERSION });
+});
+
+const countScheduledReviewCards = db.prepare(
+  `SELECT COUNT(*) AS n FROM item_review_state
+   WHERE user_id = ? AND state = ${State.Review} AND last_reviewed_at IS NOT NULL`
+);
+
+const updateDueOn = db.prepare(
+  "UPDATE item_review_state SET due_on = ? WHERE user_id = ? AND item_id = ?"
+);
+
+const selectReviewCards = db.prepare(
+  `SELECT * FROM item_review_state
+   WHERE user_id = ? AND state = ${State.Review} AND last_reviewed_at IS NOT NULL`
+);
+
+/**
+ * Changing desired retention re-derives `due` for every card already in
+ * `review` from its existing stability. The scheduler is not re-run and no
+ * stability is touched, so this is not a review and writes nothing to the log.
+ *
+ * One transaction: a half-applied change leaves the collection split between
+ * two schedules with no way to tell which cards got which.
+ */
+const recomputeAllDue = db.transaction((userId, settings) => {
+  let changed = 0;
+  for (const row of selectReviewCards.all(userId)) {
+    const due = recomputeDue(row, settings);
+    if (due != null && due !== row.due_on) {
+      updateDueOn.run(due, userId, row.item_id);
+      changed++;
+    }
+  }
+  return changed;
+});
+
+// How many cards a retention change would move. Lets the UI name the number
+// in its confirmation before anything is written.
+router.get("/settings/impact", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  res.json({ scheduledCards: countScheduledReviewCards.get(userId).n });
+});
+
+router.put("/settings", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  const previous = settingsFor(userId);
+  const next = normalizeSettings({ ...previous, ...(req.body ?? {}) });
+
+  upsertSettingsRow.run({
+    user_id: userId,
+    request_retention: next.requestRetention,
+    maximum_interval: next.maximumInterval,
+    daily_new_limit: next.dailyNewLimit,
+    enable_fuzz: next.enableFuzz ? 1 : 0,
+    updated_at: Date.now(),
+  });
+
+  // Only retention and the interval ceiling change an already-derived due date.
+  // The new-item limit and fuzz apply from the next review onward, so touching
+  // every card's due date over either of them would be pure churn.
+  const affectsDueDates =
+    next.requestRetention !== previous.requestRetention ||
+    next.maximumInterval !== previous.maximumInterval;
+  const rescheduled = affectsDueDates ? recomputeAllDue(userId, next) : 0;
+
+  res.json({ ...next, paramsVersion: PARAMS_VERSION, rescheduled });
+});
+
+/**
+ * The scheduler sandbox. Stateless and side-effect free: no session, no DB
+ * read, no DB write. Takes a card, optionally applies a grade, returns what
+ * FSRS makes of it.
+ *
+ * That is what lets FsrsLab hold its own card in React state without any code
+ * outside fsrs.js computing an interval. It does what Drill does, it just has
+ * nowhere to save it.
+ */
+router.post("/simulate", (req, res) => {
+  const body = req.body ?? {};
+  const settings = normalizeSettings(body.settings);
+  const format = typeof body.format === "string" ? body.format : "recall";
+
+  const nowMs = Number.isFinite(body.now) ? body.now : Date.now();
+  const now = new Date(nowMs);
+
+  let card = isPlainObject(body.card) ? body.card : null;
+  let applied = null;
+
+  if (body.grade != null) {
+    if (!Number.isInteger(body.grade) || body.grade < 0 || body.grade > 3) {
+      return res.status(400).json({ error: "grade must be an integer 0..3" });
+    }
+    applied = scheduleReview(card, format, body.grade, now, settings);
+    card = {
+      state: applied.state,
+      stability: applied.stability,
+      difficulty: applied.difficulty,
+      due_on: applied.dueOn,
+      reps: applied.reps,
+      lapses: applied.lapses,
+      elapsed_days: applied.elapsedDays,
+      scheduled_days: applied.scheduledDays,
+      learning_steps: applied.learningSteps,
+      last_reviewed_at: applied.lastReviewedAt,
+      last_grade: body.grade,
+    };
+  }
+
+  res.json({
+    card,
+    applied,
+    preview: previewRatings(card, format, now, settings),
+    retrievability: getRetrievability(card, now, settings),
+    curve: forgettingCurve(card, now, {}, settings),
+    settings,
+  });
+});
+
+// Forget one card back to new. Deletes the scheduling state and nothing else:
+// the log is append-only, and having got this item wrong four times is still
+// true after you decide to start it over.
 const deleteReviewState = db.prepare("DELETE FROM item_review_state WHERE user_id = ? AND item_id = ?");
+
+router.post("/items/:itemId/reset", (req, res) => {
+  const user = getSessionUser(req);
+  const userId = user?.id ?? ANON_USER_ID;
+  const itemId = req.params.itemId;
+  if (!getItemForScheduling.get(itemId)) {
+    return res.status(400).json({ error: `itemId "${itemId}" does not exist` });
+  }
+  res.json({ ok: true, cleared: deleteReviewState.run(userId, itemId).changes });
+});
+
 router.post("/leeches/:itemId/reset", (req, res) => {
   const user = getSessionUser(req);
   const userId = user?.id ?? ANON_USER_ID;
@@ -869,7 +1262,7 @@ router.post("/attempts", (req, res) => {
   const ts = Date.now();
 
   if (abandoned) {
-    insertItemAttempt.run({
+    logUnscheduledAttempt({
       user_id: userId,
       item_id: itemId,
       ts,
@@ -883,7 +1276,26 @@ router.post("/attempts", (req, res) => {
     return res.status(201).json({ ok: true, review: null });
   }
 
-  const review = applyReview({ userId, item, grade, ts, mode, seconds, tabBlurs, note });
+  // A double-clicked grade button, or a request retried after a flaky
+  // response, must not count as two reps: the second would derive its interval
+  // from the state the first just advanced to, roughly squaring it. Answered
+  // 200 rather than 4xx because from the client's side the review did happen.
+  const existing = getReviewState.get(userId, itemId) ?? null;
+  if (isDuplicateReview(existing, grade, new Date(ts))) {
+    return res.status(200).json({
+      ok: true,
+      duplicate: true,
+      review: {
+        dueOn: existing.due_on,
+        reps: existing.reps,
+        lapses: existing.lapses,
+        leech: Boolean(existing.leech),
+      },
+    });
+  }
+
+  const settings = settingsFor(userId);
+  const review = applyReview({ userId, item, grade, ts, mode, seconds, tabBlurs, note, settings });
   res.status(201).json({
     ok: true,
     review: {
@@ -891,6 +1303,14 @@ router.post("/attempts", (req, res) => {
       reps: review.reps,
       lapses: review.lapses,
       leech: review.leech,
+      state: review.state,
+      stateName: review.stateName,
+      stability: review.stability,
+      difficulty: review.difficulty,
+      // What the interval actually turned out to be, so the session summary
+      // reports the scheduler's answer rather than re-deriving one client-side.
+      intervalMinutes: review.intervalMinutes,
+      scheduledDays: review.scheduledDays,
     },
   });
 });
@@ -959,6 +1379,7 @@ router.post("/import", (req, res) => {
   rows.sort((a, b) => a.ts - b.ts);
 
   const itemCache = new Map();
+  const settings = settingsFor(userId);
   const imported = db.transaction(() => {
     let count = 0;
     for (const row of rows) {
@@ -970,7 +1391,7 @@ router.post("/import", (req, res) => {
       if (!item) continue; // unknown item id — skip rather than fail the whole import
 
       if (row.abandoned || row.grade == null) {
-        insertItemAttempt.run({
+        logUnscheduledAttempt({
           user_id: userId,
           item_id: row.itemId,
           ts: row.ts,
@@ -991,6 +1412,7 @@ router.post("/import", (req, res) => {
           seconds: row.seconds,
           tabBlurs: row.tabBlurs,
           note: row.note,
+          settings,
         });
       }
       count++;

@@ -121,9 +121,65 @@ export function getMe() {
 
 // ── Drill mode (ROADMAP.md A4) ──────────────────────────────────────────────
 
-/** Due (or new) items for `course`, FSRS-ordered, ready to drill. */
-export function getDrillQueue(course, limit = 20) {
-  return api(`/api/drill/queue?course=${encodeURIComponent(course)}&limit=${limit}`);
+/**
+ * The client's own UTC offset, sent on every scheduler read.
+ *
+ * The server decides what "due today" means (dueBoundary in server/fsrs.js) and
+ * needs to draw that line at midnight in the USER's timezone, not its own. In
+ * Electron they are the same machine, but under Docker they need not be, and a
+ * day-boundary disagreement is exactly the off-by-one this plan warns about.
+ */
+function tz() {
+  return `tz=${new Date().getTimezoneOffset()}`;
+}
+
+/**
+ * Due (or new) items for `course`, FSRS-ordered, ready to drill. Each item
+ * arrives with its scheduling state and the four predicted intervals attached.
+ *
+ * `ahead` drops the due filter and pulls the next-soonest items instead, the
+ * "Review ahead" path for when nothing is actually due.
+ */
+export function getDrillQueue(course, limit = 20, { ahead = false } = {}) {
+  return api(
+    `/api/drill/queue?course=${encodeURIComponent(course)}&limit=${limit}&${tz()}${ahead ? "&ahead=1" : ""}`
+  );
+}
+
+/** Due / learning / new counts for the home strip, plus a per-topic breakdown. */
+export function getDrillCounts(course) {
+  return api(`/api/drill/counts?course=${encodeURIComponent(course)}&${tz()}`);
+}
+
+/** This user's FSRS parameters: { requestRetention, maximumInterval, dailyNewLimit, enableFuzz }. */
+export function getSchedulerSettings() {
+  return api("/api/drill/settings");
+}
+
+/** Save any subset of the FSRS parameters. Resolves with the saved set plus `rescheduled`, the number of due dates the change moved. */
+export function putSchedulerSettings(patch) {
+  return api("/api/drill/settings", { method: "PUT", body: patch });
+}
+
+/** How many cards a retention change would reschedule, so the confirmation can name a number. */
+export function getSchedulerImpact() {
+  return api("/api/drill/settings/impact");
+}
+
+/**
+ * Run one hypothetical review. Stateless: nothing is read from or written to the
+ * database, which is what lets the scheduler sandbox hold its card in React
+ * state while still leaving every interval calculation on the server.
+ *
+ * body: { card, grade?, now?, format?, settings? }
+ */
+export function postSchedulerSimulate(body) {
+  return api("/api/drill/simulate", { method: "POST", body });
+}
+
+/** Forget one card back to new. Clears its scheduling state; its attempt log is untouched. */
+export function resetItemSchedule(itemId) {
+  return api(`/api/drill/items/${encodeURIComponent(itemId)}/reset`, { method: "POST" });
 }
 
 /** Record one drill attempt. body: { itemId, mode, grade, seconds, tabBlurs, note, abandoned }. Pass keepalive when posting from a pagehide handler. */

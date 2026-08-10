@@ -16,7 +16,7 @@ if (card.state === 'new') {
 Short value picks are fine: const cls = active ? 'on' : 'off';
 
 Comments explain why, never what. Delete any comment that restates the line below it.
-**DO NOT** use em dashses in your comments EVER NEVER 
+**DO NOT** use em dashses in your comments **OR IN THE CODE** 
 Bad:
 // increment the counter
 count++;

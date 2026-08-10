@@ -8,6 +8,37 @@
 - 
 
 ## 
+## [1.0.16] - 2026-08-10
+### Type - Added
+### Scheduling (FSRS)
+- Home shows what's actually due: a `N due · N learning · N new` strip with a one-click
+  "Start review", and a due count on each topic card. Nothing due gets a "Review ahead"
+  that pulls the next-soonest items forward.
+- Drill's four grade buttons now show the interval each one produces (`10m`, `3d`, `2mo`,
+  `1.4y`). The number under the button is the interval you get for pressing it.
+- MCQ items auto-grade as before, but the derived rating is shown as a suggestion on the
+  same bar and can be overridden. Keys 1-4 grade; Enter takes the suggestion.
+- "How scheduling works" — an interactive sandbox. Grade a scratch card, push the clock,
+  drag desired retention, and watch stability, difficulty and the forgetting curve move.
+  Nothing in it is saved.
+- Settings: desired retention (0.70-0.97), daily new-item limit, maximum interval, and
+  interval fuzz. Changing retention re-derives due dates from existing stability without
+  touching it, and asks first when that would move a lot of cards.
+- Settings: toggles for the home due strip (off restores the previous home screen exactly)
+  and a scheduler inspector row under each Drill item.
+### Type - Fixed
+### Scheduling (FSRS)
+- Rescheduling a card and logging the review are now one transaction. They were two loose
+  statements, so a crash between them left a card rescheduled with no log row.
+- Double-clicking a grade button no longer counts as two reviews. The second one derived
+  its interval from the state the first had just advanced to.
+- The review log now records the card state the scheduler actually saw — stability,
+  difficulty, state, elapsed days — plus the parameter version. Without those the history
+  can't be replayed, which is the whole reason to keep it.
+- Learning-step position is persisted, so a card in `learning` no longer restarts at step 0
+  on every review.
+
+## 
 ## [1.0.15] - 2026-08-10
 ### Type - Fixed
 ### MCQ Quiz and Masterset

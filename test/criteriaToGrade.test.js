@@ -7,7 +7,13 @@
 // since gradeToVerdict treats >= 2 as correct and FSRS reschedules on it).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { criteriaToGrade } from "../server/routes/drill.js";
+import { isolatedTestDb } from "./helpers/testDb.js";
+
+// criteriaToGrade is pure, but routes/drill.js imports server/db.js, which
+// opens and migrates a database at import time. See helpers/testDb.js.
+isolatedTestDb(import.meta.url);
+
+const { criteriaToGrade } = await import("../server/routes/drill.js");
 
 test("no criteria at all -> null (ungraded, not a zero)", () => {
   // Distinct from grade 0 on purpose: an item with an empty rubric was never

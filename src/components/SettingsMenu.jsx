@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { PALETTE, HEADING, RADII, SHADOWS } from "../data/theme";
+import { PALETTE, MONO, HEADING, RADII, SHADOWS } from "../data/theme";
 import useTheme from "../hooks/useTheme";
 import useOllamaSettings from "../hooks/useOllamaSettings";
+import useSchedulerSettings from "../hooks/useSchedulerSettings";
+import useSchedulerFlags from "../hooks/useSchedulerFlags";
 import { getOllamaStatus } from "../api/client";
 import AuthBar from "./AuthBar";
 
@@ -9,11 +11,10 @@ import AuthBar from "./AuthBar";
  * SettingsMenu — the gear button at the end of Header's top bar (same spot
  * in both c++ and cs3000, since Header renders it for either course).
  *
- * Opens a panel with three sections: a theme-preset swatch row (see
- * ACCENT_PRESETS/useTheme), the local Ollama host/model Practice mode's
- * grading uses (docs/OLLAMA_GRADING.md), and the account control that used
- * to sit inline in Header — AuthBar itself is unchanged, just relocated in
- * here.
+ * Opens a panel with four sections: a theme-preset swatch row (see
+ * ACCENT_PRESETS/useTheme), the account control that used to sit inline in
+ * Header, the scheduler parameters (plans/fsrs_ui.md Phase 6), and the local
+ * Ollama host/model Practice mode's grading uses (docs/OLLAMA_GRADING.md).
  *
  * Renders as a normal flex item in Header's row (not `position: fixed`) so
  * it never overlaps Header's own right-aligned text — it just sits after it
@@ -23,6 +24,8 @@ export default function SettingsMenu({ auth }) {
   const [open, setOpen] = useState(false);
   const { themeId, setThemeId, presets } = useTheme();
   const { host, model, codeModel, setHost, setModel, setCodeModel } = useOllamaSettings();
+  const scheduler = useSchedulerSettings();
+  const flags = useSchedulerFlags();
   const [ollamaStatus, setOllamaStatus] = useState(null); // null | "checking" | { reachable, models, modelAvailable, error? }
   const [ollamaCodeStatus, setOllamaCodeStatus] = useState(null); // same shape, for codeModel
 
@@ -166,6 +169,10 @@ export default function SettingsMenu({ auth }) {
 
             <div style={{ height: 1, background: PALETTE.line }} />
 
+            <SchedulerSection scheduler={scheduler} flags={flags} />
+
+            <div style={{ height: 1, background: PALETTE.line }} />
+
             <div>
               <div
                 style={{
@@ -235,6 +242,225 @@ export default function SettingsMenu({ auth }) {
         )}
       </div>
     </>
+  );
+}
+
+/**
+ * The FSRS parameters (plans/fsrs_ui.md Phase 6), plus the two display toggles.
+ *
+ * Every label is in plain language, because the underlying names are not:
+ * "request_retention" is meaningless to the person choosing it, while "higher
+ * means shorter intervals and more reviews" is the actual trade being made.
+ *
+ * Retention commits on release, not on every drag frame: moving the slider
+ * rewrites the due date of every scheduled card server-side, and firing that
+ * on each intermediate value would be dozens of pointless full-collection
+ * rewrites on the way to the value the user meant.
+ */
+function SchedulerSection({ scheduler, flags }) {
+  const { settings, save, impact, saving } = scheduler;
+  // Local mirror so the slider tracks the thumb at 60fps while the server only
+  // hears about the value the user let go on.
+  const [retention, setRetention] = useState(null);
+  const [notice, setNotice] = useState(null);
+
+  const current = retention ?? settings?.requestRetention ?? 0.9;
+
+  if (!settings) {
+    return (
+      <Section title="Scheduling">
+        <Hint>loading…</Hint>
+      </Section>
+    );
+  }
+
+  async function commitRetention(value) {
+    if (value === settings.requestRetention) return;
+    // Phase 6 asks for a confirmation when the recompute touches a lot of
+    // cards. Asked BEFORE the write, so the number in the prompt is the number
+    // that would actually move.
+    const affected = await impact();
+    if (
+      affected >= 25 &&
+      !window.confirm(
+        `Changing desired retention to ${Math.round(value * 100)}% will recalculate the due date of ` +
+          `${affected} scheduled cards.\n\nTheir memory strength is not affected, only when they next come up. Continue?`
+      )
+    ) {
+      setRetention(settings.requestRetention);
+      return;
+    }
+    const saved = await save({ requestRetention: value }).catch(() => null);
+    if (saved) {
+      setNotice(
+        saved.rescheduled > 0
+          ? `${saved.rescheduled} card${saved.rescheduled === 1 ? "" : "s"} rescheduled`
+          : "saved"
+      );
+    }
+  }
+
+  return (
+    <Section title="Scheduling">
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+        <span style={fieldLabelStyle}>Desired retention</span>
+        <span
+          style={{
+            marginLeft: "auto",
+            fontFamily: MONO,
+            fontSize: 12,
+            color: PALETTE.text,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {Math.round(current * 100)}%
+        </span>
+      </div>
+      <input
+        type="range"
+        min={0.7}
+        max={0.97}
+        step={0.01}
+        value={current}
+        disabled={saving}
+        aria-label="Desired retention"
+        onChange={(e) => setRetention(Number(e.target.value))}
+        onPointerUp={(e) => commitRetention(Number(e.currentTarget.value))}
+        onKeyUp={(e) => commitRetention(Number(e.currentTarget.value))}
+        style={{ width: "100%", accentColor: PALETTE.accent, cursor: "pointer" }}
+      />
+      <Hint>Higher means shorter intervals and more reviews.</Hint>
+
+      <div style={{ ...fieldLabelStyle, marginTop: 10 }}>Daily new items</div>
+      <NumberField
+        value={settings.dailyNewLimit}
+        min={0}
+        max={9999}
+        disabled={saving}
+        onCommit={(n) => save({ dailyNewLimit: n }).catch(() => {})}
+      />
+      <Hint>How many never-seen items a review session may introduce per day.</Hint>
+
+      <div style={{ ...fieldLabelStyle, marginTop: 10 }}>Maximum interval (days)</div>
+      <NumberField
+        value={settings.maximumInterval}
+        min={1}
+        max={36500}
+        disabled={saving}
+        onCommit={(n) => save({ maximumInterval: n }).catch(() => {})}
+      />
+      <Hint>The furthest ahead anything is ever scheduled.</Hint>
+
+      <Check
+        label="Spread due dates (fuzz)"
+        title="Jitters each interval by a few percent so cards learned together don't all come due on the same day"
+        checked={settings.enableFuzz}
+        disabled={saving}
+        onChange={(on) => save({ enableFuzz: on }).catch(() => {})}
+      />
+      <Check
+        label="Show due counts on home"
+        title="The due / learning / new strip above the topic grid. Off restores the plain topic list."
+        checked={flags.dueStrip}
+        onChange={flags.setDueStrip}
+      />
+      <Check
+        label="Scheduler inspector (diagnostics)"
+        title="Adds a row of raw FSRS state under each Drill item"
+        checked={flags.inspector}
+        onChange={flags.setInspector}
+      />
+
+      {notice && <Hint>{notice}</Hint>}
+      {scheduler.error && <Hint tone={PALETTE.bad}>{scheduler.error}</Hint>}
+    </Section>
+  );
+}
+
+function Section({ title, children }) {
+  return (
+    <div>
+      <div
+        style={{
+          fontFamily: HEADING,
+          fontSize: 11,
+          fontWeight: 500,
+          letterSpacing: 1,
+          textTransform: "uppercase",
+          color: PALETTE.muted,
+          marginBottom: 10,
+        }}
+      >
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/** Commits on blur/Enter, never on keystroke: "1" on the way to "100" is not a value to save. */
+function NumberField({ value, min, max, disabled, onCommit }) {
+  const [draft, setDraft] = useState(String(value));
+
+  // Adopt a value that changed underneath us (the server clamps out-of-range
+  // input), but never while the field is focused and being typed into.
+  useEffect(() => {
+    setDraft(String(value));
+  }, [value]);
+
+  function commit() {
+    const n = Math.round(Number(draft));
+    if (!Number.isFinite(n) || n === value) return setDraft(String(value));
+    onCommit(Math.min(max, Math.max(min, n)));
+  }
+
+  return (
+    <input
+      type="number"
+      min={min}
+      max={max}
+      value={draft}
+      disabled={disabled}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+      style={inputStyle}
+    />
+  );
+}
+
+function Check({ label, title, checked, disabled, onChange }) {
+  return (
+    <label
+      title={title}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        marginTop: 10,
+        fontFamily: HEADING,
+        fontSize: 12,
+        color: PALETTE.text,
+        cursor: disabled ? "default" : "pointer",
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        style={{ accentColor: PALETTE.accent, cursor: "inherit" }}
+      />
+      {label}
+    </label>
+  );
+}
+
+function Hint({ children, tone }) {
+  return (
+    <div style={{ fontSize: 10, lineHeight: 1.5, color: tone ?? PALETTE.muted, marginTop: 4 }}>
+      {children}
+    </div>
   );
 }
 
