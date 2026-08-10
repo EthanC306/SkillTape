@@ -52,9 +52,9 @@ const clearCards = db.prepare("DELETE FROM cards WHERE topic_id = ?");
 const clearFlashcards = db.prepare("DELETE FROM flashcards WHERE topic_id = ?");
 
 const insertCard = db.prepare(`
-  INSERT INTO cards (topic_id, position, heading, body, code, accept,
+  INSERT INTO cards (topic_id, position, heading, body, code, art, accept,
                      figure_src, figure_alt, figure_caption)
-  VALUES (@topic_id, @position, @heading, @body, @code, @accept,
+  VALUES (@topic_id, @position, @heading, @body, @code, @art, @accept,
           @figure_src, @figure_alt, @figure_caption)
 `);
 
@@ -334,6 +334,7 @@ const seed = db.transaction(() => {
         heading: card.heading,
         body: card.body ?? null,
         code: card.code ?? null,
+        art: card.art ?? null,
         accept: card.accept ? JSON.stringify(card.accept) : null,
         ...figureCols(card.figure),
       });

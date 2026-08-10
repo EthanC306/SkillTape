@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
+import { PALETTE, MONO, HEADING, DISPLAY, RADII } from "../data/theme";
 import Inline from "./Inline";
 
 /**
@@ -98,7 +98,7 @@ export default function FlashcardsView({ topic, editMode, onSave, saveState }) {
             <Inline text={card.back} />
           </div>
         ) : (
-          <div style={{ fontFamily: HEADING, fontSize: frontSize, lineHeight: 1.4, fontWeight: 500, color: PALETTE.accent }}>
+          <div style={{ fontFamily: DISPLAY, fontSize: frontSize, lineHeight: 1.4, fontWeight: 500, color: PALETTE.accent }}>
             <Inline text={card.front} />
           </div>
         )}

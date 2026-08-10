@@ -31,6 +31,47 @@
     />
     <style>
       /*
+       * Newsreader — the display serif for card headings (theme.js's DISPLAY
+       * token). Self-hosted rather than pulled from fonts.googleapis.com like
+       * Inter above, and deliberately so: this app ships as an Electron desktop
+       * build and a Docker image, both of which are expected to work with no
+       * network. A CDN-linked face silently falls back to the generic serif
+       * when offline, so the packaged app would render differently depending on
+       * connectivity. Vite copies public/ into dist/ verbatim and server/index.js
+       * serves dist/ statically, so /fonts/* resolves identically in dev, in
+       * Docker, and inside Electron — the same reasoning as the favicon note above.
+       *
+       * One variable file per subset covers the whole 200-800 weight range, and
+       * the opsz axis lets the browser optically size the glyphs automatically
+       * (font-optical-sizing defaults to auto), which is why headings hold up at
+       * both the 18px Learn size and the much larger Flashcards front.
+       *
+       * Regenerate with:
+       *   curl -H "User-Agent: <a modern desktop browser UA>" \
+       *     "https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,200..800"
+       * and re-download the woff2 URLs it prints (Google bumps the version path).
+       */
+      @font-face {
+        font-family: "Newsreader";
+        font-style: normal;
+        font-weight: 200 800;
+        font-display: swap;
+        src: url("/fonts/newsreader-latin.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+          U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+          U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "Newsreader";
+        font-style: normal;
+        font-weight: 200 800;
+        font-display: swap;
+        src: url("/fonts/newsreader-latin-ext.woff2") format("woff2");
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+          U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+          U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      /*
        * Nocturne interaction states that inline styles can't express.
        *
        * TOKEN COUPLING (resolved 2026-08-01, ROADMAP.md A1): this --nocturne-

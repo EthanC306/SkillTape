@@ -80,14 +80,14 @@ export default {
       heading: "What a binary tree is",
       body:
         "A tree is a **nonlinear** structure. In a binary tree there is exactly one special node called the **root**, and each node may be associated with up to **two** other nodes, called its **left child** and **right child**. If a node `c` is a child of a node `p`, then we say p is c's **parent**. Each node reaches its children through two pointers: the `left` pointer points to the left child, and the `right` pointer points to the right child.",
-      code:
-        "        20\n" +
-        "      /    \\\n" +
-        "    10      30\n" +
-        "   /  \\    /  \\\n" +
-        "  7   15  25  40\n" +
-        " / \\\n" +
-        "5   8",
+      // Slide 4's tree. Indentation is load-bearing — it must start at column 0.
+      art: `        20
+      /    \\
+    10      30
+   /  \\    /  \\
+  7   15  25  40
+ / \\
+5   8`,
     },
     {
       heading: "Parents, siblings, leaves, and subtrees",

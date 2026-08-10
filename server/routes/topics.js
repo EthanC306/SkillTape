@@ -38,7 +38,7 @@ const getTopic = db.prepare(`
 `);
 
 const getCards = db.prepare(`
-  SELECT heading, body, code, accept, figure_src, figure_alt, figure_caption
+  SELECT heading, body, code, art, accept, figure_src, figure_alt, figure_caption
   FROM cards WHERE topic_id = ? ORDER BY position
 `);
 
@@ -75,6 +75,7 @@ export function buildTopic(row) {
       heading: c.heading,
       body: c.body,
       code: c.code,
+      art: c.art,
       accept: c.accept ? JSON.parse(c.accept) : undefined,
       figure: figureOf(c),
     })
@@ -257,6 +258,7 @@ function cardRow(card, i) {
     heading: requiredString(card.heading, `${where}.heading`),
     body: optionalString(card.body, `${where}.body`),
     code: optionalString(card.code, `${where}.code`),
+    art: optionalString(card.art, `${where}.art`),
     accept: acceptJson(card.accept, `${where}.accept`),
     ...figureCols(card.figure, `${where}.figure`),
   };
@@ -277,9 +279,9 @@ const clearCards = db.prepare("DELETE FROM cards WHERE topic_id = ?");
 const clearFlashcards = db.prepare("DELETE FROM flashcards WHERE topic_id = ?");
 
 const insertCard = db.prepare(`
-  INSERT INTO cards (topic_id, position, heading, body, code, accept,
+  INSERT INTO cards (topic_id, position, heading, body, code, art, accept,
                      figure_src, figure_alt, figure_caption)
-  VALUES (@topic_id, @position, @heading, @body, @code, @accept,
+  VALUES (@topic_id, @position, @heading, @body, @code, @art, @accept,
           @figure_src, @figure_alt, @figure_caption)
 `);
 

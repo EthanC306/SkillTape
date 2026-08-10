@@ -50,6 +50,11 @@ function ensureColumn(table, column, ddl) {
 }
 ensureColumn("topics", "exam_weight", "exam_weight REAL NOT NULL DEFAULT 1.0");
 
+// `cards.art` — the monospace diagram block. Same guarded-ALTER story as
+// exam_weight: it landed after installs already had a `cards` table, and a card
+// without one is simply NULL here, so no backfill is needed.
+ensureColumn("cards", "art", "art TEXT");
+
 // docs/STABLE_QUESTION_IDS.md — the authored `questions.stable_id` and the
 // attempt columns that reference it. Same guarded-ALTER story as exam_weight,
 // with two SQLite restrictions shaping how it's written:

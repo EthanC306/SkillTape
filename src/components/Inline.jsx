@@ -1,5 +1,5 @@
 import React from "react";
-import { PALETTE, HEADING } from "../data/theme";
+import { PALETTE } from "../data/theme";
 import { BOLD_RE, CODE_RE } from "../utils/fill";
 import CodeSpan from "./CodeSpan";
 
@@ -31,7 +31,12 @@ export default function Inline({ text }) {
           p.startsWith("**") && p.endsWith("**") ? (
             <strong
               key={`${s}:${i}`}
-              style={{ fontFamily: HEADING, fontWeight: 600, color: PALETTE.text }}
+              // Inherit the family rather than pinning it: an emphasized term
+              // should bolden whatever it sits in, not switch face mid-line.
+              // This was invisible while every context was Inter (HEADING and
+              // SANS are the same stack), but card headings now render in
+              // DISPLAY, where a pinned sans would break the line in half.
+              style={{ fontFamily: "inherit", fontWeight: 600, color: PALETTE.text }}
             >
               {p.slice(2, -2)}
             </strong>

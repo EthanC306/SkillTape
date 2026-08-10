@@ -118,9 +118,28 @@ export const SYNTAX = {
 
 // Inter, loaded via Google Fonts link in index.html — used for both headings
 // and body text. Weight is capped at 500 for headings (never bolder).
+//
+// Naming note: HEADING is a misnomer inherited from the original theme and is
+// kept only because ~90 call sites import it. In practice it is the *UI* face —
+// buttons, nav chrome, settings rows, stat labels — not the face used for
+// headings. Titles that genuinely read as headings use DISPLAY below. Don't
+// repoint HEADING at a serif to "make headings serif": you would convert every
+// button in the app instead.
 export const HEADING = '"Inter", system-ui, -apple-system, sans-serif';
 export const SANS = '"Inter", system-ui, -apple-system, sans-serif';
 export const HEADING_WEIGHT = 500;
+
+// Newsreader — the display serif for card titles (Learn cards, Flashcards
+// fronts). Self-hosted from public/fonts/, declared in index.html; see the
+// @font-face comment there for why it isn't on the Google Fonts link.
+//
+// The point of a separate face here is tier, not size: a serif title against
+// Inter body text reads as a distinct level without needing extra weight or
+// scale, which matters because headings are capped at 500. Georgia is the
+// fallback because it's the one serif present on effectively every desktop, so
+// a failed font load degrades to a serif rather than snapping back to sans and
+// collapsing the two tiers into one.
+export const DISPLAY = '"Newsreader", Georgia, "Times New Roman", serif';
 
 // Monospace stack retained for code listings / quiz code blocks, where a
 // fixed-width face is functional rather than decorative.

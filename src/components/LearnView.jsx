@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
+import { PALETTE, MONO, HEADING, DISPLAY, RADII } from "../data/theme";
 import Inline from "./Inline";
 import FillBody from "./FillBody";
 import Figure from "./Figure";
@@ -90,22 +90,6 @@ export default function LearnView({ topic, editMode, onSave, saveState }) {
     setDraft((prev) => [...prev, { heading: "New card", body: "" }]);
   }
 
-  /**
-   * How many grid tracks a card takes.
-   *
-   * Code cards used to take the whole row. A full listing does need more width
-   * than prose, but claiming every track meant the card before it sat alone
-   * with four empty columns beside it, and the listing itself stretched into a
-   * thin bar. Two tracks fits the deck's longest line and lets a prose card sit
-   * alongside.
-   */
-  function columnSpan(card) {
-    // Editors are the exception: a textarea squeezed into one track is unusable.
-    if (editing) return "1 / -1";
-    if (card.code) return "span 2";
-    return undefined;
-  }
-
   return (
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 18 }}>
       {editing ? (
@@ -170,16 +154,7 @@ export default function LearnView({ topic, editMode, onSave, saveState }) {
           )}
         </div>
       )}
-      <div
-        style={{
-          display: "grid",
-          // min() so a track can fall below 340px on a narrow window. Without
-          // it a span-2 card forces two 340px tracks and overflows the page.
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(340px, 100%), 1fr))",
-          gap: 18,
-          alignItems: "start",
-        }}
-      >
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 18 }}>
         {cards.map((c, i) => (
           <div
             key={i}
@@ -188,7 +163,9 @@ export default function LearnView({ topic, editMode, onSave, saveState }) {
               border: `1px solid ${PALETTE.line}`,
               borderRadius: RADII.lg,
               padding: "22px 24px",
-              gridColumn: columnSpan(c),
+              // Editors need the room: one card per row while editing, rather
+              // than squeezing a textarea into a narrow grid column.
+              gridColumn: c.code || editing ? "1 / -1" : undefined,
             }}
           >
             {editing ? (
@@ -202,11 +179,14 @@ export default function LearnView({ topic, editMode, onSave, saveState }) {
               />
             ) : (
               <>
-                <div style={{ fontFamily: HEADING, fontSize: 16, fontWeight: 500, marginBottom: 12, color: PALETTE.accent, letterSpacing: 0.2 }}>
+                {/* No letterSpacing here, unlike the body below: the +0.2px was
+                    tuned for Inter, and positive tracking on a serif at display
+                    size pulls the glyphs apart from their intended fit. */}
+                <div style={{ fontFamily: DISPLAY, fontSize: 18, fontWeight: 500, marginBottom: 12, color: PALETTE.accent }}>
                   <Inline text={c.heading} />
                 </div>
                 {c.body && (
-                  <div style={{ fontSize: 15, lineHeight: 1.8, letterSpacing: 0.2, color: PALETTE.text, marginBottom: c.code ? 16 : 0 }}>
+                  <div style={{ fontSize: 15, lineHeight: 1.8, letterSpacing: 0.2, color: PALETTE.text, marginBottom: c.code || c.art ? 16 : 0 }}>
                     {fillMode ? (
                       <FillBody body={c.body} cardIndex={i} inputs={inputs} checked={checked} accept={c.accept} onChange={updateInput} />
                     ) : (
@@ -216,6 +196,10 @@ export default function LearnView({ topic, editMode, onSave, saveState }) {
                 )}
                 {/* Optional full source listing, e.g. a complete class implementation. */}
                 {c.code && <CodeBlock code={c.code} />}
+                {/* Optional monospace diagram, e.g. an ASCII tree. Unlike `code`
+                    it does not widen the card: the block scrolls inside its own
+                    track rather than forcing one open. */}
+                {c.art && <CodeBlock code={c.art} />}
                 {/* Optional diagram beneath the card text (e.g. arrow diagrams). */}
                 {c.figure && <Figure src={c.figure.src} alt={c.figure.alt} caption={c.figure.caption} />}
               </>

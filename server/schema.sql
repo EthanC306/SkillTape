@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS cards (
   heading        TEXT NOT NULL,
   body           TEXT,               -- **bold** spans double as Fill Mode blanks
   code           TEXT,
+  art            TEXT,               -- monospace text diagram; unlike `code` it does not widen the card
   accept         TEXT,               -- JSON object or NULL (see AUTHORING §3.3)
   figure_src     TEXT,
   figure_alt     TEXT,

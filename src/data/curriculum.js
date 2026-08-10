@@ -14,10 +14,14 @@
  *   showChart — when true, the Big-O ComplexityChart + ReferenceTable render in
  *               Learn and Quiz views. These visuals are C++/Big-O specific, so
  *               non-Big-O topics set this to false.
- *   cards     — Learn-mode note cards: { heading, body, accept?, figure? }. In `body`,
+ *   cards     — Learn-mode note cards: { heading, body, accept?, art?, figure? }. In `body`,
  *               wrap key terms in **double asterisks** to bold them (and to turn them
  *               into fill-in-the-blank inputs in Fill Mode). The optional `figure`
  *               renders a captioned diagram beneath the card text (see below).
+ *               `art` is a monospace text diagram (an ASCII tree, a memory
+ *               layout) rendered in a scrollable block under the body. It is
+ *               separate from `code` because `code` claims the full grid row and
+ *               a small diagram does not need one — see LearnView.jsx.
  *               Fill Mode already grades leniently on its own — case, spacing,
  *               hyphens, exponents, plurals, and number words ("two" = "2") are all
  *               folded away by src/utils/fill.js. `accept` is the escape hatch for

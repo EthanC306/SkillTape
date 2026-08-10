@@ -4,8 +4,40 @@ A self-hosted study app for computer-science coursework. Course material shows u
  
 > Previously named **Cpp Tracker** / **cs.tutor**. The C++-specific name predated multi-course support; SkillTape is the name going forward (see `docs/PLAN_PLATFORMIZE.md`).
  
-**Design principle:** every item in the question bank traces back to a verbatim excerpt from real course material (zyBooks, lecture slides, lab handouts). Nothing in the author's own courses is model-generated. See `docs/CORRECTIONS.md` §3.1 for how this coexists with the platform's generation features.
+**Design principle:** All information is thoroughlly checked for accuracy.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/landing.png" width="80%" alt="SkillTape landing screen">
+</p>
+
+The home screen. Pick a class to drop into that course's topics.
+
+<p align="center">
+  <img src="docs/screenshots/topic-list.png" width="80%" alt="Course topic list with review queue">
+</p>
+
+A course's topic list. The bar up top is the review queue (due / learning / new) with a one-click **Start review**; each card shows its question count, best score, and a run strip for recent attempts.
+
+<p align="center">
+  <img src="docs/screenshots/learn-mode.png" width="80%" alt="Learn mode showing note cards for multi-dimensional arrays">
+</p>
+
+**Learn mode.** Topic notes as cards, with key terms bolded and code shown inline. Toggling **Fill Mode** hides those terms so you type them from memory.
+
+<p align="center">
+  <img src="docs/screenshots/scheduler-sandbox.png" width="80%" alt="Scheduling sandbox showing stability, difficulty, and retrievability">
+</p>
+
+**How scheduling works** — a scratch card wired to the real scheduler. Grade it, advance the clock, and watch stability, difficulty, and retrievability move. Nothing here is saved.
  
+ 
+<p align="center">
+  <img src="docs/screenshots/quiz-view.png" width="80%" alt="Quiz view showing the format of an MCQ drill">
+</p>
+
+**How quizzes work** — you can select a deck and do a quiz ranging from 7-14 MCQ , there is also an option for master set where you can select multiple topics and take one large MCQ quiz.
 ## Courses
  
 The home screen has a bottom tab bar, one tab per class:
