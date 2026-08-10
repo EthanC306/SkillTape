@@ -90,6 +90,22 @@ export default function LearnView({ topic, editMode, onSave, saveState }) {
     setDraft((prev) => [...prev, { heading: "New card", body: "" }]);
   }
 
+  /**
+   * How many grid tracks a card takes.
+   *
+   * Code cards used to take the whole row. A full listing does need more width
+   * than prose, but claiming every track meant the card before it sat alone
+   * with four empty columns beside it, and the listing itself stretched into a
+   * thin bar. Two tracks fits the deck's longest line and lets a prose card sit
+   * alongside.
+   */
+  function columnSpan(card) {
+    // Editors are the exception: a textarea squeezed into one track is unusable.
+    if (editing) return "1 / -1";
+    if (card.code) return "span 2";
+    return undefined;
+  }
+
   return (
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 18 }}>
       {editing ? (
@@ -154,7 +170,16 @@ export default function LearnView({ topic, editMode, onSave, saveState }) {
           )}
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 18 }}>
+      <div
+        style={{
+          display: "grid",
+          // min() so a track can fall below 340px on a narrow window. Without
+          // it a span-2 card forces two 340px tracks and overflows the page.
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(340px, 100%), 1fr))",
+          gap: 18,
+          alignItems: "start",
+        }}
+      >
         {cards.map((c, i) => (
           <div
             key={i}
@@ -163,9 +188,7 @@ export default function LearnView({ topic, editMode, onSave, saveState }) {
               border: `1px solid ${PALETTE.line}`,
               borderRadius: RADII.lg,
               padding: "22px 24px",
-              // Editors need the room: one card per row while editing, rather
-              // than squeezing a textarea into a narrow grid column.
-              gridColumn: c.code || editing ? "1 / -1" : undefined,
+              gridColumn: columnSpan(c),
             }}
           >
             {editing ? (

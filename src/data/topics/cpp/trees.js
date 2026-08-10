@@ -20,6 +20,28 @@ const EXAMPLE_TREE = [
   "10              80",
 ].join("\n");
 
+// What a BST becomes when it is fed sorted input. Shared by the complexity
+// card and the trees-35 diagram item so the two cannot disagree.
+const DEGENERATE_TREE = [
+  "10",
+  "  \\",
+  "   35",
+  "     \\",
+  "      40",
+  "        \\",
+  "         45",
+  "           \\",
+  "            50",
+  "              \\",
+  "               55",
+  "                 \\",
+  "                  60",
+  "                    \\",
+  "                     70",
+  "                       \\",
+  "                        80",
+].join("\n");
+
 const SOURCE_ID = "cpp-slides-07.1-trees";
 const CITATION = "Lecture Deck 07.1";
 
@@ -73,9 +95,14 @@ export default {
         "A binary tree is a collection of nodes where each node holds a **unique id/key**. Every node except the root has exactly **one parent**. Two nodes are **siblings** if they have the same parent, and a node with no children is a **leaf**. For any node, the nodes beginning with its left child and below are its **left subtree**, and the nodes beginning with its right child and below are its **right subtree**. In the tree above, 5 and 8 are siblings, 8 is a leaf, and everything under 10 is 20's left subtree.",
     },
     {
-      heading: "Depth, height, and full trees",
+      heading: "Depth, and the two heights",
       body:
-        "The **depth of a node** is how far it is from the root, counted as the number of steps it takes to reach that node. The root has a depth of **0**, the root's children have a depth of 1, and so on. The depth of a whole tree, also called its **height**, is the **maximum depth** of any of its leaves. Levels work the same way: the root is at level 0, and the height of a tree is the **number of levels** in it. A tree is a **Full Binary Tree** when every leaf has the same depth and every non-leaf has two children.",
+        "The **depth of a node** is how far it is from the root, counted as the number of steps it takes to reach that node. The root has a depth of **0**, the root's children have a depth of 1, and so on. Slide 7 then gives two definitions of a tree's height that do not agree. First, height is the **maximum depth** of any leaf, which is **3** for the tree above. Then, height is the **number of levels** in the tree, which is **4**. They differ by exactly one and both are on the same slide. Max depth of a leaf is the one that follows from the depth rule, so prefer it, and ask which he wants before the exam.",
+    },
+    {
+      heading: "Full binary trees",
+      body:
+        "A tree is a **Full Binary Tree** when every leaf has the **same depth** and every non-leaf has **two children**. Both halves have to hold. Neither example tree in this deck qualifies: their leaves sit at **different depths**, and several nodes have only one child.",
     },
     {
       heading: "The node structure",
@@ -92,16 +119,29 @@ export default {
         "public:\n    BSTree() { root = nullptr; }\n    BNode<DataType>* search(DataType target)\n        { return treeSearch(root, target);}\n    void insert(DataType newData)\n        {treeInsert(root, newData);}\n    void print()\n        {printInorder(root);}\n    size_t size(){return treeSize(root);}",
     },
     {
+      heading: "The remove that does not compile",
+      body:
+        "Slide 12 ends with a `remove` that was meant to be commented out, and only its **signature line** actually is. The body survives as a **stray block** sitting loose inside the class body, which is **illegal**, and it calls **treeRemove**, which is never declared anywhere in this deck. Copy slide 12 verbatim into a project and it **will not compile**. Comment out both lines, or delete them.",
+      code: "    //void remove(DataType target)\n        {treeRemove(root, target);};",
+    },
+    {
       heading: "Three ways to walk a tree",
       body:
         "There are three traversals, and the names say **when the root is processed** relative to its subtrees. **Preorder** processes the root first, **inorder** processes it in the middle, and **postorder** processes it last. In all three the **left** subtree is always visited before the **right** one, so the only thing that ever moves is the root.",
     },
     {
-      heading: "Preorder traversal",
+      heading: "Preorder traversal, and slide 15's bug",
       body:
-        "Each node is processed **before** its children. Process the **root**, then process the nodes in the **left subtree** with a recursive call, then process the nodes in the **right subtree** with a recursive call. The guard `if (root != nullptr)` is the **base case**: an empty subtree prints nothing and returns.",
+        "Each node is processed **before** its children. Process the **root**, then the nodes in the **left subtree** with a recursive call, then the nodes in the **right subtree** with a recursive call. The code below is slide 15's own, and it does not do that: both recursive calls go to `printInorder` instead of `printPreorder`. Only the top node gets preorder treatment and everything under it is walked inorder. It compiles and runs, which is what makes it dangerous. On the deck's example tree it actually prints **50 10 35 40 45 55 60 70 80**, close enough to sorted that it looks like it worked.",
       code:
-        "template <typename DataType>\nvoid BSTree<DataType>::printPreorder(\n                            BNode<DataType>* root){\n    if (root != nullptr){\n        cout << root->data << endl;\n        printInorder(root->left);\n        printInorder(root->right);\n    }\n}",
+        "template <typename DataType>\nvoid BSTree<DataType>::printPreorder(\n                            BNode<DataType>* root){\n    if (root != nullptr){\n        cout << root->data << endl;\n        printInorder(root->left);   // BUG: should be printPreorder\n        printInorder(root->right);  // BUG: should be printPreorder\n    }\n}",
+    },
+    {
+      heading: "Preorder traversal, corrected",
+      body:
+        "The fix is one word, used twice: both recursive calls have to be `printPreorder`. With that change the same tree prints **50 40 35 10 45 60 55 70 80**, the **root first** and every subtree walked the same way. The guard `if (root != nullptr)` is the **base case**: an empty subtree prints nothing and returns.",
+      code:
+        "template <typename DataType>\nvoid BSTree<DataType>::printPreorder(\n                            BNode<DataType>* root){\n    if (root != nullptr){\n        cout << root->data << endl;\n        printPreorder(root->left);\n        printPreorder(root->right);\n    }\n}",
     },
     {
       heading: "Inorder traversal",
@@ -139,21 +179,34 @@ export default {
     {
       heading: "Inserting into a BST",
       body:
-        "Insertion walks down until it falls off the tree. When the subtree root is **nullptr** the value belongs there, so a new node is allocated and the function returns. Otherwise it compares: if the new value is **smaller** it recurses **left**, if **larger** it recurses **right**. A value equal to the current node matches neither branch, so a duplicate is silently **ignored**. The root parameter is a reference, `BNode<DataType>* &root`, which is what lets the assignment reach the real parent's pointer instead of a copy.",
+        "Insertion walks down until it falls off the tree. When the subtree root is **nullptr** the value belongs there, so a new node is allocated and the function returns. Otherwise it compares: if the new value is **smaller** it recurses **left**, if **larger** it recurses **right**. A value equal to the current node matches neither branch, so a duplicate is silently **ignored**.",
       code:
         "template <typename DataType>\nvoid BSTree<DataType>::treeInsert(\n        BNode<DataType>* &root, DataType newData){\n    if (root == nullptr) {\n        root = new BNode<DataType>(newData, nullptr, nullptr);\n        return;\n    }\n\n    if (newData < root->data){   //insert at the left subtree\n        treeInsert(root->left, newData);\n    }\n    else if (newData > root->data){ //insert at the right subtree\n        treeInsert(root->right, newData);\n    }\n    //else, already in the tree, ignore it\n}",
     },
     {
+      heading: "Why treeInsert takes its root by reference",
+      body:
+        "The `&` in `BNode<DataType>* &root` is the most load-bearing character in the deck, and it is easy to read straight past. Drop it and the code still compiles, but the parameter becomes a **local copy** of the pointer: the assignment points that copy at the new node, the function returns, the copy dies, the node is **orphaned and leaked**, and the tree is **unchanged**. With the reference the parameter **is** the parent's own `left` or `right` member, so the assignment attaches the node in place. That is why insert never has to look back at the parent.",
+      code:
+        "void BSTree<DataType>::treeInsert(\n        BNode<DataType>* &root, DataType newData){\n    if (root == nullptr) {\n        root = new BNode<DataType>(newData, nullptr, nullptr);\n        return;\n    }",
+    },
+    {
       heading: "Searching a BST",
       body:
-        "Search is the same walk, reporting instead of building. An empty subtree means the target is not there, so it returns **nullptr**. A node whose data **equals** the target is the hit, and the function returns that **node pointer**, not a bool, so the caller can read the data it found. Otherwise the comparison picks a side: **smaller** goes left, anything else goes right. Each comparison discards **half** of what is left, which is where the tree's speed comes from.",
+        "Search is the same walk, reporting instead of building. An empty subtree means the target is not there, so it returns **nullptr**. A node whose data **equals** the target is the hit, and the function returns that **node pointer**, not a bool, so the caller can read the data it found. Otherwise the comparison picks a side: **smaller** goes left, anything else goes right.",
       code:
         "template <typename DataType>\nBNode<DataType>* BSTree<DataType>::treeSearch(BNode<DataType>* &root,\n                        DataType target) {\n    if (root == nullptr){ //tree is empty\n        return nullptr;\n    }\n    if (target == root->data){ //found the target\n        return root;\n    }\n    if (target < root->data){ // search the left subtree\n        return treeSearch(root->left, target);\n    }\n    else { //search the right subtree\n        return treeSearch(root->right, target);\n    }\n}",
     },
     {
+      heading: "What O(log2n) actually assumes",
+      body:
+        "Each comparison in `treeSearch` discards **half** of what is left, which is where **O(log2n)** comes from. `treeSize` gets none of that: it makes no comparison, so it prunes nothing and has to touch every node, which leaves it at **O(n)** on the very same tree. The halving also assumes a **reasonably balanced** tree. Insert sorted data and every value is larger than everything before it, so every node hangs off the right and the tree degenerates into the stick below, where insert, remove and search are all **O(n)**, worse than the array row on slide 28. **The deck never mentions balance anywhere**: no AVL, no red-black, no rotations.",
+      code: DEGENERATE_TREE,
+    },
+    {
       heading: "What the tree buys you",
       body:
-        "Back to the table this deck opened with. A binary search tree does insert, remove, and search all in **O(log2n)**, and like a linked list it needs **no resizing and no copying**. That beats the array on insert and remove and beats the linked list everywhere. The one caveat the deck lists is that a tree may **not be efficient** on a **small dataset**, where the overhead is not repaid.",
+        "Back to the table this deck opened with. A binary search tree does insert, remove, and search all in **O(log2n)**, and like a linked list it needs **no resizing and no copying**. That beats the array on insert and remove and beats the linked list everywhere, **as long as the tree stays balanced**. The one caveat the deck itself lists is that a tree may **not be efficient** on a **small dataset**, where the overhead is not repaid.",
     },
   ],
 
@@ -938,8 +991,7 @@ export default {
       format: FORMATS.DIAGRAM,
       prompt:
         "Insert 10, 35, 40, 45, 50, 55, 60, 70, 80 into an empty BST, in that order. Draw the result and say what its search cost is.",
-      expected:
-        "10\n  \\\n   35\n     \\\n      40\n        \\\n         45\n           \\\n            50\n              \\\n               55\n                 \\\n                  60\n                    \\\n                     70\n                       \\\n                        80\n\nEvery insert is larger than everything before it, so every node hangs off the right. This is a linked list wearing a tree costume, and search costs O(n).",
+      expected: `${DEGENERATE_TREE}\n\nEvery insert is larger than everything before it, so every node hangs off the right. This is a linked list wearing a tree costume, and search costs O(n).`,
       criteria: [
         "Every node is the right child of the one before it, a single descending chain",
         "Names the search cost as O(n)",
