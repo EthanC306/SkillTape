@@ -5,29 +5,29 @@
 export default {
   id: "discrete-1-1-variables",
   title: "1.1 Speaking Mathematically: Variables",
-  subtitle: "CS3000 — §1.1",
+  subtitle: "CS3000 §1.1",
   course: "discrete",
   showChart: false,
   cards: [
     {
       heading: "What a variable is",
       body:
-        "A **variable** is a placeholder — think of it as a mathematical “John Doe.” You reach for one in two situations. First, when a value exists but is **unknown**, so you name it and compute with it while you search for it (e.g., “Is there a number x such that 2x + 3 = x²?”). Second, when you want a statement to stay true for **every** element of a set, so you use a variable to keep the claim **general** instead of pinning it to one concrete number.",
+        "A **variable** is a placeholder: think of it as a mathematical “John Doe.” You reach for one in two situations. First, when a value exists but is **unknown**, so you name it and compute with it while you search for it (e.g., “Is there a number x such that 2x + 3 = x²?”). Second, when you want a statement to stay true for **every** element of a set, so you use a variable to keep the claim **general** instead of pinning it to one concrete number.",
     },
     {
       heading: "Three kinds of statements",
       body:
-        "Most mathematical claims are built from three sentence types. A **universal** statement says a property holds for **every** element of a set (“for all …”). A **conditional** statement says one thing follows from another — the **if-then** form. An **existential** statement asserts that **there is** at least one element with a given property. Combining these gives the compound forms below.",
+        "Most mathematical claims are built from three sentence types. A **universal** statement says a property holds for **every** element of a set (“for all …”). A **conditional** statement says one thing follows from another, in the **if-then** form. An **existential** statement asserts that **there is** at least one element with a given property. Combining these gives the compound forms below.",
     },
     {
       heading: "Universal conditional statements",
       body:
-        "A **universal conditional** statement is both universal and conditional — it pairs “for every” with “if-then.” Example: “For every animal a, if a is a dog, then a is a **mammal**.” Such statements can be reworded to hide either part: purely conditional (“If an animal is a dog, then it is a mammal”) or purely universal (“**All** dogs are mammals”). They mean the same thing.",
+        "A **universal conditional** statement is both universal and conditional: it pairs “for every” with “if-then.” Example: “For every animal a, if a is a dog, then a is a **mammal**.” Such statements can be reworded to hide either part: purely conditional (“If an animal is a dog, then it is a mammal”) or purely universal (“**All** dogs are mammals”). They mean the same thing.",
     },
     {
       heading: "Universal existential statements",
       body:
-        "A **universal existential** statement is **universal** in its first part and **existential** in its second: a property holds for every object, and that property asserts something **exists**. Example: “Every real number has an **additive inverse**” — for every real number r, there is a real number s such that r + s = 0. Notice the existing thing (the inverse s) **depends on** the universally chosen r; different numbers have different inverses.",
+        "A **universal existential** statement is **universal** in its first part and **existential** in its second: a property holds for every object, and that property asserts something **exists**. Example: “Every real number has an **additive inverse**”: for every real number r, there is a real number s such that r + s = 0. Notice the existing thing (the inverse s) **depends on** the universally chosen r; different numbers have different inverses.",
     },
     {
       heading: "Existential universal statements",
@@ -37,7 +37,7 @@ export default {
     {
       heading: "Why variables matter",
       body:
-        "Variables let you refer to a quantity **unambiguously** throughout a long argument without locking it to one value. Some of the deepest ideas need all three phrases at once. The **limit** of a sequence is the classic case: “the limit of aₙ is L” means **for every** positive real ε, **there is** an integer N such that **if** n > N then aₙ is within ε of L — universal, existential, and conditional all in one sentence.",
+        "Variables let you refer to a quantity **unambiguously** throughout a long argument without locking it to one value. Some of the deepest ideas need all three phrases at once. The **limit** of a sequence is the classic case: “the limit of aₙ is L” means **for every** positive real ε, **there is** an integer N such that **if** n > N then aₙ is within ε of L, so universal, existential, and conditional all appear in one sentence.",
     },
   ],
   questions: [
@@ -137,7 +137,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "The existing object generally depends on the universally chosen one — e.g., each real number has its own additive inverse.",
+        "The existing object generally depends on the universally chosen one: each real number has its own additive inverse, for example.",
     },
   ],
 };

@@ -56,7 +56,7 @@ function identColor(id, called) {
 }
 
 /** Splits `code` into [{ text, color, italic }] spans. */
-function tokenize(code) {
+export function tokenize(code) {
   const out = [];
   let last = 0;
   let m;

@@ -15,23 +15,23 @@ export default {
     {
       heading: "Declaring a multi-dimensional array",
       body:
-        "C++ allows arrays with **multiple index values**. **char page[30][100];** declares an array of characters named page with **two index values**: the first ranges from 0 to 29, and the second ranges from 0 to 99. Each index is enclosed in its **own brackets**, and page can be visualized as an array of **30 rows and 100 columns**.",
+        "C++ allows arrays with **multiple index values**. **char page[30][100];** declares an array of characters named `page` with **two index values**: the first ranges from 0 to 29, and the second ranges from 0 to 99. Each index is enclosed in its **own brackets**, and `page` can be visualized as an array of **30 rows and 100 columns**.",
     },
     {
-      heading: "How page is actually stored",
+      heading: "How `page` is actually stored",
       body:
-        "The indexed variables for page run page[0][0] through page[0][99], then page[1][0] through page[1][99], and so on. page is actually an array of size **30** — page's **base type** is itself an array of **100 characters**, so indexing page once gives a 100-character row, and indexing again gives one character in that row.",
+        "The indexed variables for `page` run `page[0][0]` through `page[0][99]`, then `page[1][0]` through `page[1][99]`, and so on. `page` is actually an array of size **30**, and `page`'s **base type** is itself an array of **100 characters**, so indexing `page` once gives a 100-character row, and indexing again gives one character in that row.",
     },
     {
       heading: "Multi-dimensional array parameters",
       body:
-        "For an ordinary one-dimensional array parameter, the size isn't needed: void displayLine(const char a[], int size);. For a multi-dimensional array parameter, the size of the **first dimension** is still left out, but every **remaining dimension's size must be given**: void displayPage(const char page[]**[100]**, int sizeDimension1);.",
+        "For an ordinary one-dimensional array parameter, the size isn't needed: `void displayLine(const char a[], int size);`. For a multi-dimensional array parameter, the size of the **first dimension** is still left out, but every **remaining dimension's size must be given**: void displayPage(const char `page`[]**[100]**, int sizeDimension1);.",
       code: "void displayLine(const char a[], int size);\n\nvoid displayPage(\n    const char page[][100],\n    int sizeDimension1);",
     },
     {
       heading: "Two-dimensional arrays",
       body:
-        "**int a[4][5];** declares a two-dimensional array where **4** is the number of **rows** and **5** is the number of **columns**. A single element is accessed with two indices in their own brackets, e.g. a[0][2] = 12; or, with variables, **a[i][j] = 5;**.",
+        "**int a[4][5];** declares a two-dimensional array where **4** is the number of **rows** and **5** is the number of **columns**. A single element is accessed with two indices in their own brackets, e.g. `a[0][2] = 12;` or, with variables, **a[i][j] = 5;**.",
       code: "int a[4][5];\n//4 is the number of rows\n//5 is the number of columns\na[0][2] = 12;\na[i][j] = 5;",
     },
     {
@@ -44,21 +44,21 @@ export default {
     {
       heading: "A single row is itself an array",
       body:
-        "Given **int a[10][10];** with numRows and numCols smaller than that, calling **sort(a[i], numCols)** for each row sorts that row in place. **a[i]** — one row of a two-dimensional array — is itself a valid **one-dimensional array**, exactly the type sort's first parameter expects.",
+        "Given **int a[10][10];** with `numRows` and `numCols` smaller than that, calling **sort(a[i], numCols)** for each row sorts that row in place. **a[i]**, one row of a two-dimensional array, is itself a valid **one-dimensional array**, exactly the type `sort`'s first parameter expects.",
       code:
         "int a[10][10];\nint numRows= 5, numCols = 8;\ninputArray(a, numRows, numCols);\nfor (i = 0; i < numRows; i++)\nsort(a[i], numCols); //any sort functions ...",
     },
     {
       heading: "Three-dimensional arrays",
       body:
-        "**int a[3][4][5];** adds a **third index**. Filling it needs **three nested loops** — i, then j, then k — one per dimension, each cin >> writing into a[i][j][k]. **a[i]** is a **two-dimensional array**, **a[i][j]** is a one-dimensional array, and a[i][j][k] is a single element — each extra index peels off one more dimension.",
+        "**int a[3][4][5];** adds a **third index**. Filling it needs **three nested loops** (i, then j, then k), one per dimension, each `cin >>` writing into `a[i][j][k]`. **a[i]** is a **two-dimensional array**, **a[i][j]** is a one-dimensional array, and `a[i][j][k]` is a single element, so each extra index peels off one more dimension.",
       code:
         "int a[3][4][5];\nfor(i = 0; i < 3; i++){\nfor(j = 0; j < 4; j++){\nfor(k = 0; k < 5; k++){\ncin >> a[i][j][k];\n}\n}\n}",
     },
   ],
   questions: [
     {
-      prompt: "What does char page[30][100]; declare?",
+      prompt: "What does `char page[30][100];` declare?",
       choices: [
         "A single array of 30 characters",
         "A char array indexed 0–29 by 0–99",
@@ -67,10 +67,10 @@ export default {
       ],
       answer: 1,
       explanation:
-        "Each bracket pair is its own index value, so page has two: rows 0–29 and columns 0–99.",
+        "Each bracket pair is its own index value, so `page` has two: rows 0–29 and columns 0–99.",
     },
     {
-      prompt: "What is page's base type, given char page[30][100];?",
+      prompt: "What is `page`'s base type, given `char page[30][100];`?",
       choices: [
         "A single char",
         "An array of 30 characters",
@@ -79,7 +79,7 @@ export default {
       ],
       answer: 3,
       explanation:
-        "page is actually an array of size 30 whose base type — what each of those 30 elements is — is an array of 100 characters.",
+        "`page` is actually an array of size 30 whose base type, meaning what each of those 30 elements is, is an array of 100 characters.",
     },
     {
       prompt: "In a multi-dimensional array parameter, which dimension's size can be left out?",
@@ -92,10 +92,10 @@ export default {
       ],
       answer: 0,
       explanation:
-        "Only the first dimension is omitted from the parameter type; page[][100] still states the second dimension explicitly.",
+        "Only the first dimension is omitted from the parameter type; `page[][100]` still states the second dimension explicitly.",
     },
     {
-      prompt: "In int a[4][5];, what do 4 and 5 represent?",
+      prompt: "In `int a[4][5];`, what do 4 and 5 represent?",
       code: "int a[4][5];\n//4 is the number of rows\n//5 is the number of columns",
       choices: [
         "4 columns and 5 rows",
@@ -112,11 +112,11 @@ export default {
       choices: ["a[i, j]", "a[i+j]", "a[i][j]", "a.at(i, j)"],
       answer: 2,
       explanation:
-        "Each index gets its own bracket pair, so a two-dimensional access is a[i][j], not a comma-separated index.",
+        "Each index gets its own bracket pair, so a two-dimensional access is `a[i][j]`, not a comma-separated index.",
     },
     {
       prompt:
-        "In the loop that prints a 2D array row by row, why does cout << endl; sit after the inner loop finishes, not inside it?",
+        "In the loop that prints a 2D array row by row, why does `cout << endl;` sit after the inner loop finishes, not inside it?",
       code: "for (i = 0; i < 4; i++){\nfor (j = 0; j < 5; j++){\ncout << a[i][j];\n}\ncout << endl;\n}",
       choices: [
         "So a newline prints once per row",
@@ -126,11 +126,11 @@ export default {
       ],
       answer: 0,
       explanation:
-        "endl outside the inner loop but inside the outer loop fires exactly once per completed row, which is what produces one line per row of output.",
+        "`endl` outside the inner loop but inside the outer loop fires exactly once per completed row, which is what produces one line per row of output.",
     },
     {
       prompt:
-        "Given int a[10][10]; int numRows=5, numCols=8; and the loop for (i=0;i<numRows;i++) sort(a[i], numCols);, what is a[i]?",
+        "Given `int a[10][10];` int `numRows`=5, `numCols`=8; and the loop for (i=0;i<`numRows`;i++) `sort(a[i], numCols)`;, what is `a[i]`?",
       code:
         "int a[10][10];\nint numRows= 5, numCols = 8;\ninputArray(a, numRows, numCols);\nfor (i = 0; i < numRows; i++)\nsort(a[i], numCols); //any sort functions ...",
       choices: [
@@ -141,31 +141,31 @@ export default {
       ],
       answer: 1,
       explanation:
-        "Indexing a two-dimensional array once peels off one dimension, leaving a[i] as a plain one-dimensional array — a valid argument for a sort function expecting an array and a size.",
+        "Indexing a two-dimensional array once peels off one dimension, leaving `a[i]` as a plain one-dimensional array, a valid argument for a `sort` function expecting an array and a size.",
     },
     {
-      prompt: "For int a[3][4][5];, what is the type of a[i]?",
+      prompt: "For `int a[3][4][5];`, what is the type of `a[i]`?",
       code:
         "int a[3][4][5];\nfor(i = 0; i < 3; i++){\nfor(j = 0; j < 4; j++){\nfor(k = 0; k < 5; k++){\ncin >> a[i][j][k];\n}\n}\n}",
-      choices: ["A single int", "A one-dimensional array", "A two-dimensional array", "Undefined — a[i] alone isn't valid"],
+      choices: ["A single int", "A one-dimensional array", "A two-dimensional array", "Undefined; a[i] alone isn't valid"],
       answer: 2,
       explanation:
-        "One index applied to a three-dimensional array leaves two dimensions remaining, so a[i] is itself a two-dimensional array.",
+        "One index applied to a three-dimensional array leaves two dimensions remaining, so `a[i]` is itself a two-dimensional array.",
     },
     {
-      prompt: "For int a[3][4][5];, what is the type of a[i][j][k]?",
+      prompt: "For `int a[3][4][5];`, what is the type of `a[i][j][k]`?",
       choices: [
         "A two-dimensional array",
         "A one-dimensional array",
         "A pointer to int",
-        "A single int — one element",
+        "A single int, one element",
       ],
       answer: 3,
       explanation:
         "Applying all three indices peels off all three dimensions, leaving exactly one int element.",
     },
     {
-      prompt: "How many nested loops are needed to fill int a[3][4][5]; element by element with cin?",
+      prompt: "How many nested loops are needed to fill `int a[3][4][5];` element by element with `cin`?",
       choices: ["One", "Two", "Three", "Four, one per dimension plus one"],
       answer: 2,
       explanation:
@@ -173,7 +173,7 @@ export default {
     },
     {
       prompt:
-        "Why does declaring a formal parameter as const char page[][100] still require the 100, when a plain 1D array parameter like const char a[] needs no size at all?",
+        "Why does declaring a formal parameter as `const char page[][100]` still require the 100, when a plain 1D array parameter like `const char a[]` needs no size at all?",
       choices: [
         "The compiler needs the column count to find where each row starts",
         "Because it's a stylistic convention with no real effect",
@@ -191,7 +191,7 @@ export default {
       topicId: "multidim-arrays",
       format: FORMATS.RECALL,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "What does char page[30][100]; declare, and what are its two index ranges?",
+      prompt: "What does `char page[30][100];` declare, and what are its two index ranges?",
       expected:
         "It declares an array of characters named page with two index values: the first ranges from 0 to 29, and the second ranges from 0 to 99. Each index is enclosed in its own brackets, and page can be visualized as an array of 30 rows and 100 columns.",
       criteria: [
@@ -218,9 +218,9 @@ export default {
       topicId: "multidim-arrays",
       format: FORMATS.RECALL,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "What is page's actual size, and what is its base type, given char page[30][100];?",
+      prompt: "What is `page`'s actual size, and what is its base type, given `char page[30][100];`?",
       expected:
-        "page is actually an array of size 30. page's base type is an array of 100 characters — so indexing page once gives a 100-character row, and indexing again gives one character within that row.",
+        "page is actually an array of size 30. page's base type is an array of 100 characters, so indexing page once gives a 100-character row, and indexing again gives one character within that row.",
       criteria: [
         "States page is an array of size 30",
         "States page's base type is an array of 100 characters",
@@ -248,7 +248,7 @@ export default {
       prompt:
         "How does declaring a multi-dimensional array differ from declaring a multi-dimensional array parameter, in terms of which dimension sizes must be given?",
       expected:
-        "Declaring the array itself (char page[30][100];) requires every dimension's size. Declaring it as a formal parameter (void displayPage(const char page[][100], int sizeDimension1);) is looser: the first dimension's size is left out, but the remaining dimension sizes — 100 here — must still be given, same as an ordinary one-dimensional array parameter (void displayLine(const char a[], int size);) needs no size at all.",
+        "Declaring the array itself (char page[30][100];) requires every dimension's size. Declaring it as a formal parameter (void displayPage(const char page[][100], int sizeDimension1);) is looser: the first dimension's size is left out, but the remaining dimension sizes (100 here) must still be given, same as an ordinary one-dimensional array parameter (void displayLine(const char a[], int size);) needs no size at all.",
       criteria: [
         "States the array declaration itself needs all dimension sizes",
         "States the parameter form omits only the first dimension's size, keeping the rest",
@@ -274,7 +274,7 @@ export default {
       topicId: "multidim-arrays",
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "Write the nested loop that reads every element of int a[4][5]; from cin, using loop variables i and j.",
+      prompt: "Write the nested loop that reads every element of `int a[4][5];` from `cin`, using loop variables i and j.",
       expected: "for (i = 0; i < 4; i++){\nfor (j = 0; j < 5; j++){\ncin >> a[i][j];\n}\n}",
       criteria: [
         "Outer loop runs i from 0 to 3 (4 rows)",
@@ -301,11 +301,11 @@ export default {
       format: FORMATS.TRACE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Trace this code:\n```\nint a[10][10];\nint numRows= 5, numCols = 8;\ninputArray(a, numRows, numCols);\nfor (i = 0; i < numRows; i++)\nsort(a[i], numCols); //any sort functions ...\n```\nWhat is a[i], and why is it a valid first argument to sort?",
+        "Trace this code:\n```\nint a[10][10];\nint numRows= 5, numCols = 8;\ninputArray(a, numRows, numCols);\nfor (i = 0; i < numRows; i++)\nsort(a[i], numCols); //any sort functions ...\n```\nWhat is `a[i]`, and why is it a valid first argument to `sort`?",
       expected:
-        "a[i] is row i of the two-dimensional array a — indexing a two-dimensional array once peels off one dimension, leaving a plain one-dimensional array of numCols elements. That's exactly the type sort's first parameter expects, so passing a[i] sorts just that row in place.",
+        "a[i] is row i of the two-dimensional array a. Indexing a two-dimensional array once peels off one dimension, leaving a plain one-dimensional array of numCols elements. That's exactly the type sort's first parameter expects, so passing a[i] sorts just that row in place.",
       criteria: [
-        "States a[i] is one row of the array — a one-dimensional array",
+        "States a[i] is one row of the array, a one-dimensional array",
         "Explains this is why it's a valid argument to a function expecting a one-dimensional array",
       ],
       provenance: {
@@ -328,7 +328,7 @@ export default {
       topicId: "multidim-arrays",
       format: FORMATS.RECALL,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "For int a[3][4][5];, what are the types of a[i], a[i][j], and a[i][j][k]?",
+      prompt: "For `int a[3][4][5];`, what are the types of `a[i]`, `a[i][j]`, and `a[i][j][k]`?",
       expected:
         "a[i] is a two-dimensional array (int[4][5]). a[i][j] is a one-dimensional array (int[5]). a[i][j][k] is a single int element. Each additional index applied peels off one more dimension, matching the three nested loops (i, then j, then k) needed to visit every element with cin.",
       criteria: [
@@ -379,7 +379,7 @@ export default {
       topicId: "multidim-arrays",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "In int a[4][5];, what do 4 and 5 represent?\n```\nint a[4][5];\n//4 is the number of rows\n//5 is the number of columns\n```",
+      prompt: "In `int a[4][5];`, what do 4 and 5 represent?\n```\nint a[4][5];\n//4 is the number of rows\n//5 is the number of columns\n```",
       choices: [
         "4 columns and 5 rows",
         "4 rows and 5 columns",
@@ -427,7 +427,7 @@ export default {
       topicId: "multidim-arrays",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "In the loop that prints a 2D array row by row, why does cout << endl; sit after the inner loop finishes, not inside it?\n```\nfor (i = 0; i < 4; i++){\nfor (j = 0; j < 5; j++){\ncout << a[i][j];\n}\ncout << endl;\n}\n```",
+      prompt: "In the loop that prints a 2D array row by row, why does `cout << endl;` sit after the inner loop finishes, not inside it?\n```\nfor (i = 0; i < 4; i++){\nfor (j = 0; j < 5; j++){\ncout << a[i][j];\n}\ncout << endl;\n}\n```",
       choices: [
         "So a newline prints once per row",
         "So a newline prints after every single element",

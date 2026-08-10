@@ -4,24 +4,24 @@
 export default {
   id: "discrete-1-2-sets",
   title: "1.2 The Language of Sets",
-  subtitle: "CS3000 — §1.2",
+  subtitle: "CS3000 §1.2",
   course: "discrete",
   showChart: false,
   cards: [
     {
       heading: "What a set is",
       body:
-        "A **set** is just a collection of objects, called its **elements**. The simplest way to describe one is **roster notation**: list the elements inside curly braces, like {1, 2, 3}. To say 3 is an element you write **3 ∈ {1, 2, 3}**, and to say 5 is not you write **5 ∉ {1, 2, 3}**. A set can even be empty — the **empty set**, written ∅ or { }, has no elements at all.",
+        "A **set** is just a collection of objects, called its **elements**. The simplest way to describe one is **roster notation**: list the elements inside curly braces, like {1, 2, 3}. To say 3 is an element you write **3 ∈ {1, 2, 3}**, and to say 5 is not you write **5 ∉ {1, 2, 3}**. A set can even be empty: the **empty set**, written ∅ or { }, has no elements at all.",
     },
     {
       heading: "Order and repeats don't matter",
       body:
-        "A set is defined **only by what its elements are** — not their order and not how many times you happen to list them. This rule is called the **axiom of extension**. So {1, 2, 3}, {3, 1, 2}, and {1, 1, 2, 3, 3} are all the **same set**: three elements, namely 1, 2, and 3. If you need order or repetition to matter, a set is the wrong tool — that's what ordered pairs and tuples (below) are for.",
+        "A set is defined **only by what its elements are**, not their order and not how many times you happen to list them. This rule is called the **axiom of extension**. So {1, 2, 3}, {3, 1, 2}, and {1, 1, 2, 3, 3} are all the **same set**: three elements, namely 1, 2, and 3. If you need order or repetition to matter, a set is the wrong tool; that's what ordered pairs and tuples (below) are for.",
     },
     {
       heading: "Set-builder notation",
       body:
-        "When a set is too big to list, describe it by a **property** instead. **Set-builder notation** writes { x ∈ S **|** P(x) }, read “the set of all x in S **such that** P(x) is true.” The vertical bar means **“such that.”** Example: { x ∈ ℝ | 0 < x < 1 } is every real number strictly between 0 and 1 — infinitely many, impossible to roster, but pinned down exactly by the condition.",
+        "When a set is too big to list, describe it by a **property** instead. **Set-builder notation** writes { x ∈ S **|** P(x) }, read “the set of all x in S **such that** P(x) is true.” The vertical bar means **“such that.”** Example: { x ∈ ℝ | 0 < x < 1 } is every real number strictly between 0 and 1: infinitely many, impossible to roster, but pinned down exactly by the condition.",
       figure: {
         src: "/figures/discrete/set-builder.png",
         alt: "Set-builder notation: the set of all x in S such that P(x) is true, written { x in S | P(x) }.",
@@ -31,7 +31,7 @@ export default {
     {
       heading: "Special sets of numbers",
       body:
-        "A few number sets appear so often they get reserved symbols: **ℝ** (all real numbers), **ℤ** (all integers), **ℚ** (all rationals — quotients of integers), and **ℕ** (natural numbers). A superscript narrows the set: **ℝ⁺** is the positive reals, **ℤ⁻** the negative integers, and **ℤⁿᵒⁿⁿᵉᵍ** the nonnegative integers 0, 1, 2, 3, …. Knowing these symbols lets you read conditions like “x ∈ ℤ” at a glance.",
+        "A few number sets appear so often they get reserved symbols: **ℝ** (all real numbers), **ℤ** (all integers), **ℚ** (all rationals, the quotients of integers), and **ℕ** (natural numbers). A superscript narrows the set: **ℝ⁺** is the positive reals, **ℤ⁻** the negative integers, and **ℤⁿᵒⁿⁿᵉᵍ** the nonnegative integers 0, 1, 2, 3, …. Knowing these symbols lets you read conditions like “x ∈ ℤ” at a glance.",
       figure: {
         src: "/figures/discrete/number-sets.png",
         alt: "Table of symbols: R the set of all real numbers, Z the set of all integers, Q the set of all rational numbers.",
@@ -41,31 +41,31 @@ export default {
     {
       heading: "The real number line",
       body:
-        "The reals **ℝ** are pictured as an infinite **line**. A middle point is the **origin**, standing for **0**; a unit length is marked off, points to the **right** are the positive reals, and points to the **left** are the negatives. Every real number matches exactly one point on the line. One fact students trip on: **0 is neither positive nor negative** — it sits alone at the origin, splitting the line into the positives and the negatives.",
+        "The reals **ℝ** are pictured as an infinite **line**. A middle point is the **origin**, standing for **0**; a unit length is marked off, points to the **right** are the positive reals, and points to the **left** are the negatives. Every real number matches exactly one point on the line. One fact students trip on: **0 is neither positive nor negative**: it sits alone at the origin, splitting the line into the positives and the negatives.",
     },
     {
       heading: "Subsets",
       body:
-        "A is a **subset** of B, written **A ⊆ B**, when **every** element of A is also an element of B. To show A is *not* a subset (**A ⊈ B**) you only need **one** element of A that is missing from B. If A ⊆ B but A ≠ B — B has something A lacks — then A is a **proper subset** of B. And every set is a subset of itself: **A ⊆ A** is always true, because every element of A is trivially in A.",
+        "A is a **subset** of B, written **A ⊆ B**, when **every** element of A is also an element of B. To show A is not a subset (**A ⊈ B**) you only need **one** element of A that is missing from B. If A ⊆ B but A ≠ B, meaning B has something A lacks, then A is a **proper subset** of B. And every set is a subset of itself: **A ⊆ A** is always true, because every element of A is trivially in A.",
     },
     {
-      heading: "∈ vs ⊆ — the classic trap",
+      heading: "∈ vs ⊆: the classic trap",
       body:
-        "Keep these straight: **∈** relates an **element** to a set, while **⊆** relates a **set** to a set. For {1, 2, 3}: “2 ∈ {1, 2, 3}” is true, but “2 ⊆ {1, 2, 3}” is nonsense unless 2 is itself a set. Meanwhile “**{2} ⊆ {1, 2, 3}**” is true — the one-element set {2} sits inside. Two more gotchas: **{0} ≠ 0** (a box holding 0 is not the number 0), and **{1, {1}} has two elements** — the number 1 and the *set* {1}.",
+        "Keep these straight: **∈** relates an **element** to a set, while **⊆** relates a **set** to a set. For {1, 2, 3}: “2 ∈ {1, 2, 3}” is true, but “2 ⊆ {1, 2, 3}” is nonsense unless 2 is itself a set. Meanwhile “**{2} ⊆ {1, 2, 3}**” is true, since the one-element set {2} sits inside. Two more gotchas: **{0} ≠ 0** (a box holding 0 is not the number 0), and **{1, {1}} has two elements**: the number 1 and the set {1}.",
     },
     {
       heading: "Ordered pairs and n-tuples",
       body:
-        "When order *does* matter, use an **ordered pair** (a, b). Here **both order and repetition count**: (a, b) = (c, d) only if **a = c and b = d**. So **(1, 2) ≠ (2, 1)**, even though the sets {1, 2} and {2, 1} are equal. The idea extends to an **ordered n-tuple** (a₁, a₂, …, aₙ), equal to another only when **every** matching position agrees. This is exactly why (1, 1) is a valid pair but {1, 1} collapses to {1}.",
+        "When order does matter, use an **ordered pair** (a, b). Here **both order and repetition count**: (a, b) = (c, d) only if **a = c and b = d**. So **(1, 2) ≠ (2, 1)**, even though the sets {1, 2} and {2, 1} are equal. The idea extends to an **ordered n-tuple** (a₁, a₂, …, aₙ), equal to another only when **every** matching position agrees. This is exactly why (1, 1) is a valid pair but {1, 1} collapses to {1}.",
     },
     {
       heading: "Cartesian products",
       body:
-        "The **Cartesian product A × B** is the set of **all** ordered pairs (a, b) with a ∈ A and b ∈ B. Its size is just the product of the sizes: **|A × B| = |A| · |B|**. Order matters here too — **A × B ≠ B × A** in general, since (a, b) and (b, a) differ. The most famous case is **ℝ × ℝ** (the plane): every point corresponds to a pair (x, y) giving its horizontal and vertical position.",
+        "The **Cartesian product A × B** is the set of **all** ordered pairs (a, b) with a ∈ A and b ∈ B. Its size is just the product of the sizes: **|A × B| = |A| · |B|**. Order matters here too: **A × B ≠ B × A** in general, since (a, b) and (b, a) differ. The most famous case is **ℝ × ℝ** (the plane): every point corresponds to a pair (x, y) giving its horizontal and vertical position.",
       figure: {
         src: "/figures/discrete/cartesian-plane.png",
         alt: "A Cartesian plane with points (-3,2), (2,1), (-2,-2), and (1,-2) plotted.",
-        caption: "Figure 1.2.1 — ℝ × ℝ as the Cartesian plane",
+        caption: "Figure 1.2.1: ℝ × ℝ as the Cartesian plane",
       },
     },
   ],
@@ -86,9 +86,9 @@ export default {
     {
       prompt: "Is {0} = 0?",
       choices: [
-        "Yes — they both represent zero",
-        "No — {0} is a set, 0 is a number",
-        "Yes — braces are optional",
+        "Yes, they both represent zero",
+        "No, {0} is a set, 0 is a number",
+        "Yes, braces are optional",
         "Only when 0 is treated as an integer rather than a real",
       ],
       answer: 1,
@@ -130,10 +130,10 @@ export default {
       prompt:
         "Let B = ℤ⁺ (positive integers) and C = {100, 200, 300}. Is C a proper subset of B?",
       choices: [
-        "No — C has elements not in B",
-        "Yes — C ⊆ B, and B has elements C doesn't",
-        "No — a finite set can never be a proper subset of another one",
-        "Yes — because C and B are equal",
+        "No, C has elements not in B",
+        "Yes, C ⊆ B, and B has elements C doesn't",
+        "No, a finite set can never be a proper subset of another one",
+        "Yes, because C and B are equal",
       ],
       answer: 1,
       explanation:
@@ -142,14 +142,14 @@ export default {
     {
       prompt: "Is (1, 2) = (2, 1)?",
       choices: [
-        "Yes — the two pairs contain exactly the same numbers",
-        "No — both positions must match",
-        "Yes — order never matters",
+        "Yes, the two pairs contain exactly the same numbers",
+        "No, both positions must match",
+        "Yes, order never matters",
         "Only if 1 = 2",
       ],
       answer: 1,
       explanation:
-        "Ordered pairs respect position: (a, b) = (c, d) iff a = c and b = d. Here 1 ≠ 2, so (1, 2) ≠ (2, 1) — unlike the sets {1, 2} and {2, 1}, which are equal.",
+        "Ordered pairs respect position: (a, b) = (c, d) iff a = c and b = d. Here 1 ≠ 2, so (1, 2) ≠ (2, 1), unlike the sets {1, 2} and {2, 1}, which are equal.",
     },
     {
       prompt: "If A = {x, y} and B = {1, 2, 3}, how many elements are in A × B?",
@@ -161,9 +161,9 @@ export default {
     {
       prompt: "In general, is A × B the same set as B × A?",
       choices: [
-        "Yes — Cartesian product is symmetric",
-        "No — the coordinates are swapped",
-        "Yes — provided that both A and B are finite sets",
+        "Yes, Cartesian product is symmetric",
+        "No, the coordinates are swapped",
+        "Yes, provided that both A and B are finite sets",
         "Only when A = ∅",
       ],
       answer: 1,
@@ -192,8 +192,8 @@ export default {
     {
       prompt: "Is the statement C ⊆ C true for every set C?",
       choices: [
-        "No — a set can't be a subset of itself",
-        "Yes — every element of C is trivially in C",
+        "No, a set can't be a subset of itself",
+        "Yes, every element of C is trivially in C",
         "Only if C is nonempty",
         "Only if C is finite",
       ],

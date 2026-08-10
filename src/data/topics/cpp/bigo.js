@@ -11,12 +11,12 @@ export default {
     {
       heading: "What Big-O measures",
       body:
-        "Big-O tells you how much **slower** an algorithm gets as the input grows. We call the input size **n**. Big-O ignores your computer's speed and exact numbers — it only cares about the *shape* of the growth. Example: checking every one of n items is **O(n)**, so doubling n roughly doubles the work. Think of it as a worst-case ceiling, not an exact step count.",
+        "Big-O tells you how much **slower** an algorithm gets as the input grows. We call the input size **n**. Big-O ignores your computer's speed and exact numbers, and cares only about the shape of the growth. Example: checking every one of n items is **O(n)**, so doubling n roughly doubles the work. Think of it as a worst-case ceiling, not an exact step count.",
     },
     {
       heading: "Count the loops",
       body:
-        "A quick trick: count the loops that run over your data. One loop that runs n times is **O(n)**. A loop inside another loop does n × n work, which is **O(n²)**. Code that keeps cutting the data in half each step — like binary search — is **O(log n)**, because halving gets you to the answer in very few steps.",
+        "A quick trick: count the loops that run over your data. One loop that runs n times is **O(n)**. A loop inside another loop does n × n work, which is **O(n²)**. Code that keeps cutting the data in half each step, like binary search, is **O(log n)**, because halving gets you to the answer in very few steps.",
     },
     {
       heading: "Drop constants and terms",
@@ -26,22 +26,22 @@ export default {
     {
       heading: "Common growth classes",
       body:
-        "Learn this order, fastest to slowest: **O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)**. O(1) ('constant time') never slows down, no matter how big n gets — like grabbing array[0]. O(n log n) is the speed of good sorting, such as merge sort. Anything O(2ⁿ) or worse gets too slow to use, even for small n.",
+        "Learn this order, fastest to slowest: **O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)**. O(1) ('constant time') never slows down, no matter how big n gets, such as grabbing `array[0]`. O(n log n) is the speed of good sorting, such as merge sort. Anything O(2ⁿ) or worse gets too slow to use, even for small n.",
     },
     {
       heading: "Worked example: search",
       body:
-        "Say you're searching an **unsorted** list of n numbers for one value. You check the items one by one until you find a match. Worst case, your value is the last one — or isn't there at all — so you check all n items. That's **O(n)**. If the list is **sorted**, binary search can cut it in half each step instead, dropping the cost to **O(log n)**.",
+        "Say you're searching an **unsorted** list of n numbers for one value. You check the items one by one until you find a match. Worst case, your value is the last one, or isn't there at all, so you check all n items. That's **O(n)**. If the list is **sorted**, binary search can cut it in half each step instead, dropping the cost to **O(log n)**.",
     },
     {
       heading: "Why it matters",
       body:
-        "Picking the right Big-O matters way more than tiny code tweaks. With n = 1,000,000, an **O(n)** algorithm does about a million steps — but an **O(n²)** one does **a trillion**. That's the gap between instant and unusable. It's why programmers reach for hash maps (**O(1)** lookups) instead of scanning everything. Big-O sets the limit on how big an input you can handle.",
+        "Picking the right Big-O matters way more than tiny code tweaks. With n = 1,000,000, an **O(n)** algorithm does about a million steps, but an **O(n²)** one does **a trillion**. That's the gap between instant and unusable. It's why programmers reach for hash maps (**O(1)** lookups) instead of scanning everything. Big-O sets the limit on how big an input you can handle.",
     },
     {
       heading: "Worst vs average case",
       body:
-        "Big-O usually means the **worst case** — the slowest it can ever get. But the same algorithm can behave differently depending on the input. Quicksort is **O(n log n)** most of the time, yet **O(n²)** in its worst case (when it picks bad pivots). So always say *which* case you mean: 'fast on average' and 'safe even in the worst case' are two different promises.",
+        "Big-O usually means the **worst case**: the slowest it can ever get. But the same algorithm can behave differently depending on the input. Quicksort is **O(n log n)** most of the time, yet **O(n²)** in its worst case (when it picks bad pivots). So always say which case you mean: 'fast on average' and 'safe even in the worst case' are two different promises.",
     },
 
   ],
@@ -50,23 +50,23 @@ export default {
   flashcards: [
     {
       front: "O(1)",
-      back: "Constant time — random access of an element in an array; inserting at the beginning of a linked list.",
+      back: "Constant time: random access of an element in an array, or inserting at the beginning of a linked list.",
     },
     {
       front: "O(log n)",
-      back: "Logarithmic time — binary search (each step cuts the remaining data in half).",
+      back: "Logarithmic time: binary search, where each step cuts the remaining data in half.",
     },
     {
       front: "O(n)",
-      back: "Linear time — looping through the elements of an array; searching through a linked list.",
+      back: "Linear time: looping through the elements of an array, or searching through a linked list.",
     },
     {
       front: "O(n log n)",
-      back: "Quasilinear time (log-linear) — quicksort, mergesort, heapsort.",
+      back: "Quasilinear time (log-linear): quicksort, mergesort, heapsort.",
     },
     {
       front: "O(n²)",
-      back: "Quadratic time — insertion sort, selection sort, bubble sort.",
+      back: "Quadratic time: insertion sort, selection sort, bubble sort.",
     },
   ],
   questions: [
@@ -110,7 +110,7 @@ export default {
       ],
       answer: 2,
       explanation:
-        "Constant work that doesn't depend on n is O(1) — the fastest possible class. We drop the constant k; what matters is that it never grows.",
+        "Constant work that doesn't depend on n is O(1), the fastest possible class. We drop the constant k; what matters is that it never grows.",
       tag: "O(1)",
     },
     {
@@ -167,16 +167,16 @@ export default {
       ],
       answer: 1,
       explanation:
-        "Big-O describes the worst case — the upper bound on how slow the algorithm can get.",
+        "Big-O describes the worst case: the upper bound on how slow the algorithm can get.",
     },
     {
       prompt:
         "Sequential search [O(n)] and binary search [O(log n)] both find a target. For a large sorted array, which should you choose, and why?",
       choices: [
-        "Sequential — it's simpler",
-        "Either — they're the same speed",
-        "Sequential — binary search needs more memory to run",
-        "Binary — O(log n) beats O(n)",
+        "Sequential: it's simpler",
+        "Either: they're the same speed",
+        "Sequential: binary search needs more memory to run",
+        "Binary: O(log n) beats O(n)",
       ],
       answer: 3,
       explanation:
@@ -206,7 +206,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "O(2ⁿ) is exponential — the work roughly doubles every time n increases by one. It becomes impractical very quickly.",
+        "O(2ⁿ) is exponential: the work roughly doubles every time n increases by one. It becomes impractical very quickly.",
       tag: "O(2ⁿ)",
     },
     {
@@ -233,7 +233,7 @@ export default {
       ],
       answer: 2,
       explanation:
-        "O(n³) is cubic — think three loops nested over n.",
+        "O(n³) is cubic: think three loops nested over n.",
       tag: "O(n³)",
     },
   ],

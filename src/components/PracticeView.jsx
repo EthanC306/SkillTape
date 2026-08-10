@@ -13,109 +13,88 @@ import {
 import useOllamaSettings from "../hooks/useOllamaSettings";
 import shuffle from "../utils/shuffle";
 import PromptBody from "./PromptBody";
+import Inline from "./Inline";
 
 /**
- * PracticeView — a selective, batch-graded companion to DrillView
- * (docs/OLLAMA_GRADING.md). Additive: DrillView's FSRS-due-queue, one-item-
- * at-a-time, self-graded flow is unchanged and still owns the daily habit
- * loop. Practice is for "give me N questions on topics/difficulty I choose,
- * right now" — pick topics/difficulty/format/count, answer the whole deck
- * with free Back/Next navigation, then everything is graded at once: MCQ
- * instantly client-side, everything else by a local Ollama model
- * (server/ollama.js) via POST /api/drill/grade-batch, one item per call —
- * small local models degrade fast juggling several items in one prompt, so
- * this trades round-trips for judgment quality.
+ * PracticeView - pick N questions on topics/difficulty you choose, answer the
+ * whole set with free Back/Next nav, then grade everything at once. DrillView
+ * is untouched and still owns the daily FSRS queue.
  *
- * Every graded item is logged through the same POST /api/drill/attempts
- * DrillView/ExamView use, mode: "closed" — server/fsrs.js's scheduleReview
- * takes a bare 0-3 grade and has no idea where it came from, so a session
- * built this way still feeds the FSRS scheduler and the closed-book
- * first-try accuracy dashboard exactly like a Drill session would. An item
- * Ollama couldn't grade (unreachable, bad response) is logged with
- * abandoned: true instead — the typed answer isn't lost, but nothing moves
- * the scheduler, since no real grade was ever confirmed.
+ * MCQ is graded client-side, everything else goes to Ollama via
+ * POST /api/drill/grade-batch, one item per call. Small local models get worse
+ * when you hand them several items at once, so we eat the extra round trips.
  *
- * Those attempts are posted when you LEAVE the results screen, not when
- * grading finishes, which is what makes the model's verdict arguable: every
- * card can be overridden on the same 0-3 Again/Hard/Good/Easy scale, and
- * since nothing is sent yet, an override is an edit rather than a
- * correction — exactly one attempt per item is ever logged, carrying the
- * grade you agreed with. This is OLLAMA_GRADING.md's G1 (suggest-and-confirm,
- * not auto-submit), which DrillView always honoured and Practice didn't.
- * flushAttempts is idempotent and covers every exit including unmount and
- * pagehide, so a closed tab still banks the session.
+ * Attempts go through the same POST /api/drill/attempts as Drill/Exam with
+ * mode "closed", so a Practice session feeds FSRS and the accuracy dashboard
+ * normally. Anything Ollama couldn't grade is logged as abandoned instead, so
+ * the typed answer is kept but the scheduler doesn't move.
  *
- * Five phases: setup (topic/difficulty/format/count chips) -> quiz (free
- * navigation, nothing revealed) -> grading (batch calls, a progress
- * counter) -> results (per-item verdict, feedback, collapsible reference).
+ * Attempts post when you leave the results screen, not when grading ends. That
+ * way an override is just an edit to something unsent, and each item gets
+ * exactly one attempt with the grade you agreed with. See OLLAMA_GRADING.md G1.
+ * flushAttempts is idempotent and runs on every exit path (unmount, pagehide).
  *
- * Results can also take an item you got right OUT of circulation — the one
- * per-item judgment this screen accepts. That's a per-user suspension
- * (item_suspensions, GET/POST/DELETE /api/drill/suspensions), NOT the
- * items.retired column, which is authored content shared by every user. It
- * shrinks this view's candidatePool and is enforced server-side by Drill's
- * /queue; the exam simulator ignores it, since an exam doesn't care what
- * you've parked. Suspending deliberately leaves FSRS state untouched, so
- * "Reset deck" — one click, wherever a removal control appears — puts
- * everything back exactly as it was.
+ * Phases: setup -> quiz -> grading -> results.
+ *
+ * Results can also pull an item you got right out of rotation. That's a
+ * per-user suspension (item_suspensions), not the shared items.retired column.
+ * It shrinks candidatePool here and is enforced by Drill's /queue; the exam
+ * simulator ignores it. FSRS state is left alone, so "Reset deck" restores
+ * everything as it was.
  *
  * Props:
- *   course   — which course's item bank to sample.
- *   onExit() — return to the course topic list.
+ *   course   - which course's item bank to sample.
+ *   onExit() - return to the course topic list.
  */
 export default function PracticeView({ course, onExit }) {
   const [topics, setTopics] = useState(null); // null = loading
   const [error, setError] = useState(null);
   const [phase, setPhase] = useState("setup"); // setup | quiz | grading | results
 
-  const [selectedTopicIds, setSelectedTopicIds] = useState(null); // null = "everything" (not yet customized)
+  const [selectedTopicIds, setSelectedTopicIds] = useState(null); // null = everything, not customized yet
   const [selectedDifficulties, setSelectedDifficulties] = useState(null);
   const [selectedFormats, setSelectedFormats] = useState(null);
   const [sessionLength, setSessionLength] = useState(20);
 
   const [deck, setDeck] = useState([]);
   const [index, setIndex] = useState(0);
-  const [answers, setAnswers] = useState({}); // itemId -> { choiceIndex?, text? }, never cleared by Back/Next
+  const [answers, setAnswers] = useState({}); // itemId -> { choiceIndex?, text? }, survives Back/Next
   const [gradedCount, setGradedCount] = useState(0);
   const [results, setResults] = useState([]); // { item, grade, verdict, criteriaMet, rationale, answerText?, choiceIndex? }
 
-  const [suspendedIds, setSuspendedIds] = useState(() => new Set()); // itemIds taken out of circulation
+  const [suspendedIds, setSuspendedIds] = useState(() => new Set());
   const [suspendError, setSuspendError] = useState(null);
 
   const itemStartedAtRef = useRef({ itemId: null, startedAt: null });
   const timeSpentByItemId = useRef({});
   const tabBlursByItemId = useRef({});
 
-  // Attempts are posted when you LEAVE the results screen, not when grading
-  // finishes — see flushAttempts. These two refs are what the flush reads:
-  // `resultsRef` mirrors `results` (a ref because the unmount cleanup below
-  // runs with empty deps and would otherwise close over a stale array), and
-  // `submittedRef` makes the flush idempotent, since several exits can race.
+  // What flushAttempts reads. resultsRef mirrors `results` because the unmount
+  // cleanup has empty deps and would close over a stale array. submittedRef
+  // keeps the flush idempotent since a few exits can race.
   const resultsRef = useRef([]);
   const submittedRef = useRef(true);
 
   const { host, model, codeModel } = useOllamaSettings();
 
-  // Same shared chrome-hiding flag DrillView/ExamView use (index.html's CSS
-  // hides Shell's tab bar for as long as this attribute is set), cleared on
-  // unmount so leaving Practice by any path restores it.
+  // Same flag DrillView/ExamView set to hide Shell's tab bar (CSS lives in
+  // index.html). Cleared on unmount so any exit path restores it.
   useEffect(() => {
     document.body.dataset.drillActive = "true";
 
-    // React cleanup does NOT run when the tab or the Electron window is
-    // closed, and holding attempts until you leave the results screen means
-    // that would silently lose a whole session. pagehide is the one event
-    // that fires for a real close; keepalive is what lets the requests
-    // outlive the page that started them.
+    // React cleanup doesn't run when the tab or Electron window closes, and
+    // since attempts are held until you leave results, that would drop a whole
+    // session. pagehide is the one event that fires on a real close, and
+    // keepalive lets the requests outlive the page.
     const onPageHide = () => flushAttempts({ keepalive: true });
     window.addEventListener("pagehide", onPageHide);
 
     return () => {
       window.removeEventListener("pagehide", onPageHide);
       delete document.body.dataset.drillActive;
-      // Last line of defence for deferred attempts: leaving Practice by a path
-      // that isn't one of its own buttons (a course tab switch, App unmounting
-      // this view) must still log the session. Refs only — state is gone here.
+      // Catch-all for leaving Practice some way that isn't one of its own
+      // buttons (course tab switch, App unmounting this). Refs only, state is
+      // already gone here.
       flushAttempts();
     };
   }, []);
@@ -129,9 +108,8 @@ export default function PracticeView({ course, onExit }) {
       .catch((err) => {
         if (!cancelled) setError(err.message);
       });
-    // Not fatal, and deliberately not folded into the setError path above: a
-    // suspensions read that fails should never block studying. Falling back to
-    // an empty set just means a few already-known items show up again.
+    // Kept out of the setError path above on purpose: a failed suspensions read
+    // shouldn't block studying. Worst case a few parked items show up again.
     getSuspensions()
       .then(({ itemIds }) => {
         if (!cancelled) setSuspendedIds(new Set(itemIds));
@@ -142,9 +120,8 @@ export default function PracticeView({ course, onExit }) {
     };
   }, []);
 
-  // Page Visibility as an honesty aid, attributed to whichever item is on
-  // screen — same stance as DrillView/ExamView, just per-item since Practice
-  // allows revisiting items instead of a single current one.
+  // Page Visibility as an honesty aid, same as Drill/Exam. Tracked per item
+  // here since Practice lets you revisit questions.
   useEffect(() => {
     function onVisibility() {
       if (document.hidden && phase === "quiz") {
@@ -156,10 +133,9 @@ export default function PracticeView({ course, onExit }) {
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [phase, deck, index]);
 
-  // getTopics() is the same module-level cache Home/TopicView already fetch
-  // — buildTopic() (server/routes/topics.js) already serializes everything
-  // needed to build this picker (format/difficulty/verifiedByHuman/retired
-  // per item), so no new "counts" or "filtered sampling" endpoint is needed.
+  // Reuses the module-level getTopics cache Home/TopicView already hit.
+  // buildTopic() in server/routes/topics.js already sends format, difficulty,
+  // verifiedByHuman and retired per item, so no extra endpoint is needed.
   const candidatePool = topics
     ? topics
         .filter((t) => !course || t.course === course)
@@ -226,17 +202,17 @@ export default function PracticeView({ course, onExit }) {
   }
 
   function startPractice() {
-    // The cap runs BEFORE the slice, not after: capping a 20-item deck that
-    // already sampled eight WRITEs would hand back a 15-item session, whereas
-    // trimming the pool first lets the slice backfill to the full length with
-    // other formats. applyWriteCap no-ops when WRITE is the only format left in
-    // the pool, which is how "WRITE only" stays uncapped.
+    // Cap first, then slice. Capping after the slice would turn a 20-item deck
+    // that happened to draw eight WRITEs into a 15-item session; trimming the
+    // pool first lets the slice backfill with other formats. applyWriteCap
+    // no-ops when WRITE is the only format left, which is how "WRITE only"
+    // stays uncapped.
     const capped = applyWriteCap(shuffle(filteredPool));
     const sampled = sessionLength === "all" ? capped : capped.slice(0, sessionLength);
     launchDeck(sampled);
   }
 
-  /** Credits elapsed time on whichever item was on screen into the per-item accumulator, before navigating away from it. */
+  /** Adds the time spent on the current item to its accumulator before nav. */
   function flushTime() {
     const cur = itemStartedAtRef.current;
     if (cur.itemId != null) {
@@ -265,10 +241,9 @@ export default function PracticeView({ course, onExit }) {
   }).length;
 
   /**
-   * Post the session's attempts, exactly once. Deliberately fire-and-forget:
-   * every call site is the user leaving the results screen, and blocking that
-   * on a round trip would make an exit feel broken. submitAllAndFinish already
-   * swallows per-item failures.
+   * Post the session's attempts once. Fire-and-forget on purpose: every caller
+   * is the user leaving results, and blocking that on a round trip feels
+   * broken. submitAllAndFinish already swallows per-item failures.
    */
   function flushAttempts({ keepalive = false } = {}) {
     if (submittedRef.current) return;
@@ -276,7 +251,7 @@ export default function PracticeView({ course, onExit }) {
     submitAllAndFinish(resultsRef.current, { keepalive });
   }
 
-  /** Every item Practice sent to Ollama or graded locally, logged via the existing, unmodified attempts endpoint. mode: "closed" throughout — see the file header. */
+  /** Logs every item through the existing attempts endpoint. mode "closed" throughout. */
   async function submitAllAndFinish(finalResults, { keepalive = false } = {}) {
     const submissions = finalResults.map((r) => {
       const seconds = timeSpentByItemId.current[r.item.id] ?? 0;
@@ -306,7 +281,7 @@ export default function PracticeView({ course, onExit }) {
     setResults(collected);
     setGradedCount(collected.length);
 
-    // Blank free-text answers never go to Ollama — grade 0 directly.
+    // Blank free-text answers never go to Ollama, just grade 0.
     const toGrade = [];
     for (const item of deck.filter((it) => it.format !== FORMATS.MCQ)) {
       const text = (answers[item.id]?.text ?? "").trim();
@@ -319,18 +294,15 @@ export default function PracticeView({ course, onExit }) {
     setResults([...collected]);
     setGradedCount(collected.length);
 
-    // One item per Ollama call, not a batch — small local models grade
-    // reliably per-question but degrade fast juggling several at once. Also
-    // load-bearing for per-format model routing right below: chunkModel
-    // reads chunk[0]'s format, which is only correct because a chunk is
-    // exactly one item.
+    // One item per call. Small local models grade fine per question but fall
+    // apart juggling several. Also matters for the model routing below, since
+    // chunkModel reads chunk[0]'s format.
     const CHUNK_SIZE = 1;
     for (let i = 0; i < toGrade.length; i += CHUNK_SIZE) {
       const chunk = toGrade.slice(i, i + CHUNK_SIZE);
-      // WRITE/TRACE/ERROR items go to the coder model, not the general one —
-      // verified directly (see itemSchema.js's CODE_FORMATS comment) that a
-      // same-size generalist model judges code correctness meaningfully
-      // worse than a coder-tuned one, even at temperature 0.
+      // WRITE/TRACE/ERROR go to the coder model. Tested this directly (see the
+      // CODE_FORMATS comment in itemSchema.js): a same-size generalist judges
+      // code noticeably worse even at temperature 0.
       const chunkModel = CODE_FORMATS.has(chunk[0].item.format) ? codeModel : model;
       let chunkResults;
       try {
@@ -341,11 +313,9 @@ export default function PracticeView({ course, onExit }) {
         });
         chunkResults = res.results;
       } catch (err) {
-        // Whole request failed (not just a graded-as-ungraded response from
-        // the server, which already fails open on its own) — every item in
-        // this chunk falls back the same way. Distinct from the server's own
-        // fail-open reasons: this one never reached the server at all, so it
-        // says so rather than blaming Ollama for something upstream of it.
+        // The request itself failed, so we never reached the server at all.
+        // Different from the server's own fail-open path, hence the different
+        // wording; blaming Ollama here would be wrong.
         const reason = `Couldn't reach SkillTape's own server${err?.message ? ` (${err.message})` : ""}.`;
         chunkResults = chunk.map((c) => ({ itemId: c.item.id, grade: null, verdict: "ungraded", criteriaMet: [], rationale: null, reason }));
       }
@@ -355,8 +325,8 @@ export default function PracticeView({ course, onExit }) {
           verdict: "ungraded",
           criteriaMet: [],
           rationale: null,
-          // Only reachable if the server answered without this item at all —
-          // no server-supplied reason exists to pass through here.
+          // Only happens if the server replied without this item, so there's no
+          // server-supplied reason to pass along.
           reason: "The grader didn't return a result for this item.",
         };
         return {
@@ -374,20 +344,16 @@ export default function PracticeView({ course, onExit }) {
       setGradedCount(collected.length);
     }
 
-    // NOT submitted here. OLLAMA_GRADING.md G1 is "suggest-and-confirm, not
-    // auto-submit" — DrillView has always honoured that and Practice didn't,
-    // which is what made the model's verdict unarguable: by the time you saw
-    // it, FSRS had already scheduled off it. Holding the attempts until you
-    // leave the results screen makes an override just an edit to something
-    // unsent, so exactly one attempt per item is ever logged and it carries
-    // the grade you actually agreed with. flushAttempts covers every exit,
-    // including unmount.
+    // Nothing is submitted here. Holding attempts until you leave results is
+    // what makes an override an edit rather than a correction, so each item is
+    // logged once with the grade you agreed with. flushAttempts handles every
+    // exit, unmount included.
     resultsRef.current = collected;
     submittedRef.current = false;
     setPhase("results");
   }
 
-  /** Cancel mid-quiz: nothing was graded yet, so there's nothing meaningful to log per item — just discard and go back to setup, chip picks kept. */
+  /** Cancel mid-quiz. Nothing was graded, so there's nothing to log. Chip picks are kept. */
   function abandonQuiz() {
     setDeck([]);
     setAnswers({});
@@ -403,8 +369,8 @@ export default function PracticeView({ course, onExit }) {
   }
 
   function retryMissed() {
-    // Flush before rebuilding: launchDeck clears `results`, and the retry deck
-    // logs its own attempts, so the first sitting has to be banked first.
+    // Flush first: launchDeck clears results, and the retry deck logs its own
+    // attempts, so the first sitting has to be banked before rebuilding.
     flushAttempts();
     const missed = orderedResults.filter((r) => r.verdict !== "correct").map((r) => r.item);
     if (missed.length === 0) {
@@ -414,20 +380,18 @@ export default function PracticeView({ course, onExit }) {
     launchDeck(missed);
   }
 
-  /** Leave Practice entirely from the results screen. Unmount would flush anyway, but doing it here keeps the ordering obvious rather than implicit. */
+  /** Leave Practice from results. Unmount would flush anyway, but doing it here keeps the order obvious. */
   function exitPractice() {
     flushAttempts();
     onExit();
   }
 
   /**
-   * Replace the grader's verdict on one result with your own, on the same 0-3
-   * Again/Hard/Good/Easy scale DrillView uses and FSRS consumes. Nothing has
-   * been posted yet at this point, so this is an edit, not a correction: the
-   * item is logged once, with this grade.
+   * Replace the grader's verdict with your own on the same 0-3 scale DrillView
+   * uses. Nothing has been posted yet, so this is an edit, not a correction.
    *
-   * Works on `ungraded` results too, and that's the case that matters most —
-   * an Ollama outage otherwise logs the item as abandoned, moving nothing.
+   * Works on ungraded results too, which is the case that matters most: an
+   * Ollama outage would otherwise log the item as abandoned and move nothing.
    */
   function overrideGrade(itemId, grade) {
     const verdict = grade >= 2 ? "correct" : grade === 1 ? "partial" : "incorrect";
@@ -436,12 +400,11 @@ export default function PracticeView({ course, onExit }) {
     setResults(apply);
   }
 
-  // ── suspensions ──────────────────────────────────────────────────────────
-  // All three writes are optimistic: the set updates before the request, so a
-  // button responds instantly, and a rejection rolls the set back to the exact
-  // snapshot taken beforehand. Restoring a snapshot rather than undoing the
-  // individual change is what keeps a failed bulk remove from leaving half the
-  // cards marked as removed when none of them actually were.
+  // suspensions
+  // All three writes are optimistic: the set updates first so buttons feel
+  // instant, and a failure rolls back to the snapshot taken beforehand.
+  // Restoring the snapshot (instead of undoing one change) is what keeps a
+  // failed bulk remove from leaving half the cards marked.
 
   function applySuspensions(nextIds, request) {
     const previous = suspendedIds;
@@ -454,8 +417,8 @@ export default function PracticeView({ course, onExit }) {
   }
 
   function suspendItems(itemIds) {
-    // POST is INSERT OR IGNORE server-side, but filtering here keeps the
-    // reported count honest and skips the request entirely when it's a no-op.
+    // POST is INSERT OR IGNORE server-side, but filtering here keeps the count
+    // honest and skips the request when it's a no-op.
     const ids = itemIds.filter((id) => !suspendedIds.has(id));
     if (ids.length === 0) return;
     const next = new Set(suspendedIds);
@@ -494,7 +457,7 @@ export default function PracticeView({ course, onExit }) {
     fontWeight: 500,
   };
 
-  // ── loading / error ──────────────────────────────────────────────────────
+  // loading / error
 
   if (error) {
     return (
@@ -511,7 +474,7 @@ export default function PracticeView({ course, onExit }) {
     );
   }
 
-  // ── setup ────────────────────────────────────────────────────────────────
+  // setup
 
   if (phase === "setup") {
     return (
@@ -555,9 +518,9 @@ export default function PracticeView({ course, onExit }) {
 
           <SectionLabel>Session length</SectionLabel>
           <ChipRow>
-            {[10, 20, 30].map((n) => (
-              <Chip key={n} active={sessionLength === n} onClick={() => setSessionLength(n)}>
-                {n}
+            {[[10, "10"], [20, "20"], [30, "30"], [1, "WRITE"]].map(([value, label]) => (
+              <Chip key={label} active={sessionLength === value} onClick={() => setSessionLength(value)}>
+                {label}
               </Chip>
             ))}
             <Chip active={sessionLength === "all"} onClick={() => setSessionLength("all")}>
@@ -575,8 +538,8 @@ export default function PracticeView({ course, onExit }) {
             )}
           </div>
 
-          {/* Reset lives here too, not only on results — otherwise putting
-              items back would mean sitting a whole session first. */}
+          {/* Reset lives here as well as on results, otherwise putting items
+              back would mean sitting through a whole session first. */}
           {suspendedIds.size > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", margin: "0 0 14px" }}>
               <span style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted }}>
@@ -610,7 +573,7 @@ export default function PracticeView({ course, onExit }) {
     );
   }
 
-  // ── quiz ─────────────────────────────────────────────────────────────────
+  // quiz
 
   if (phase === "quiz") {
     const item = deck[index];
@@ -712,7 +675,7 @@ export default function PracticeView({ course, onExit }) {
     );
   }
 
-  // ── grading ──────────────────────────────────────────────────────────────
+  // grading
 
   if (phase === "grading") {
     return (
@@ -722,29 +685,27 @@ export default function PracticeView({ course, onExit }) {
     );
   }
 
-  // ── results ──────────────────────────────────────────────────────────────
+  // results
 
   const correctCount = orderedResults.filter((r) => r.verdict === "correct").length;
   const partialCount = orderedResults.filter((r) => r.verdict === "partial").length;
   const ungradedCount = orderedResults.filter((r) => r.verdict === "ungraded").length;
   const missedCount = orderedResults.length - correctCount;
 
-  // Partial credit counts as .5 toward the headline score — a "partial" isn't
-  // a zero, it's half of one. (Exact in floating point: every term here is a
-  // whole number or a whole number of .5s, so this never needs rounding.)
+  // Partial counts as half toward the headline score. Every term is a whole
+  // number or a multiple of .5, so the float math is exact and never needs
+  // rounding.
   const scoreSum = correctCount + partialCount * 0.5;
   const scoreLabel = Number.isInteger(scoreSum) ? String(scoreSum) : scoreSum.toFixed(1);
 
-  // When a whole session fails to grade it's one cause, not N — every item
-  // carries the same reason string. Surfaced once here, at the top, because
-  // the per-card copy is easy to read past when EVERY card says it, which is
-  // exactly the case where the reason matters most. Distinct reasons across
-  // items (a per-item contract miss alongside a real outage) leave this out
-  // and let the cards speak for themselves.
+  // A whole session failing to grade is one cause, not N, and every item ends
+  // up with the same reason string. Show it once up top, since per-card copy is
+  // easy to skim past when every card says the same thing. If the reasons
+  // differ, skip this and let the cards speak.
   const ungradedReasons = new Set(orderedResults.filter((r) => r.verdict === "ungraded" && r.reason).map((r) => r.reason));
   const sharedUngradedReason = ungradedReasons.size === 1 ? [...ungradedReasons][0] : null;
 
-  // Only what this session got right and hasn't already been parked — the
+  // Only what this session got right and hasn't been parked already, so the
   // bulk button disappears once you've removed them one by one.
   const removableIds = orderedResults.filter((r) => r.verdict === "correct" && !suspendedIds.has(r.item.id)).map((r) => r.item.id);
 
@@ -773,16 +734,15 @@ export default function PracticeView({ course, onExit }) {
               lineHeight: 1.5,
               color: PALETTE.bad,
               textAlign: "left",
-              // A pull command or a host URL must stay copyable and unwrapped
-              // mid-token, but the sentence around it still has to wrap.
+              // Keeps a pull command or host URL copyable without breaking
+              // mid-token, while the sentence around it still wraps.
               wordBreak: "break-word",
             }}
           >
             {ungradedCount} {ungradedCount === 1 ? "answer" : "answers"} couldn't be graded — {sharedUngradedReason}
           </div>
         )}
-        {/* Says out loud that the results screen is still editable — without
-            this, overriding a grade looks like it's arguing with a number
+        {/* Without this line, overriding looks like arguing with a number
             that's already been recorded. */}
         <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, lineHeight: 1.6, margin: "0 0 16px" }}>
           Disagree with a verdict? Override it on the card. Nothing is logged until you leave this screen.
@@ -817,10 +777,9 @@ export default function PracticeView({ course, onExit }) {
 
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
         {orderedResults.map((r) => (
-          // Removing an item never pulls its card off this screen — these are
-          // the answers you just gave, and a session's record shouldn't
-          // rearrange itself under you. The removal takes effect on the next
-          // deck, and the card says so.
+          // Removing an item doesn't pull its card off this screen. These are
+          // the answers you just gave and shouldn't rearrange under you. The
+          // removal kicks in on the next deck, and the card says so.
           <ResultCard
             key={r.item.id}
             result={r}
@@ -835,7 +794,7 @@ export default function PracticeView({ course, onExit }) {
   );
 }
 
-/** Shared frame: an optional escape hatch above whatever's showing — omitted entirely during grading, matching ExamView's stance of not interrupting a brief async step. */
+/** Shared frame with an optional escape hatch on top. Left out during grading, same as ExamView does. */
 function PracticeShell({ onEnd, label = "Cancel", children }) {
   return (
     <div>
@@ -882,7 +841,7 @@ function Status({ text, tone }) {
   );
 }
 
-/** The 0-3 self-grade scale, duplicated from DrillView's `gradeBtns` rather than shared — same precedent as Chip, and the two rows are styled for different contexts. Index IS the grade FSRS receives. */
+/** The 0-3 scale, copied from DrillView's gradeBtns rather than shared, since the two rows are styled for different contexts. Index IS the grade FSRS gets. */
 const GRADE_BUTTONS = [
   ["Again", PALETTE.bad],
   ["Hard", PALETTE.accent],
@@ -890,7 +849,7 @@ const GRADE_BUTTONS = [
   ["Easy", PALETTE.good],
 ];
 
-/** A failed suspension write, shown wherever a removal control lives. Same red box the ungraded-session banner uses — the point is that the button lied about what's stored, which is worth the same weight as a grading outage. */
+/** Shown wherever a removal control lives when a suspension write fails. Same red box as the ungraded banner: the button lied about what's stored. */
 function SuspendError({ message }) {
   return (
     <div
@@ -934,7 +893,7 @@ function ChipRow({ children }) {
   return <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{children}</div>;
 }
 
-/** Active/inactive toggle-button formula already used identically in Home.jsx, TopicView.jsx, and SettingsMenu.jsx — hand-rolled here rather than promoted to a shared component, matching this codebase's existing precedent for this exact visual pattern. */
+/** Same toggle-button styling already used in Home.jsx, TopicView.jsx and SettingsMenu.jsx. Hand-rolled here to match that precedent instead of extracting a shared component. */
 function Chip({ active, onClick, children, title }) {
   return (
     <button
@@ -960,19 +919,16 @@ function Chip({ active, onClick, children, title }) {
 }
 
 /**
- * One graded-result card: verdict color/badge, the question, what was typed,
- * feedback, and a collapsible reference answer with criteria annotated from
- * the model's own per-criterion judgments.
+ * One result card: verdict badge, the question, what you typed, feedback, and
+ * a collapsible reference answer with the criteria annotated.
  *
- * onSuspend is null for anything not graded `correct` — taking an item out of
- * circulation is a claim that you know it, which a partial or an ungraded
- * answer hasn't established. onUnsuspend is always available, so an item
+ * onSuspend is null for anything not graded correct, since parking an item is
+ * a claim that you know it. onUnsuspend is always available so something
  * removed by the bulk button can be put back from its own card.
  *
- * onOverride(grade) replaces the verdict on the 0-3 scale. Offered on every
- * card, MCQ included: MCQ grading is deterministic, but the item can still be
- * wrong, and "the key is wrong and I can't say so" is a worse failure than a
- * grade you chose yourself.
+ * onOverride is offered on every card including MCQ. MCQ grading is
+ * deterministic, but the item itself can be wrong, and "the key is wrong and I
+ * can't say so" is the worse failure.
  */
 function ResultCard({ result, suspended = false, onSuspend = null, onUnsuspend = null, onOverride = null }) {
   const [showRef, setShowRef] = useState(false);
@@ -999,11 +955,10 @@ function ResultCard({ result, suspended = false, onSuspend = null, onUnsuspend =
         ? "No option selected."
         : `Incorrect — the correct answer was "${item.choices[item.answerIndex]}".`
       : verdict === "ungraded"
-      ? // The reason comes from the server (gradingFailureReason in
-        // server/routes/drill.js) and names the actual cause — "Ollama isn't
-        // running" and "Ollama has no model named X" have opposite fixes, and
-        // this card used to claim the first one for both. The generic fallback
-        // only applies to results from a build older than that field.
+      ? // reason comes from gradingFailureReason in server/routes/drill.js and
+        // names the real cause. "Ollama isn't running" and "Ollama has no model
+        // named X" need opposite fixes, and this card used to claim the first
+        // for both. The fallback only hits results from older builds.
         `Auto-grade unavailable — ${reason ?? "Ollama didn't respond."} Compare against the reference answer below.`
       : rationale || "";
 
@@ -1049,8 +1004,8 @@ function ResultCard({ result, suspended = false, onSuspend = null, onUnsuspend =
 
       {feedback && (
         <p style={{ color: overridden ? PALETTE.muted : color, fontSize: 13, lineHeight: 1.6, margin: "0 0 12px" }}>
-          {/* Kept, not hidden, once overridden — but dimmed and labelled, since
-              it's now the losing opinion rather than this card's verdict. */}
+          {/* Kept after an override, just dimmed and labelled, since it's now
+              the losing opinion rather than the card's verdict. */}
           {overridden && <span style={{ fontFamily: MONO, fontSize: 11 }}>GRADER SAID: </span>}
           {feedback}
         </p>
@@ -1101,8 +1056,8 @@ function ResultCard({ result, suspended = false, onSuspend = null, onUnsuspend =
             YOUR GRADE — replaces the verdict above, and is what gets logged
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {/* Same four labels and colors as DrillView's self-grade row, on
-                the same 0-3 scale server/fsrs.js consumes. */}
+            {/* Same labels and colors as DrillView's self-grade row, on the
+                0-3 scale server/fsrs.js consumes. */}
             {GRADE_BUTTONS.map(([label, gradeColor], g) => {
               const picked = grade === g;
               return (
@@ -1153,7 +1108,7 @@ function ResultCard({ result, suspended = false, onSuspend = null, onUnsuspend =
               {item.criteria.map((c, i) => (
                 <li key={i} style={{ color: criteriaMet[i] === true ? PALETTE.good : criteriaMet[i] === false ? PALETTE.bad : PALETTE.muted }}>
                   {criteriaMet[i] === true ? "✓ " : criteriaMet[i] === false ? "✗ " : ""}
-                  {c}
+                  <Inline text={c} />
                 </li>
               ))}
             </ul>

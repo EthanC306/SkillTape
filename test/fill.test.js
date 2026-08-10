@@ -175,3 +175,31 @@ test("parseBold splits a body into text and blank tokens", () => {
 test("parseBold on a body with no markup yields one text token", () => {
   assert.deepEqual(parseBold("no blanks here"), [{ type: "text", value: "no blanks here" }]);
 });
+
+test("parseBold pulls `code` out as its own token, never a blank", () => {
+  assert.deepEqual(parseBold("call `delete[] p;` first"), [
+    { type: "text", value: "call " },
+    { type: "code", value: "delete[] p;" },
+    { type: "text", value: " first" },
+  ]);
+});
+
+// The whole reason code is split off before bold: a snippet's `*` must not be
+// able to pair with real emphasis and swallow the sentence between them.
+test("a star inside inline code cannot open a blank", () => {
+  assert.deepEqual(parseBold("`int *p;` declares a **pointer**"), [
+    { type: "code", value: "int *p;" },
+    { type: "text", value: " declares a " },
+    { type: "blank", value: "pointer" },
+  ]);
+});
+
+test("code and blanks coexist in one body", () => {
+  assert.deepEqual(parseBold("`new` returns a **pointer** to the `heap`"), [
+    { type: "code", value: "new" },
+    { type: "text", value: " returns a " },
+    { type: "blank", value: "pointer" },
+    { type: "text", value: " to the " },
+    { type: "code", value: "heap" },
+  ]);
+});

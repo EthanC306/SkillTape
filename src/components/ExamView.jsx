@@ -3,6 +3,7 @@ import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 import { FORMATS } from "../data/itemSchema";
 import { getExamSet, getDrillStats, postDrillAttempt, getDrillExport } from "../api/client";
 import PromptBody from "./PromptBody";
+import Inline from "./Inline";
 
 /**
  * ExamView — the exam simulator (ROADMAP.md A5, re-homed in-app per D6).
@@ -472,7 +473,7 @@ export default function ExamView({ course, onExit }) {
               {item.criteria?.length > 0 && (
                 <ul style={{ margin: "0 0 12px", padding: "0 0 0 20px", fontSize: 13, color: PALETTE.muted, lineHeight: 1.8 }}>
                   {item.criteria.map((c, i) => (
-                    <li key={i}>{c}</li>
+                    <li key={i}><Inline text={c} /></li>
                   ))}
                 </ul>
               )}

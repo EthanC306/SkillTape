@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
+import Inline from "./Inline";
 
 /**
  * FlashcardsView — a flip-through deck for a topic's `flashcards` array.
@@ -94,11 +95,11 @@ export default function FlashcardsView({ topic, editMode, onSave, saveState }) {
         {flipped ? (
           // pre-wrap so a code answer keeps its line breaks and indentation.
           <div style={{ fontSize: 17, lineHeight: 1.8, letterSpacing: 0.2, color: PALETTE.text, whiteSpace: "pre-wrap" }}>
-            {card.back}
+            <Inline text={card.back} />
           </div>
         ) : (
           <div style={{ fontFamily: HEADING, fontSize: frontSize, lineHeight: 1.4, fontWeight: 500, color: PALETTE.accent }}>
-            {card.front}
+            <Inline text={card.front} />
           </div>
         )}
       </div>

@@ -18,52 +18,52 @@ export default {
     {
       heading: "Static vs. dynamic allocation",
       body:
-        "Variables you declare normally get their memory automatically — that's **static allocation**. **Dynamic allocation** lets a program request memory while it's running, on demand. A **pointer** is a variable that holds a **memory address**, so having a pointer to a location just means holding that address, ready to use. Any variable's address can be obtained with the **address-of operator**, &, as in &x.",
+        "Variables you declare normally get their memory automatically, which is **static allocation**. **Dynamic allocation** lets a program request memory while it's running, on demand. A **pointer** is a variable that holds a **memory address**, so having a pointer to a location just means holding that address, ready to use. Any variable's address can be obtained with the **address-of operator**, `&`, as in `&x`.",
     },
     {
       heading: "Declaring pointers",
       body:
-        "A pointer declaration writes the pointed-to type, then an asterisk, then the name: double *dblPtr, value; — but only **dblPtr is a pointer** here; value is an ordinary double. dblPtr is a **pointer to a double**, so it's **compatible with &value** (the address of a double), not with the address of an int or a char.",
+        "A pointer declaration writes the pointed-to type, then an asterisk, then the name. In `double *dblPtr, value;` only **dblPtr is a pointer**; value is an ordinary double. dblPtr is a **pointer to a double**, so it's **compatible with &value** (the address of a double), not with the address of an int or a char.",
     },
     {
       heading: "Dereferencing",
       body:
-        "Once dblPtr = &value; makes dblPtr point at value's memory, the same symbol used to declare a pointer also **accesses what it points to**: *dblPtr = 12.3; changes the memory value refers to, so cout << *dblPtr and cout << value now print the **same number**. Using * this way is called the **dereferencing operator**.",
+        "Once `dblPtr = &value;` makes dblPtr point at value's memory, the same symbol used to declare a pointer also **accesses what it points to**: `*dblPtr = 12.3;` changes the memory value refers to, so `cout << *dblPtr` and `cout << value` now print the **same number**. Using `*` this way is called the **dereferencing operator**.",
     },
     {
       heading: "Allocating with new",
       body:
-        "The **new operator** requests a block of memory from a place called the **heap**. intPtr = new int; allocates space for one int, leaving it holding **garbage**. new int(99) both **allocates and initializes**, so the memory already holds 99. Any type works this way — new double, new char('A'), and so on.",
+        "The **new operator** requests a block of memory from a place called the **heap**. `intPtr = new int;` allocates space for one int, leaving it holding **garbage**. `new int(99)` both **allocates and initializes**, so the memory already holds 99. Any type works this way: `new double`, `new char('A')`, and so on.",
     },
     {
       heading: "Freeing memory with delete",
       body:
-        "Memory from new doesn't free itself — you must **explicitly deallocate** it with the **delete operator**: delete intPtr;. This returns the memory to the **heap** so it can be reused. Forgetting to delete leaves that memory unusable for the rest of the program — a **memory leak**.",
+        "Memory from `new` doesn't free itself. You must **explicitly deallocate** it with the **delete operator**: `delete intPtr;`. This returns the memory to the **heap** so it can be reused. Forgetting to delete leaves that memory unusable for the rest of the program, which is a **memory leak**.",
     },
     {
       heading: "Dangling references",
       body:
-        "If two pointers hold the **same address** — intPtr2 = intPtr1; — and then delete intPtr1; frees that memory, intPtr2 still points at the now-freed spot. intPtr2 is called a **dangling reference**: it points to memory that is **no longer allocated**, and using it is undefined behavior.",
+        "If two pointers hold the **same address** after `intPtr2 = intPtr1;`, and then `delete intPtr1;` frees that memory, intPtr2 still points at the now-freed spot. intPtr2 is called a **dangling reference**: it points to memory that is **no longer allocated**, and using it is undefined behavior.",
     },
     {
       heading: "nullptr",
       body:
-        "**nullptr** is a special constant pointer value meaning it **points at nothing**. It plays the same role NULL played in older C++, and it's the standard way to **initialize a pointer** before it's given a real address. Unlike an integer literal, nullptr can be assigned to **any pointer type**.",
+        "**nullptr** is a special constant pointer value meaning it **points at nothing**. It plays the same role `NULL` played in older C++, and it's the standard way to **initialize a pointer** before it's given a real address. Unlike an integer literal, nullptr can be assigned to **any pointer type**.",
     },
     {
       heading: "When new fails",
       body:
-        "If the **new operator** can't find enough free memory, it doesn't just return an error code — it **throws an exception**, and if nothing catches it, the program **terminates**. Handling that failure gracefully requires an **exception handler** around the allocation.",
+        "If the **new operator** can't find enough free memory, it doesn't just return an error code. It **throws an exception**, and if nothing catches it, the program **terminates**. Handling that failure gracefully requires an **exception handler** around the allocation.",
     },
     {
       heading: "Static, dynamic, and automatic variables",
       body:
-        "C++ variables fall into three groups. **Automatic variables** are the ordinary local variables you've always used — created and destroyed as their scope is entered and left. **Dynamic variables** are created explicitly with **new**, and live until you delete them. **Static variables**, made with the static keyword (static int x = 5;), are **global to the file** and keep their value for the program's whole run.",
+        "C++ variables fall into three groups. **Automatic variables** are the ordinary local variables you've always used, created and destroyed as their scope is entered and left. **Dynamic variables** are created explicitly with **new**, and live until you delete them. **Static variables**, made with the `static` keyword (`static int x = 5;`), are **global to the file** and keep their value for the program's whole run.",
     },
     {
       heading: "Type inference with auto",
       body:
-        "Since C++11, the **auto** keyword lets the compiler figure out a variable's type from its initializer — but the variable **must be initialized at declaration**. auto value = 2.3; creates a double, and auto ptr = &value; creates a **pointer to a double**, because that's what &value produces.",
+        "Since C++11, the **auto** keyword lets the compiler figure out a variable's type from its initializer, but the variable **must be initialized at declaration**. `auto value = 2.3;` creates a double, and `auto ptr = &value;` creates a **pointer to a double**, because that's what `&value` produces.",
     },
   ],
   questions: [
@@ -77,7 +77,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "A pointer is a variable whose value is a memory address — the address of some other variable.",
+        "A pointer is a variable whose value is a memory address: the address of some other variable.",
     },
     {
       prompt: "Which operator returns the memory address of a variable?",
@@ -89,7 +89,7 @@ export default {
       ],
       answer: 2,
       explanation:
-        "The address-of operator, &, returns a variable's memory address, as in &x.",
+        "The address-of operator, `&`, returns a variable's memory address, as in `&x`.",
     },
     {
       prompt: "Given this declaration, which variable is a pointer?",
@@ -102,10 +102,10 @@ export default {
       ],
       answer: 1,
       explanation:
-        "The * binds to the name it precedes, so only dblPtr is a pointer; value is an ordinary double.",
+        "The `*` binds to the name it precedes, so only dblPtr is a pointer; value is an ordinary double.",
     },
     {
-      prompt: "What does *dblPtr do in this code?",
+      prompt: "What does `*dblPtr` do in this code?",
       code: "value = 34.5;\ndblPtr = &value;\n*dblPtr = 12.3;",
       choices: [
         "Dereferences dblPtr to reach the value it points at",
@@ -115,7 +115,7 @@ export default {
       ],
       answer: 0,
       explanation:
-        "*dblPtr dereferences the pointer, reaching into the memory it points to (the same memory as value).",
+        "`*dblPtr` dereferences the pointer, reaching into the memory it points to (the same memory as value).",
     },
     {
       prompt: "What does this statement do?",
@@ -128,10 +128,10 @@ export default {
       ],
       answer: 0,
       explanation:
-        "new int(99) allocates space for one int on the heap and initializes it to 99 in one step.",
+        "`new int(99)` allocates space for one int on the heap and initializes it to 99 in one step.",
     },
     {
-      prompt: "Where does memory from the new operator come from?",
+      prompt: "Where does memory from the `new` operator come from?",
       choices: [
         "The stack",
         "A static global array",
@@ -139,10 +139,10 @@ export default {
         "The heap",
       ],
       answer: 3,
-      explanation: "new allocates memory from the heap.",
+      explanation: "`new` allocates memory from the heap.",
     },
     {
-      prompt: "After intPtr = new int; with no initializer, what does intPtr point to?",
+      prompt: "After `intPtr = new int;` with no initializer, what does intPtr point to?",
       choices: [
         "Always 0",
         "Garbage",
@@ -154,18 +154,18 @@ export default {
         "Without an initializer, the newly allocated int holds whatever garbage was already in that memory.",
     },
     {
-      prompt: "What does the delete operator do?",
+      prompt: "What does the `delete` operator do?",
       choices: [
-        "Declares a new pointer",
-        "Sets the pointer to point at 0",
-        "Copies the pointed-to value elsewhere",
-        "Deallocates memory so it can be reused",
+        "Deletes the pointer variable itself, so the name can no longer be used",
+        "Sets the pointer to nullptr, leaving the memory allocated",
+        "Deallocates the memory so it can be reused, leaving the pointer's value unchanged",
+        "Deallocates the memory and zeroes out the bytes that were stored there",
       ],
-      answer: 3,
-      explanation: "delete frees memory that new allocated, returning it to the heap.",
+      answer: 2,
+      explanation: "`delete` frees memory that `new` allocated, returning it to the heap.",
     },
     {
-      prompt: "In this code, what is intPtr2 after delete intPtr1?",
+      prompt: "In this code, what is intPtr2 after `delete intPtr1;`?",
       code: "int *intPtr1, *intPtr2;\nintPtr1 = new int(99);\nintPtr2 = intPtr1;\ndelete intPtr1;",
       choices: [
         "A null pointer",
@@ -187,10 +187,10 @@ export default {
       ],
       answer: 2,
       explanation:
-        "nullptr is a special constant used to initialize or reset pointers; it can be assigned to any pointer type.",
+        "`nullptr` is a special constant used to initialize or reset pointers; it can be assigned to any pointer type.",
     },
     {
-      prompt: "What happens if the new operator fails to find enough memory?",
+      prompt: "What happens if the `new` operator fails to find enough memory?",
       choices: [
         "It throws an exception",
         "It silently returns nullptr",
@@ -199,23 +199,23 @@ export default {
       ],
       answer: 0,
       explanation:
-        "A failed new throws an exception; without an exception handler to catch it, the program terminates.",
+        "A failed `new` throws an exception. Without an exception handler to catch it, the program terminates.",
     },
     {
-      prompt: "Which kind of variable is created with the static keyword and is global to the file?",
-      code: "static int x = 5;",
+      prompt: "Which of these still exists in memory after `run()` returns?",
+      code: "static int a = 5;\n\nvoid run() {\n    int b = 5;\n    int *c = new int(5);\n}",
       choices: [
-        "A static variable",
-        "A dynamic variable",
-        "A pointer variable",
-        "An automatic variable",
+        "a and b, but not the int c points to",
+        "a only",
+        "a and the int c points to",
+        "a, b, and the int c points to",
       ],
-      answer: 0,
+      answer: 2,
       explanation:
-        "static creates a static variable, which is global to the file and keeps its value for the program's run.",
+        "`a` is static, so it is global to the file and lives for the program's whole run. `b` is automatic and is destroyed when `run()` returns. The pointer `c` is automatic and disappears too, but the int it allocated with `new` is dynamic and stays on the heap until deleted. Here it is leaked, since nothing is left holding its address.",
     },
     {
-      prompt: "Which line correctly uses auto?",
+      prompt: "Which line correctly uses `auto`?",
       choices: [
         "value = auto(2.3);",
         "auto value;",
@@ -224,7 +224,7 @@ export default {
       ],
       answer: 3,
       explanation:
-        "auto variables must be initialized at declaration so the compiler can infer the type from the initializer.",
+        "An `auto` variable must be initialized at declaration so the compiler can infer the type from the initializer.",
     },
   ],
   // items (ROADMAP.md A3 pilot migration, 2026-08-01): the new itemSchema.js
@@ -249,7 +249,7 @@ export default {
       prompt:
         "What is the difference between what `intPtr = new int;` and `intPtr = new int(99);` leave in memory?",
       expected:
-        "`new int;` allocates space for one int but leaves it holding garbage (an unspecified value) — nothing is written into it. `new int(99);` allocates the same space AND initializes it to 99 in one step.",
+        "`new int;` allocates space for one int but leaves it holding garbage (an unspecified value), since nothing is written into it. `new int(99);` allocates the same space AND initializes it to 99 in one step.",
       criteria: [
         "States that new int; alone leaves the memory as garbage/unspecified",
         "States that new int(99); allocates and initializes in a single step",
@@ -278,7 +278,7 @@ export default {
       origin: ITEM_ORIGIN.GENERATED,
       prompt: "What is a dangling reference, and how does one typically come to exist?",
       expected:
-        "A dangling reference is a pointer that still holds the address of memory that is no longer allocated. It typically comes to exist when two pointers hold the same address and the memory is deleted through one of them — the other pointer is left pointing at deallocated memory.",
+        "A dangling reference is a pointer that still holds the address of memory that is no longer allocated. It typically comes to exist when two pointers hold the same address and the memory is deleted through one of them, leaving the other pointer aimed at deallocated memory.",
       criteria: [
         "Defines a dangling reference as pointing to memory that's no longer allocated",
         "Explains it arises from two pointers sharing an address, then deleting through only one",
@@ -306,9 +306,9 @@ export default {
       format: FORMATS.TRACE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Trace this code:\n\nint *intPtr1, *intPtr2;\nintPtr1 = new int(99);\nintPtr2 = intPtr1;\ndelete intPtr1;\n\nAfter the last line, what does intPtr2 point to, and is reading through it safe?",
+        "Trace this code:\n```\nint *intPtr1, *intPtr2;\nintPtr1 = new int(99);\nintPtr2 = intPtr1;\ndelete intPtr1;\n```\nAfter the last line, what does intPtr2 point to, and is reading through it safe?",
       expected:
-        "intPtr2 holds the same address intPtr1 held. delete intPtr1; frees that memory but does not change what intPtr1 or intPtr2 point to — both pointer variables still hold the old address. intPtr2 is now a dangling reference; reading through it is not safe.",
+        "intPtr2 holds the same address intPtr1 held. delete intPtr1; frees that memory but does not change what intPtr1 or intPtr2 point to, since both pointer variables still hold the old address. intPtr2 is now a dangling reference; reading through it is not safe.",
       criteria: [
         "States intPtr2 still holds the same address as before (unchanged by delete)",
         "States that memory is now deallocated",
@@ -336,9 +336,9 @@ export default {
       format: FORMATS.TRACE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Trace intPtr's state through each line:\n\nint *intPtr;\nintPtr = nullptr;\nintPtr = new int;\n*intPtr = 99;\ndelete intPtr;",
+        "Trace intPtr's state through each line:\n```\nint *intPtr;\nintPtr = nullptr;\nintPtr = new int;\n*intPtr = 99;\ndelete intPtr;\n```",
       expected:
-        "Line 2: intPtr holds nullptr. Line 3: intPtr points to a newly allocated int holding garbage. Line 4: intPtr points to the same int, now holding 99. Line 5: the memory is deallocated; intPtr still holds that (now-invalid) address — it does not become nullptr on its own.",
+        "Line 2: intPtr holds nullptr. Line 3: intPtr points to a newly allocated int holding garbage. Line 4: intPtr points to the same int, now holding 99. Line 5: the memory is deallocated; intPtr still holds that (now-invalid) address, and it does not become nullptr on its own.",
       criteria: [
         "Correctly sequences nullptr -> garbage -> 99",
         "States the memory is deallocated after delete",
@@ -366,9 +366,9 @@ export default {
       format: FORMATS.ERROR,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "What's wrong with this code, if anything?\n\nint *a = new int(5);\nint *b = a;\ndelete a;\ncout << *b;",
+        "What's wrong with this code, if anything?\n```\nint *a = new int(5);\nint *b = a;\ndelete a;\ncout << *b;\n```",
       expected:
-        "The last line dereferences b after the memory it points to has been freed through a — b is a dangling reference at that point. This is undefined behavior, not a guaranteed print of 5: delete does not null out a or b, so both still hold the old address, but reading through it afterward is unsafe and the actual output is unpredictable.",
+        "The last line dereferences b after the memory it points to has been freed through a, so b is a dangling reference at that point. This is undefined behavior, not a guaranteed print of 5: delete does not null out a or b, so both still hold the old address, but reading through it afterward is unsafe and the actual output is unpredictable.",
       criteria: [
         "Identifies b as dangling after delete a (not merely 'still 5')",
         "States the read is undefined behavior, not a guaranteed value",
@@ -396,7 +396,7 @@ export default {
       format: FORMATS.CLOZE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Memory deleted with the delete operator is returned to the ___, where it becomes available to be allocated again.",
+        "Memory deleted with the `delete` operator is returned to the ___, where it becomes available to be allocated again.",
       expected: "heap",
       criteria: ["Answer is exactly 'heap'"],
       provenance: {
@@ -423,7 +423,7 @@ export default {
       prompt:
         "What's the difference between a dynamic variable and an automatic variable, in terms of how each is created and how long each lives?",
       expected:
-        "A dynamic variable is created explicitly with the new operator and exists until it is explicitly deleted. An automatic variable is an ordinary local variable, created and destroyed automatically as its scope is entered and exited — no new or delete involved.",
+        "A dynamic variable is created explicitly with the new operator and exists until it is explicitly deleted. An automatic variable is an ordinary local variable, created and destroyed automatically as its scope is entered and exited, with no new or delete involved.",
       criteria: [
         "States dynamic variables require explicit new (and implicitly, delete)",
         "States automatic variables are the ordinary local variables with automatic scope-based lifetime",
@@ -490,7 +490,7 @@ export default {
       answerIndex: 2,
       expected: "&",
       criteria: [
-        "The address-of operator, &, returns a variable's memory address, as in &x.",
+        "The address-of operator, `&`, returns a variable's memory address, as in `&x`.",
       ],
       // Hand-authored course question promoted from this topic's legacy
       // questions[]. No source excerpt exists to cite, so provenance stays
@@ -514,7 +514,7 @@ export default {
       answerIndex: 1,
       expected: "Only dblPtr",
       criteria: [
-        "The * binds to the name it precedes, so only dblPtr is a pointer; value is an ordinary double.",
+        "The `*` binds to the name it precedes, so only dblPtr is a pointer; value is an ordinary double.",
       ],
       // Hand-authored course question promoted from this topic's legacy
       // questions[]. No source excerpt exists to cite, so provenance stays
@@ -528,7 +528,7 @@ export default {
       topicId: "dynamic-alloc",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "What does *dblPtr do in this code?\n```\nvalue = 34.5;\ndblPtr = &value;\n*dblPtr = 12.3;\n```",
+      prompt: "What does `*dblPtr` do in this code?\n```\nvalue = 34.5;\ndblPtr = &value;\n*dblPtr = 12.3;\n```",
       choices: [
         "Dereferences dblPtr to reach the value it points at",
         "Deletes the pointer",
@@ -538,7 +538,7 @@ export default {
       answerIndex: 0,
       expected: "Dereferences dblPtr to reach the value it points at",
       criteria: [
-        "*dblPtr dereferences the pointer, reaching into the memory it points to (the same memory as value).",
+        "`*dblPtr` dereferences the pointer, reaching into the memory it points to (the same memory as value).",
       ],
       // Hand-authored course question promoted from this topic's legacy
       // questions[]. No source excerpt exists to cite, so provenance stays
@@ -562,7 +562,7 @@ export default {
       answerIndex: 0,
       expected: "Allocates an int and sets it to 99",
       criteria: [
-        "new int(99) allocates space for one int on the heap and initializes it to 99 in one step.",
+        "`new int(99)` allocates space for one int on the heap and initializes it to 99 in one step.",
       ],
       // Hand-authored course question promoted from this topic's legacy
       // questions[]. No source excerpt exists to cite, so provenance stays
@@ -576,7 +576,7 @@ export default {
       topicId: "dynamic-alloc",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "Where does memory from the new operator come from?",
+      prompt: "Where does memory from the `new` operator come from?",
       choices: [
         "The stack",
         "A static global array",
@@ -586,7 +586,7 @@ export default {
       answerIndex: 3,
       expected: "The heap",
       criteria: [
-        "new allocates memory from the heap.",
+        "`new` allocates memory from the heap.",
       ],
       // Hand-authored course question promoted from this topic's legacy
       // questions[]. No source excerpt exists to cite, so provenance stays

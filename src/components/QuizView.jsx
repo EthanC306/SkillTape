@@ -115,7 +115,9 @@ export default function QuizView({ topic, onFinish, best }) {
           <span>QUESTION {qIndex + 1} / {questions.length}</span>
           <span>{correctCount} correct</span>
         </div>
-        <div style={{ fontSize: 16, lineHeight: 1.5, marginBottom: q.code ? 12 : 18 }}>{q.prompt}</div>
+        <div style={{ fontSize: 16, lineHeight: 1.5, marginBottom: q.code ? 12 : 18 }}>
+          <Inline text={q.prompt} />
+        </div>
         {q.code && <CodeBlock code={q.code} style={{ padding: 14, marginBottom: 18 }} />}
         {/* Optional diagram the question refers to (e.g. "which arrow diagram…"). */}
         {q.figure && <Figure src={q.figure.src} alt={q.figure.alt} caption={q.figure.caption} />}

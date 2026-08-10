@@ -14,7 +14,7 @@ export default {
     {
       heading: "Why not just use an array?",
       body:
-        "Inserting into a **sorted array/vector** or at its **beginning** means shifting every element after it over — that's **O(n)**. Deleting from the **middle** has the same cost. A linked list can do these operations in **O(1)** once you already have a pointer to the right spot, because nothing needs to shift.",
+        "Inserting into a **sorted array/vector** or at its **beginning** means shifting every element after it over, which is **O(n)**. Deleting from the **middle** has the same cost. A linked list can do these operations in **O(1)** once you already have a pointer to the right spot, because nothing needs to shift.",
     },
     {
       heading: "What a linked list is",
@@ -24,7 +24,7 @@ export default {
     {
       heading: "The Node class",
       body:
-        "A node bundles data with a pointer: `class Node { private: <type> data; Node *next; };`. The **data** field can be any type, and **next** points to the following node (or nullptr if this is the last one).",
+        "A node bundles data with a pointer: `class Node { private: <type> data; Node *next; };`. The **data** field can be any type, and **next** points to the following node (or `nullptr` if this is the last one).",
     },
     {
       heading: "Node constructor",
@@ -34,17 +34,17 @@ export default {
     {
       heading: "Getters and setters",
       body:
-        "setData and setNext **change** a node's fields. getData returns the stored value. getNext has **two overloads** — a const version returning `const Node*` and a non-const version returning `Node*` — so callers get the right access level depending on whether their own node is const.",
+        "`setData` and `setNext` **change** a node's fields. `getData` returns the stored value. `getNext` has **two overloads**, a const version returning `const Node*` and a non-const version returning `Node*`, so callers get the right access level depending on whether their own node is const.",
     },
     {
       heading: "Declaring an empty list",
       body:
-        "A list starts as just a pointer: `Node *head; head = nullptr;`. An **empty list** is represented entirely by head being nullptr — there are no nodes yet. Some list implementations also keep a **tail** pointer to the last node for faster end-of-list access.",
+        "A list starts as just a pointer: `Node *head; head = nullptr;`. An **empty list** is represented entirely by `head` being `nullptr`: there are no nodes yet. Some list implementations also keep a **tail** pointer to the last node for faster end-of-list access.",
     },
     {
       heading: "Allocating and linking nodes",
       body:
-        "`head = new Node();` allocates one node on the heap and points head at it. `head->setData(50);` fills in its value. As more nodes are created and their **next** pointers are chained together, the list grows: head → 50 → 30 → 60 → 90 → nullptr.",
+        "`head = new Node();` allocates one node on the heap and points `head` at it. `head->setData(50);` fills in its value. As more nodes are created and their **next** pointers are chained together, the list grows: `head` → 50 → 30 → 60 → 90 → `nullptr`.",
     },
   ],
   questions: [
@@ -71,7 +71,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "The last node's next pointer is nullptr, which is how algorithms know they've reached the end of the list.",
+        "The last node's next pointer is `nullptr`, which is how algorithms know they've reached the end of the list.",
     },
     {
       prompt: "In a singly linked Node class, what does the next member store?",
@@ -84,7 +84,7 @@ export default {
       ],
       answer: 2,
       explanation:
-        "next holds the address of the next node, letting code walk the list one link at a time; it's nullptr on the last node.",
+        "next holds the address of the next node, letting code walk the list one link at a time; it's `nullptr` on the last node.",
     },
     {
       prompt: "What does this code produce?",
@@ -97,10 +97,10 @@ export default {
       ],
       answer: 2,
       explanation:
-        "Setting head to nullptr with no nodes allocated is exactly how an empty linked list is represented.",
+        "Setting `head` to `nullptr` with no nodes allocated is exactly how an empty linked list is represented.",
     },
     {
-      prompt: "Why does Node provide two getNext() overloads?",
+      prompt: "Why does Node provide two `getNext()` overloads?",
       code: "const Node* getNext() const { return next; }\nNode* getNext() { return next; }",
       choices: [
         "One overload handles the head node, the other handles every other node in the list",
@@ -113,7 +113,7 @@ export default {
         "Overloading on const-ness lets the compiler pick the appropriate return type depending on whether the calling object is const.",
     },
     {
-      prompt: "After `head = new Node(); head->setData(50);`, what does head->getNext() return?",
+      prompt: "After `head = new Node(); head->setData(50);`, what does `head->getNext()` return?",
       choices: [
         "nullptr",
         "50",
@@ -122,11 +122,11 @@ export default {
       ],
       answer: 0,
       explanation:
-        "The default constructor initializes next to nullptr, and setData only touches the data field, so getNext() still returns nullptr.",
+        "The default constructor initializes next to `nullptr`, and `setData` only touches the data field, so `getNext()` still returns `nullptr`.",
     },
     {
       prompt:
-        "Why is inserting at the head of a linked list an O(1) operation, unlike inserting at the front of a vector?",
+        "Why is inserting at the `head` of a linked list an O(1) operation, unlike inserting at the front of a vector?",
       choices: [
         "Vectors don't support insertion at the front",
         "Because linked lists are always kept sorted",
@@ -135,7 +135,7 @@ export default {
       ],
       answer: 3,
       explanation:
-        "Adding at the head just points the new node at the old head and reassigns head — a constant number of pointer updates, regardless of list size.",
+        "Adding at the `head` just points the new node at the old `head` and reassigns `head`, a constant number of pointer updates, regardless of list size.",
     },
     {
   prompt: "What is the running time for inserting an element in a sorted array/vector?",
@@ -194,7 +194,7 @@ export default {
       origin: ITEM_ORIGIN.GENERATED,
       prompt: "What is a linked list, and how does a program know it has reached the end of one?",
       expected:
-        "A linked list is a sequence of objects where each object (called a node) points to the next in the list. A node includes data and a pointer to the next node. The beginning of the list is marked with a pointer (e.g., head), and the last node in the list points to nullptr — that's how you know you've reached the end.",
+        "A linked list is a sequence of objects where each object (called a node) points to the next in the list. A node includes data and a pointer to the next node. The beginning of the list is marked with a pointer (e.g., head), and the last node in the list points to nullptr, which is how you know you've reached the end.",
       criteria: [
         "Defines a linked list as a sequence of nodes, each pointing to the next",
         "States a node holds data plus a pointer to the next node",
@@ -221,7 +221,7 @@ export default {
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Write a Node constructor that takes optional data and a next pointer, defaulting next to nullptr, given `private: DataType data; Node *next;`.",
+        "Write a Node constructor that takes optional data and a next pointer, defaulting next to `nullptr`, given `private: DataType data; Node *next;`.",
       expected:
         "Node(const DataType newData = DataType(),\nNode *newNext = nullptr){\ndata = newData;\nnext = newNext;\n}",
       criteria: [
@@ -249,9 +249,9 @@ export default {
       topicId: "linked-lists",
       format: FORMATS.COMPARE,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "Why does Node declare two getNext() overloads instead of one?",
+      prompt: "Why does Node declare two `getNext()` overloads instead of one?",
       expected:
-        "One overload is `const Node* getNext() const{ return next; }` — get the next field as constant. The other is `Node* getNext(){ return next; }` — get the next field. The const version returns a const Node* for use on a const Node, while the non-const version returns a modifiable Node*.",
+        "One overload is `const Node* getNext() const{ return next; }`, which gets the next field as a constant. The other is `Node* getNext(){ return next; }`, which gets the next field. The const version returns a const Node* for use on a const Node, while the non-const version returns a modifiable Node*.",
       criteria: [
         "Quotes/describes both getNext overloads (const-returning and non-const-returning)",
         "Explains the const overload exists for when the node itself is const",
@@ -277,7 +277,7 @@ export default {
       format: FORMATS.TRACE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Trace this code:\n```\nNode *head;\nhead = new Node();\nhead->setData(50);\n```\nWhat does head point to before and after setData(50) runs?",
+        "Trace this code:\n```\nNode *head;\nhead = new Node();\nhead->setData(50);\n```\nWhat does `head` point to before and after `setData(50)` runs?",
       expected:
         "Before setData: head points to a node with data: ? (unspecified, since Node's default constructor gives data its default value) and next: nullptr. After head->setData(50): head points to the same node, now with data: 50 and next still nullptr.",
       criteria: [
@@ -304,9 +304,9 @@ export default {
       topicId: "linked-lists",
       format: FORMATS.RECALL,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "How is an empty linked list represented, using head and tail pointers?",
+      prompt: "How is an empty linked list represented, using `head` and `tail` pointers?",
       expected:
-        "A linked list object is declared with Node *head; and Node *tail; — head = nullptr; initializes it to an empty list. tail points to the end of the list.",
+        "A linked list object is declared with Node *head; and Node *tail;. head = nullptr; initializes it to an empty list. tail points to the end of the list.",
       criteria: [
         "States head = nullptr represents an empty list",
         "Mentions tail as the pointer to the end of the list",
@@ -428,7 +428,7 @@ export default {
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.EXTRACTED,
       prompt:
-        "Doubly linked list — write insertAfter(DNode *&head, DNode *cursor, int value), inserting a new node holding value directly after cursor. Handle the empty-list case and the case where cursor is the last node.",
+        "Doubly linked list: write `insertAfter(DNode *&head, DNode *cursor, int value)`, inserting a new node holding value directly after `cursor`. Handle the empty-list case and the case where `cursor` is the last node.",
       // Reflowed from the deck's single-column slide formatting for legibility
       // (rendered pre-wrap by PracticeView/DrillView). The verbatim slide text
       // lives untouched in provenance.excerpt below.

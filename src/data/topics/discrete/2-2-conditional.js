@@ -5,44 +5,44 @@
 export default {
   id: "discrete-2-2-conditional",
   title: "2.2 Conditional Statements",
-  subtitle: "CS3000 — §2.2",
+  subtitle: "CS3000 §2.2",
   course: "discrete",
   showChart: false,
   cards: [
     {
       heading: "If-then and vacuous truth",
       body:
-        "A **conditional statement** “**if p then q**” (written **p → q**) has a **hypothesis** p and a **conclusion** q. Its truth table has one surprising rule: p → q is **false in only one case** — when p is **true** but q is **false**. In every other row it is **true**. That means whenever the hypothesis p is **false**, the whole statement is **true** automatically, no matter what q says. Such a statement is called **vacuously true** or **true by default** — e.g. “If 0 = 1, then 1 = 2” is *true* simply because 0 = 1 is false.",
+        "A **conditional statement** “**if p then q**” (written **p → q**) has a **hypothesis** p and a **conclusion** q. Its truth table has one surprising rule: p → q is **false in only one case**: when p is **true** but q is **false**. In every other row it is **true**. That means whenever the hypothesis p is **false**, the whole statement is **true** automatically, no matter what q says. Such a statement is called **vacuously true** or **true by default**. For example, “If 0 = 1, then 1 = 2” is true simply because 0 = 1 is false.",
     },
     {
       heading: "If-then as an OR",
       body:
-        "A conditional can always be rewritten with **∨** and **~**. The key equivalence is **p → q ≡ ~p ∨ q**. In words: “if p then q” is the same as “**not p, or q**.” This is why “**Either you get to work on time or you are fired**” means the same as “**If** you do *not* get to work on time, **then** you are fired.” In order of operations, **→ is performed last** — after ~, ∧, and ∨ — so ~p ∨ q needs no parentheses to equal p → q.",
+        "A conditional can always be rewritten with **∨** and **~**. The key equivalence is **p → q ≡ ~p ∨ q**. In words: “if p then q” is the same as “**not p, or q**.” This is why “**Either you get to work on time or you are fired**” means the same as “**If** you do not get to work on time, **then** you are fired.” In order of operations, **→ is performed last**, after ~, ∧, and ∨, so ~p ∨ q needs no parentheses to equal p → q.",
     },
     {
       heading: "Negating a conditional",
       body:
-        "Because p → q is false **only when p is true and q is false**, its negation is exactly that one case: **~(p → q) ≡ p ∧ ~q**. So the negation of an if-then is **not** another if-then — it's an **and**. Example: the negation of “If my car is in the shop, then I can't get to class” is “My car **is** in the shop **and** I **can** get to class.” Drop the “if-then,” assert the hypothesis, and negate the conclusion.",
+        "Because p → q is false **only when p is true and q is false**, its negation is exactly that one case: **~(p → q) ≡ p ∧ ~q**. So the negation of an if-then is **not** another if-then; it's an **and**. Example: the negation of “If my car is in the shop, then I can't get to class” is “My car **is** in the shop **and** I **can** get to class.” Drop the “if-then,” assert the hypothesis, and negate the conclusion.",
     },
     {
       heading: "The contrapositive",
       body:
-        "The **contrapositive** of p → q is **~q → ~p** — flip the two parts *and* negate both. The fundamental fact: a conditional and its contrapositive are **logically equivalent**, **p → q ≡ ~q → ~p**. They're always true or false together, so proving one proves the other. Example: “If Howard can swim across the lake, then he can swim to the island” has contrapositive “If Howard **cannot** swim to the island, then he **cannot** swim across the lake.” This equivalence is one of the most useful tools in all of logic.",
+        "The **contrapositive** of p → q is **~q → ~p**: flip the two parts and negate both. The fundamental fact: a conditional and its contrapositive are **logically equivalent**, **p → q ≡ ~q → ~p**. They're always true or false together, so proving one proves the other. Example: “If Howard can swim across the lake, then he can swim to the island” has contrapositive “If Howard **cannot** swim to the island, then he **cannot** swim across the lake.” This equivalence is one of the most useful tools in all of logic.",
     },
     {
       heading: "Converse and inverse (the traps)",
       body:
-        "Two other rearrangements look similar but are **not** equivalent to p → q. The **converse** is **q → p** (swap only). The **inverse** is **~p → ~q** (negate only). Neither follows from the original — believing they do are the classic **converse error** and **inverse error**. Handy pairing: the converse and inverse are contrapositives *of each other*, so they're equivalent to **each other**, just not to the original. Only the **contrapositive** (~q → ~p) is equivalent to p → q.",
+        "Two other rearrangements look similar but are **not** equivalent to p → q. The **converse** is **q → p** (swap only). The **inverse** is **~p → ~q** (negate only). Neither follows from the original, and believing they do are the classic **converse error** and **inverse error**. Handy pairing: the converse and inverse are contrapositives of each other, so they're equivalent to **each other**, just not to the original. Only the **contrapositive** (~q → ~p) is equivalent to p → q.",
     },
     {
       heading: "Only if, necessary & sufficient",
       body:
-        "“**p only if q**” does **not** mean “if p then q” in the casual sense — it means **~q → ~p**, equivalently **p → q** (q is required for p). Example: “John breaks the record only if he runs it in under four minutes” = “If John does *not* run under four minutes, he does *not* break the record.” Related language: “q is a **necessary** condition for p” means **p → q**; “q is a **sufficient** condition for p” means **q → p**.",
+        "“**p only if q**” does **not** mean “if p then q” in the casual sense: it means **~q → ~p**, equivalently **p → q** (q is required for p). Example: “John breaks the record only if he runs it in under four minutes” = “If John does not run under four minutes, he does not break the record.” Related language: “q is a **necessary** condition for p” means **p → q**; “q is a **sufficient** condition for p” means **q → p**.",
     },
     {
       heading: "The biconditional",
       body:
-        "“**p if and only if q**” — the **biconditional**, written **p ↔ q** — asserts p and q have the **same truth value**: it's **true** exactly when p and q are **both true or both false**. It unpacks into a conjunction of two conditionals: **(p → q) ∧ (q → p)**. Example: “This program is correct **iff** it gives correct answers for all inputs” splits into “if correct then always-right, **and** if always-right then correct.”",
+        "“**p if and only if q**”, the **biconditional**, written **p ↔ q**, asserts p and q have the **same truth value**: it's **true** exactly when p and q are **both true or both false**. It unpacks into a conjunction of two conditionals: **(p → q) ∧ (q → p)**. Example: “This program is correct **iff** it gives correct answers for all inputs” splits into “if correct then always-right, **and** if always-right then correct.”",
       figure: {
         src: "/figures/discrete/biconditional-truth-table.png",
         alt: "Truth table for p if and only if q: true only when p and q agree.",
@@ -90,7 +90,7 @@ export default {
       choices: ["p ∧ q", "~p ∨ q", "p ∨ ~q", "q → p"],
       answer: 1,
       explanation:
-        "p → q ≡ ~p ∨ q — “if p then q” means “not p, or q.”",
+        "p → q ≡ ~p ∨ q, so “if p then q” means “not p, or q.”",
     },
     {
       prompt: "What is the negation of “If my car is in the shop, then I can't get to class”?",
@@ -102,14 +102,14 @@ export default {
       ],
       answer: 1,
       explanation:
-        "~(p → q) ≡ p ∧ ~q: assert the hypothesis and negate the conclusion — “car is in the shop AND I can get to class.”",
+        "~(p → q) ≡ p ∧ ~q: assert the hypothesis and negate the conclusion, giving “car is in the shop AND I can get to class.”",
     },
     {
       prompt: "The contrapositive of “If p then q” is…",
       choices: ["q → p", "~p → ~q", "~q → ~p", "p ∧ ~q"],
       answer: 2,
       explanation:
-        "The contrapositive is ~q → ~p — swap and negate both parts. It is logically equivalent to the original.",
+        "The contrapositive is ~q → ~p: swap and negate both parts. It is logically equivalent to the original.",
     },
     {
       prompt: "Which statement is logically EQUIVALENT to “If today is Easter, then tomorrow is Monday”?",
@@ -133,7 +133,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "The converse and inverse are contrapositives of one another, so they are logically equivalent to each other — but not to the original conditional.",
+        "The converse and inverse are contrapositives of one another, so they are logically equivalent to each other, but not to the original conditional.",
     },
     {
       prompt: "“John breaks the record only if he runs under four minutes.” This means:",
@@ -164,7 +164,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "p ↔ q is true when p and q are both true or both false — i.e., they match.",
+        "p ↔ q is true when p and q are both true or both false, meaning they match.",
     },
     {
       prompt: "“p if and only if q” is equivalent to which conjunction?",
@@ -176,7 +176,7 @@ export default {
       ],
       answer: 0,
       explanation:
-        "p ↔ q ≡ (p → q) ∧ (q → p) — the conditional and its converse together.",
+        "p ↔ q ≡ (p → q) ∧ (q → p): the conditional and its converse together.",
     },
     {
       prompt: "In the full order of operations, which connective is evaluated FIRST?",

@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import CodeBlock from "./CodeBlock";
+import Inline from "./Inline";
 
 /**
  * PromptBody — renders an item's `prompt`, splitting fenced code out of it.
@@ -47,7 +48,7 @@ export default function PromptBody({ prompt, style, codeStyle }) {
           <CodeBlock key={i} code={text} style={{ padding: 14, margin: "10px 0", ...codeStyle }} />
         ) : (
           <div key={i} style={{ whiteSpace: "pre-wrap", ...style }}>
-            {text}
+            <Inline text={text} />
           </div>
         );
       })}

@@ -16,17 +16,30 @@
 // Same split as Inline.jsx — the **bold** segments are the blanks to fill.
 export const BOLD_RE = /(\*\*[^*]+\*\*)/g;
 
-// Break a card body into tokens: plain text and fillable blanks.
-// Returns [{ type: "text" | "blank", value }]. For blanks, value is the
-// inner word(s) with the surrounding ** stripped.
+// Same split as Inline.jsx — `backtick` segments are inline code, never blanks.
+export const CODE_RE = /(`[^`]+`)/g;
+
+// Break a card body into tokens: plain text, inline code, and fillable blanks.
+// Returns [{ type: "text" | "code" | "blank", value }]. For blanks, value is the
+// inner word(s) with the surrounding ** stripped; for code, the ` stripped.
+//
+// Code is split off before bold so a `*` inside a snippet (int *ptr) can never
+// pair up with real emphasis and swallow half a sentence into a blank.
 export function parseBold(text) {
   return String(text)
-    .split(BOLD_RE)
+    .split(CODE_RE)
     .filter((p) => p !== "")
-    .map((p) =>
-      p.startsWith("**") && p.endsWith("**")
-        ? { type: "blank", value: p.slice(2, -2) }
-        : { type: "text", value: p }
+    .flatMap((seg) =>
+      seg.startsWith("`") && seg.endsWith("`") && seg.length > 1
+        ? [{ type: "code", value: seg.slice(1, -1) }]
+        : seg
+            .split(BOLD_RE)
+            .filter((p) => p !== "")
+            .map((p) =>
+              p.startsWith("**") && p.endsWith("**")
+                ? { type: "blank", value: p.slice(2, -2) }
+                : { type: "text", value: p }
+            )
     );
 }
 

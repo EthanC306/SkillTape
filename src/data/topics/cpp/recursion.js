@@ -5,7 +5,7 @@ import { FORMATS, ITEM_ORIGIN, makeItem } from "../../itemSchema.js";
 export default {
   id: "recursion",
   title: "Recursion",
-  subtitle: "c++ — base cases, activation records, factorial & Fibonacci",
+  subtitle: "c++ base cases, activation records, factorial & Fibonacci",
   course: "cpp",
   showChart: false,
   // examWeight (ROADMAP.md A0): default — not covered by the diagnostic quiz
@@ -15,23 +15,23 @@ export default {
     {
       heading: "Thinking recursively",
       body:
-        "Recursion is a technique that lets you break a **complex problem into simpler ones**. To use it you sometimes have to think recursively, which the deck introduces with a question: can you define an **ancestor**? The answer the deck gives is that an ancestor is a **parent** or one of their (parent's) **ancestors** — a definition that uses the very word it is defining.",
+        "Recursion is a technique that lets you break a **complex problem into simpler ones**. To use it you sometimes have to think recursively, which the deck introduces with a question: can you define an **ancestor**? The answer the deck gives is that an ancestor is a **parent** or one of their (parent's) **ancestors**, a definition that uses the very word it is defining.",
     },
     {
       heading: "Recursive definition",
       body:
-        "A recursive definition is one that defines something **in terms of itself**. It has a requirement: there must be a **base case** — the part of the definition that is **not recursive** and can be determined outright. In the ancestor definition, **parent** is the base case, and \"their ancestors\" is the **recursive part** of the definition.",
+        "A recursive definition is one that defines something **in terms of itself**. It has a requirement: there must be a **base case**: the part of the definition that is **not recursive** and can be determined outright. In the ancestor definition, **parent** is the base case, and \"their ancestors\" is the **recursive part** of the definition.",
     },
     {
       heading: "Recursive functions",
       body:
-        "A recursive function is a function that **calls itself**. In the deck's sketch, void abc(int x) does some work and then calls **abc(y)** from inside its own body. Before going further into recursive functions the deck stops to cover **activation records**, because they are what makes a self-call work at all.",
+        "A recursive function is a function that **calls itself**. In the deck's sketch, `void abc(int x)` does some work and then calls **abc(y)** from inside its own body. Before going further into recursive functions the deck stops to cover **activation records**, because they are what makes a self-call work at all.",
       code: "void abc(int x){\n    ….\n    ….\n    abc(y);\n}",
     },
     {
       heading: "Activation records and the run-time stack",
       body:
-        "Every time a function is called, an **Activation Record** (AR) is placed on top of the **run-time stack**. Recall that a stack is **LIFO** — Last In First Out. The AR is **popped off** the stack when the function is done, meaning fully executed. If main calls function1, function1 calls function2, and function2 calls function3, there will be **3** AR's stacked above main's.",
+        "Every time a function is called, an **Activation Record** (AR) is placed on top of the **run-time stack**. Recall that a stack is **LIFO**, Last In First Out. The AR is **popped off** the stack when the function is done, meaning fully executed. If `main` calls `function1`, `function1` calls `function2`, and `function2` calls `function3`, there will be **3** AR's stacked above `main`'s.",
     },
     {
       heading: "Factorial, spelled out",
@@ -46,33 +46,33 @@ export default {
     {
       heading: "Factorial, iterative and recursive",
       body:
-        "The iterative version carries a running **multiplier** initialized to 1 and a loop that counts i down from n while i is greater than 0. The recursive version has no loop at all: it tests **n == 0** and returns **1** for the base case, and otherwise returns n * factorial(n - 1) — the recursive rule transcribed almost character for character.",
+        "The iterative version carries a running **multiplier** initialized to 1 and a loop that counts i down from n while i is greater than 0. The recursive version has no loop at all: it tests **n == 0** and returns **1** for the base case, and otherwise returns n * `factorial(n - 1)`, the recursive rule transcribed almost character for character.",
       code:
         "double factorial(int n){ //Iterative\n    double muliplier = 1;\n    for (size_t i = n; i > 0; i--)\n    {\n        multiplier *= i;\n    }\n    return multiplier;\n}\n\ndouble factorial(int n){ //Recursive\n    if (n == 0) //Base case\n    {\n        return 1;\n    }\n    return  n * factorial(n - 1);\n}",
     },
     {
       heading: "Designing recursive functions",
       body:
-        "The deck gives a two-step recipe. First, determine the **base case(s)** — the cases where you know the answer **without recursion**. Second, determine the **rule**, where the problem is **reduced repeatedly** by recursively calling the function until the base cases are encountered. In factorial, n is reduced until it reaches **0**, and then you **backtrack** and substitute the answers back up.",
+        "The deck gives a two-step recipe. First, determine the **base case(s)**: the cases where you know the answer **without recursion**. Second, determine the **rule**, where the problem is **reduced repeatedly** by recursively calling the function until the base cases are encountered. In factorial, n is reduced until it reaches **0**, and then you **backtrack** and substitute the answers back up.",
     },
     {
       heading: "Printing an array backward",
       body:
-        "Iteratively you walk i down from numItems - 1 while i is at least 0. Recursively the **base case is to do nothing** when numItems is less than or equal to 0, so the whole body sits inside if (**numItems > 0**). It prints **numbers[numItems-1]**, the last item, then calls itself with **numItems - 1** to handle the rest.",
+        "Iteratively you walk i down from `numItems - 1` while i is at least 0. Recursively the **base case is to do nothing** when `numItems` is less than or equal to 0, so the whole body sits inside if (**numItems > 0**). It prints **numbers[numItems-1]**, the last item, then calls itself with **numItems - 1** to handle the rest.",
       code:
         "void revPrint(int numbers[], size_t numItems){ //Iterative\n    for (int i = numItems - 1; i >= 0; i--)\n    {\n        cout << setw(4) << numbers[i];\n    }\n}\n\nvoid revPrintRec(int numbers[], size_t numItems){ //Recursive\n    //base case do nothing when numItems is <= 0\n    if (numItems > 0)\n    {\n        cout << setw(4) << numbers[numItems-1];\n        revPrintRec(numbers, numItems - 1);\n    }\n}",
     },
     {
       heading: "Printing a linked list forward",
       body:
-        "The same pattern moves to a linked list, where the base case is to do nothing when **head == nullptr**. The iterative version loops while head is not nullptr, printing head->num and advancing head to **head->next**. The recursive version prints **head->num** first and then calls printListRec(**head->next**) to print the rest of the list.",
+        "The same pattern moves to a linked list, where the base case is to do nothing when **head == nullptr**. The iterative version loops while head is not `nullptr`, printing `head->num` and advancing head to **head->next**. The recursive version prints **head->num** first and then calls `printListRec`(**head->next**) to print the rest of the list.",
       code:
         "void printList(Node* head){ //Iterative\n    //base case: do nothing when head == nullptr\n    while (head != nullptr)\n    {   //print the first node data\n        cout << setw(4) << head->num;\n\n        //print the rest of the list\n        head = head->next;\n    }\n}\n\nvoid printListRec(Node* head){ //Recursive\n    if (head != nullptr)\n    {\n        cout << setw(4) << head->num;\n        printListRec(head->next);\n    }\n}",
     },
     {
       heading: "Printing the list backward",
       body:
-        "Printing the list in reverse needs no second pointer, no extra pass, and no reversal of the list — only a **swap of the two statements**. Put the **recursive call first** and the cout **after** it, and every node's own value prints on the way **back up** the stack, so the **deepest** node prints first. That is the one line of difference between forward and backward.",
+        "Printing the list in reverse needs no second pointer, no extra pass, and no reversal of the list, only a **swap of the two statements**. Put the **recursive call first** and the `cout` **after** it, and every node's own value prints on the way **back up** the stack, so the **deepest** node prints first. That is the one line of difference between forward and backward.",
       code:
         "void printListRec(Node* head){\n    if (head != nullptr)\n    {\n        printListRec(head->next);\n        cout << setw(4) << head->num;\n    }\n}",
     },
@@ -84,14 +84,14 @@ export default {
     {
       heading: "Fibonacci",
       body:
-        "The Fibonacci sequence is 1, 1, 2, 3, 5, 8, 13, 21, …: the first two numbers are **1 and 1**, and every number after that is the **sum of the previous two**. The recursive version encodes that directly — its base cases are **n == 1 || n == 2** returning 1, and otherwise it returns fibRec(n - 1) + fibRec(n - 2). Note it has **two** base cases and **two** recursive calls.",
+        "The Fibonacci sequence is 1, 1, 2, 3, 5, 8, 13, 21, …: the first two numbers are **1 and 1**, and every number after that is the **sum of the previous two**. The recursive version encodes that directly: its base cases are **n == 1 || n == 2** returning 1, and otherwise it returns `fibRec(n - 1) + fibRec(n - 2)`. Note it has **two** base cases and **two** recursive calls.",
       code:
         "double fibRec(int n){\n    if (n == 1 || n == 2) //base cases\n    {\n        return 1;\n    }\n    return fibRec(n - 1) + fibRec(n - 2);\n}",
     },
     {
       heading: "Why naive Fibonacci is slow",
       body:
-        "Draw the call tree for fib(6) and the problem shows up immediately: the **same values**, fib(2) for example, are computed **over and over**. That happens because each recursive call generates **2 more calls**, so the number of calls grows with the **depth** of the tree rather than with n. This is the deck's example of a recursive function that is simple to write and expensive to run.",
+        "Draw the call tree for `fib(6)` and the problem shows up immediately: the **same values**, `fib(2)` for example, are computed **over and over**. That happens because each recursive call generates **2 more calls**, so the number of calls grows with the **depth** of the tree rather than with n. This is the deck's example of a recursive function that is simple to write and expensive to run.",
     },
   ],
   questions: [
@@ -132,11 +132,11 @@ export default {
         "The run-time stack is LIFO, so each call pushes an Activation Record on top and that record is popped when the call finishes.",
     },
     {
-      prompt: "main calls function1, function1 calls function2, and function2 calls function3. How many activation records sit above main's on the run-time stack?",
+      prompt: "`main` calls `function1`, `function1` calls `function2`, and `function2` calls `function3`. How many activation records sit above `main`'s on the run-time stack?",
       choices: ["1", "4", "0", "3"],
       answer: 3,
       explanation:
-        "Each of the three nested calls pushed its own AR, so function1's, function2's, and function3's records are stacked above main's.",
+        "Each of the three nested calls pushed its own AR, so `function1`'s, `function2`'s, and `function3`'s records are stacked above `main`'s.",
     },
     {
       prompt: "Which pair is the base case and the recursive rule for factorial?",
@@ -182,16 +182,16 @@ export default {
         "void revPrintRec(int numbers[], size_t numItems){\n    //base case do nothing when numItems is <= 0\n    if (numItems > 0)\n    {\n        cout << setw(4) << numbers[numItems-1];\n        revPrintRec(numbers, numItems - 1);\n    }\n}",
       choices: [
         "numItems == 1, handled by printing numbers[0]",
-        "There is no base case — the function simply relies on reaching the array's end",
+        "There is no base case; the function simply relies on reaching the array's end",
         "numItems <= 0, handled by doing nothing",
         "numItems > 0, handled by the body of the if",
       ],
       answer: 2,
       explanation:
-        "Guarding the whole body with if (numItems > 0) means the numItems <= 0 case falls straight through and returns, which is the \"do nothing\" base case.",
+        "Guarding the whole body with if (`numItems > 0`) means the `numItems <= 0` case falls straight through and returns, which is the \"do nothing\" base case.",
     },
     {
-      prompt: "Given numbers = {10, 20, 30} and numItems = 3, what does revPrintRec print?",
+      prompt: "Given numbers = {10, 20, 30} and `numItems` = 3, what does `revPrintRec` print?",
       code:
         "void revPrintRec(int numbers[], size_t numItems){\n    if (numItems > 0)\n    {\n        cout << setw(4) << numbers[numItems-1];\n        revPrintRec(numbers, numItems - 1);\n    }\n}",
       choices: [
@@ -242,10 +242,10 @@ export default {
       ],
       answer: 2,
       explanation:
-        "The guard tests n == 1 || n == 2, so there are two base cases, and the return line calls fibRec twice — once with n - 1 and once with n - 2.",
+        "The guard tests `n == 1 || n == 2`, so there are two base cases, and the return line calls `fibRec` twice, once with n - 1 and once with n - 2.",
     },
     {
-      prompt: "Looking at the call tree for fib(6), what is the problem with the naive recursive Fibonacci?",
+      prompt: "Looking at the call tree for `fib(6)`, what is the problem with the naive recursive Fibonacci?",
       choices: [
         "It recomputes the same values repeatedly, each call spawning two more",
         "It never reaches a base case for even values of n",
@@ -272,7 +272,7 @@ export default {
   flashcards: [
     {
       front: "Recursive definition",
-      back: "Defining something in terms of itself. Requires a base case — the part of the definition that is not recursive and can be determined.",
+      back: "Defining something in terms of itself. Requires a base case: the part of the definition that is not recursive and can be determined.",
     },
     {
       front: "Ancestor (the deck's example)",
@@ -288,7 +288,7 @@ export default {
     },
     {
       front: "Run-time stack",
-      back: "A LIFO (Last In First Out) stack of activation records. main calls function1 calls function2 calls function3 leaves 3 AR's above main's.",
+      back: "A LIFO (Last In First Out) stack of activation records. `main` calls `function1` calls `function2` calls `function3` leaves 3 AR's above `main`'s.",
     },
     {
       front: "Factorial base case",
@@ -299,36 +299,36 @@ export default {
       back: "n! = n * (n-1)!",
     },
     {
-      front: "Designing a recursive function — the two steps",
+      front: "Designing a recursive function: the two steps",
       back: "1. Determine the base case(s): cases where the answer is known without recursion. 2. Determine the rule that reduces the problem repeatedly until a base case is encountered.",
     },
     {
       front: "Base case for printing an array backward",
-      back: "Do nothing when numItems <= 0 — the body sits inside if (numItems > 0), so the function just returns.",
+      back: "Do nothing when `numItems <= 0`. The body sits inside `if (numItems > 0)`, so the function just returns.",
     },
     {
       front: "Base case for printing a linked list",
-      back: "Do nothing when head == nullptr.",
+      back: "Do nothing when `head == nullptr`.",
     },
     {
       front: "Forward vs backward list printing, recursively",
-      back: "Forward: cout << head->num; then printListRec(head->next). Backward: printListRec(head->next); then cout << head->num.",
+      back: "Forward: `cout` << `head->num`; then `printListRec(head->next)`. Backward: `printListRec(head->next)`; then `cout` << `head->num`.",
     },
     {
       front: "Cost of recursion",
-      back: "Simpler solution and fewer lines of code, but it may perform poorly and uses more memory than iteration — each call requires a separate AR. Tail recursion optimization can help.",
+      back: "Simpler solution and fewer lines of code, but it may perform poorly and uses more memory than iteration, since each call requires a separate AR. Tail recursion optimization can help.",
     },
     {
       front: "Fibonacci sequence",
       back: "1, 1, 2, 3, 5, 8, 13, 21, … The first two numbers are 1 and 1; every number after that is the sum of the previous two.",
     },
     {
-      front: "fibRec base cases",
-      back: "n == 1 || n == 2 return 1; otherwise return fibRec(n - 1) + fibRec(n - 2).",
+      front: "`fibRec` base cases",
+      back: "`n == 1 || n == 2` return 1; otherwise return `fibRec(n - 1) + fibRec(n - 2)`.",
     },
     {
       front: "Why the fib call tree is wasteful",
-      back: "The same values, for example fib(2), are computed over and over, and each recursive call generates 2 more calls.",
+      back: "The same values, for example `fib(2)`, are computed over and over, and each recursive call generates 2 more calls.",
     },
   ],
   items: [
@@ -339,10 +339,10 @@ export default {
       origin: ITEM_ORIGIN.GENERATED,
       prompt: "What is a recursive definition, and what does every recursive definition require?",
       expected:
-        "A recursive definition defines something in terms of itself. Requirement: a base case — the part of the definition that is not recursive and can be determined. In the ancestor definition (\"an ancestor is a parent or one of their (parent's) ancestors\"), parent is the base case and \"their ancestors\" is the recursive part of the definition.",
+        "A recursive definition defines something in terms of itself. Requirement: a base case, the part of the definition that is not recursive and can be determined. In the ancestor definition (\"an ancestor is a parent or one of their (parent's) ancestors\"), parent is the base case and \"their ancestors\" is the recursive part of the definition.",
       criteria: [
         "States that a recursive definition defines something in terms of itself",
-        "States the requirement of a base case — the non-recursive part that can be determined",
+        "States the requirement of a base case: the non-recursive part that can be determined",
         "Identifies parent as the base case of the ancestor definition",
       ],
       provenance: {
@@ -368,7 +368,7 @@ export default {
       origin: ITEM_ORIGIN.GENERATED,
       prompt: "What is an Activation Record, when is it pushed, and when is it popped?",
       expected:
-        "Every time a function is called, an Activation Record (AR) is placed on top of the run-time stack. The run-time stack is a LIFO (Last In First Out) structure. The AR is popped off the stack when the function is done — fully executed. If main calls function1, function1 calls function2, and function2 calls function3, there will be 3 AR's on top of the stack above main's.",
+        "Every time a function is called, an Activation Record (AR) is placed on top of the run-time stack. The run-time stack is a LIFO (Last In First Out) structure. The AR is popped off the stack when the function is done, meaning fully executed. If main calls function1, function1 calls function2, and function2 calls function3, there will be 3 AR's on top of the stack above main's.",
       criteria: [
         "States an AR is pushed on top of the run-time stack on every function call",
         "States the stack is LIFO (Last In First Out)",
@@ -397,7 +397,7 @@ export default {
       origin: ITEM_ORIGIN.GENERATED,
       prompt: "State the two steps for designing a recursive function.",
       expected:
-        "1. Determine the base case(s) — cases where we know the answer without recursion. 2. Determine the rule, where the problem is reduced repeatedly by recursively calling the function until the base cases are encountered. In the factorial definition, the factorial of n is reduced until it reaches 0 (base case); we then backtrack and substitute the answers.",
+        "1. Determine the base case(s): cases where we know the answer without recursion. 2. Determine the rule, where the problem is reduced repeatedly by recursively calling the function until the base cases are encountered. In the factorial definition, the factorial of n is reduced until it reaches 0 (base case); we then backtrack and substitute the answers.",
       criteria: [
         "Step 1: determine the base case(s), where the answer is known without recursion",
         "Step 2: determine the rule that reduces the problem repeatedly until a base case is encountered",
@@ -456,7 +456,7 @@ export default {
       expected:
         "void revPrintRec(int numbers[], size_t numItems){\n    //base case do nothing when numItems is <= 0\n    if (numItems > 0)\n    {\n        cout << setw(4) << numbers[numItems-1];\n        revPrintRec(numbers, numItems - 1);\n    }\n}",
       criteria: [
-        "Base case does nothing when numItems <= 0 — the body is guarded by if (numItems > 0)",
+        "Base case does nothing when numItems <= 0, since the body is guarded by if (numItems > 0)",
         "Prints numbers[numItems-1] before recursing",
         "Recurses with numItems - 1",
       ],
@@ -545,7 +545,7 @@ export default {
       origin: ITEM_ORIGIN.GENERATED,
       prompt: "A list holds 3, 7, 9 in that order, head pointing at 3. What does this print, and why?\n```\nvoid printListRec(Node* head){\n    if (head != nullptr)\n    {\n        printListRec(head->next);\n        cout << setw(4) << head->num;\n    }\n}\n```",
       expected:
-        "It prints 9 7 3 — the list backward. Because the recursive call comes before the cout, each call drives all the way to head == nullptr before anything is printed; the printing then happens as the activation records pop, so the last node prints first and the head node prints last.",
+        "It prints 9 7 3, the list backward. Because the recursive call comes before the cout, each call drives all the way to head == nullptr before anything is printed; the printing then happens as the activation records pop, so the last node prints first and the head node prints last.",
       criteria: [
         "Output is 9 7 3 (the list in reverse)",
         "Explains that the recursive call runs before the cout, so printing happens as the calls return/unwind",
@@ -573,10 +573,10 @@ export default {
       origin: ITEM_ORIGIN.GENERATED,
       prompt: "This is meant to be the deck's recursive factorial. What is wrong with it, and which requirement of a recursive definition does it violate?\n```\ndouble factorial(int n){\n    return  n * factorial(n - 1);\n}\n```",
       expected:
-        "The base case is missing. A recursive definition requires a base case — the part of the definition that is not recursive and can be determined — and here nothing ever stops the reduction, so factorial keeps calling itself with smaller and smaller n. Since every call places an activation record on the run-time stack and none of them ever finish, the stack keeps growing instead of unwinding. The fix is the deck's guard: if (n == 0) return 1; before the recursive return.",
+        "The base case is missing. A recursive definition requires a base case, the part of the definition that is not recursive and can be determined, and here nothing ever stops the reduction, so factorial keeps calling itself with smaller and smaller n. Since every call places an activation record on the run-time stack and none of them ever finish, the stack keeps growing instead of unwinding. The fix is the deck's guard: if (n == 0) return 1; before the recursive return.",
       criteria: [
         "Identifies the missing base case",
-        "Names the base case requirement — the non-recursive part that can be determined — as what is violated",
+        "Names the base case requirement, the non-recursive part that can be determined, as what is violated",
         "States the fix: if (n == 0) return 1;",
       ],
       provenance: {
@@ -629,7 +629,7 @@ export default {
       origin: ITEM_ORIGIN.GENERATED,
       prompt: "Compare the recursive and iterative versions of the same algorithm: what does recursion buy, and what does it cost?",
       expected:
-        "Recursion leads to a simpler solution and fewer lines of code — revPrintRec and printListRec replace their loops with a single guarded self-call. The cost: recursive functions may perform poorly, and they use more memory than iterative functions, because each call requires a separate activation record on the run-time stack, where a loop reuses one. Tail recursion optimization can reclaim some of that.",
+        "Recursion leads to a simpler solution and fewer lines of code: revPrintRec and printListRec replace their loops with a single guarded self-call. The cost: recursive functions may perform poorly, and they use more memory than iterative functions, because each call requires a separate activation record on the run-time stack, where a loop reuses one. Tail recursion optimization can reclaim some of that.",
       criteria: [
         "Benefit: simpler solution and fewer lines of code",
         "Cost: may perform poorly and uses more memory, because each call requires a separate AR",
@@ -657,9 +657,9 @@ export default {
       topicId: "recursion",
       format: FORMATS.COMPLEXITY,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "From the fib(6) call tree, explain why the naive recursive Fibonacci behaves so differently from recursive factorial. Justify your answer with the branching structure.",
+      prompt: "From the `fib(6)` call tree, explain why the naive recursive Fibonacci behaves so differently from recursive factorial. Justify your answer with the branching structure.",
       expected:
-        "Recursive factorial makes one recursive call per level and reduces n by 1 each time, so it produces a single chain of n calls. fibRec makes two calls per level — each recursive call generates 2 more calls — so the calls form a branching tree rather than a chain, and the same values (fib(2), for example) are computed over and over across different branches. That repeated recomputation, not the arithmetic, is what makes the naive version expensive.",
+        "Recursive factorial makes one recursive call per level and reduces n by 1 each time, so it produces a single chain of n calls. fibRec makes two calls per level, since each recursive call generates 2 more calls, so the calls form a branching tree rather than a chain, and the same values (fib(2), for example) are computed over and over across different branches. That repeated recomputation, not the arithmetic, is what makes the naive version expensive.",
       criteria: [
         "States factorial makes one recursive call per level (a chain) while fibRec makes two (a branching tree)",
         "States each recursive call generates 2 more calls",
@@ -710,7 +710,7 @@ export default {
       topicId: "recursion",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "main calls function1, function1 calls function2, and function2 calls function3. How many activation records sit above main's on the run-time stack?",
+      prompt: "`main` calls `function1`, `function1` calls `function2`, and `function2` calls `function3`. How many activation records sit above `main`'s on the run-time stack?",
       choices: ["1", "4", "0", "3"],
       answerIndex: 3,
       expected: "3",

@@ -39,7 +39,7 @@ export default {
 ### 2.1 Field notes
 
 - **`id`** — stable forever. It's the primary key of `topics` in the database (`server/schema.sql`) and keys every quiz attempt row, so renaming it silently orphans that topic's history. Pick it once. C++ topics use a plain slug (`linked-lists`); discrete topics use a numbered slug matching the textbook section (`discrete-2-4-circuits`).
-- **`subtitle`** — course code plus a short scope line. C++ style: `"c++ — destructors, copy constructors & operator="`. Discrete style: `"CS3000 — §2.4"`.
+- **`subtitle`** — course code plus a short scope line. C++ style: `"c++ destructors, copy constructors & operator="`. Discrete style: `"CS3000 §2.4"`.
 - **`showChart`** — `true` renders the Big-O `ComplexityChart` and `ReferenceTable` in Learn and Quiz. These visuals are Big-O specific. **Only `bigo.js` sets this true.** Everything else sets it `false` explicitly — don't omit the field.
 
 ### 2.2 File header comment
@@ -75,7 +75,8 @@ Name the source precisely enough that a future reader can re-open it: textbook +
 - **One idea per card**, 2–5 sentences. Current bank runs 6–11 cards per topic.
 - **`heading`** is a short noun phrase, not a question: "The copy problem", "Simplifying with logic laws".
 - **Write prose, not bullets.** `body` is a single string rendered as a paragraph. There is no list support.
-- **Inline code is bare**, not fenced or backticked: `str = new char[1000];` sits directly in the sentence. Backticks are stripped by the fill-mode normalizer anyway.
+- **Inline code goes in backticks**: ``` `str = new char[1000];` ``` sits in the sentence and renders through `CodeSpan`, which colors it with the same C++ tokenizer `CodeBlock` uses for full listings. Wrap anything a compiler would read — statements, expressions, declarations, function names, keywords, header names, literals like ``` `'\0'` ```. Leave ordinary English alone: `new` in "allocates new memory" is a word, not the operator.
+- **No em dashes in card or question text.** The source decks don't use them, and the bank reads closer to its sources without them. A colon, a comma, parentheses, or a second sentence covers every case one would.
 - Keep the author's voice — plain, direct, second person where natural ("you don't have to remember to delete anything by hand").
 
 ### 3.2 What to bold
@@ -85,6 +86,9 @@ Name the source precisely enough that a future reader can re-open it: textbook +
 - Bold: `**destructor**`, `**O(n²)**`, `**const reference**`, `**2ⁿ**`, `**tilde (~) followed by the class name**`.
 - Don't bold: connective words, whole clauses you'd never type from memory, or anything you wouldn't want to be asked for on a blank line.
 - Roughly 3–6 blanks per card. A card that's half-bold becomes unfillable noise.
+- **Never nest backticks inside bold.** `Inline` splits code spans out before bold, so a `` **`token`** `` leaves its asterisks pairing with the wrong neighbours and they show up on screen. Pick one: bold if the term is worth recalling from memory, backticks otherwise.
+- A bold run may not contain a `*`. `BOLD_RE` is `/\*\*[^*]+\*\*/`, so `**int *p**` never matches and renders its asterisks literally. Backtick the code instead.
+- There is no italic syntax. A `*word*` reaches the screen with its asterisks showing.
 
 ### 3.3 `accept` — extra answers
 
@@ -154,11 +158,11 @@ Wrong choices must be *plausible and wrong*, not filler. Good distractors are th
 
 ```js
 flashcards: [
-  { front: "O(1)", back: "Constant time — random access of an element in an array; inserting at the beginning of a linked list." },
+  { front: "O(1)", back: "Constant time: random access of an element in an array, or inserting at the beginning of a linked list." },
 ]
 ```
 
-`front` is the prompt, `back` is the reveal — name plus classic examples. Both are **plain strings; no `**bold**` markup**, it won't render. When present, a "Flashcards" button appears next to Learn/Quiz. Currently only `bigo.js` has a deck.
+`front` is the prompt, `back` is the reveal — name plus classic examples. Both render through `Inline`, so `` `code` `` and `**bold**` work the same as on a Learn card; iterator decks lean on the backticks heavily. When present, a "Flashcards" button appears next to Learn/Quiz. Currently only `bigo.js` has a deck.
 
 ---
 

@@ -180,7 +180,7 @@ export default function LearnView({ topic, editMode, onSave, saveState }) {
             ) : (
               <>
                 <div style={{ fontFamily: HEADING, fontSize: 16, fontWeight: 500, marginBottom: 12, color: PALETTE.accent, letterSpacing: 0.2 }}>
-                  {c.heading}
+                  <Inline text={c.heading} />
                 </div>
                 {c.body && (
                   <div style={{ fontSize: 15, lineHeight: 1.8, letterSpacing: 0.2, color: PALETTE.text, marginBottom: c.code ? 16 : 0 }}>

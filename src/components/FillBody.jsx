@@ -1,6 +1,7 @@
 import React from "react";
 import { PALETTE, MONO, RADII } from "../data/theme";
 import { parseBold, isCorrect } from "../utils/fill";
+import CodeSpan from "./CodeSpan";
 
 // Renders a card body with every **bold** term replaced by a fillable input.
 // Grading is live once `checked` is true: each box recomputes correct/wrong
@@ -15,6 +16,10 @@ export default function FillBody({ body, cardIndex, inputs, checked, accept, onC
       {tokens.map((tok, i) => {
         if (tok.type === "text") {
           return <React.Fragment key={i}>{tok.value}</React.Fragment>;
+        }
+        // Inline code is context, not something to recall — show it as-is.
+        if (tok.type === "code") {
+          return <CodeSpan key={i} code={tok.value} />;
         }
 
         blankIndex += 1;

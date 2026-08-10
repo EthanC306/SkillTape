@@ -5,24 +5,24 @@
 export default {
   id: "discrete-1-4-graphs",
   title: "1.4 The Language of Graphs",
-  subtitle: "CS3000 — §1.4",
+  subtitle: "CS3000 §1.4",
   course: "discrete",
   showChart: false,
   cards: [
     {
       heading: "What a graph is",
       body:
-        "A **graph** is a picture of connections: a set of **vertices** (the dots) joined by a set of **edges** (the line segments). Each edge links a vertex either to another vertex or back to itself; the lines may be straight or curved, and it's fine for two of them to **cross** at a point that is not a vertex. Careful — this is a completely different idea from the “**graph of an equation**” you plot on axes. Here a graph is just dots-and-lines, used to model *which things are connected to which*.",
+        "A **graph** is a picture of connections: a set of **vertices** (the dots) joined by a set of **edges** (the line segments). Each edge links a vertex either to another vertex or back to itself; the lines may be straight or curved, and it's fine for two of them to **cross** at a point that is not a vertex. Careful: this is a completely different idea from the “**graph of an equation**” you plot on axes. Here a graph is just dots-and-lines, used to model which things are connected to which.",
       figure: {
         src: "/figures/discrete/graph-terminology.png",
         alt: "A graph whose features are labeled: parallel edges e2 and e3, a loop e5 at vertex v4, and an isolated vertex v5.",
-        caption: "Vertices and edges — with a loop, parallel edges, and an isolated vertex called out",
+        caption: "Vertices and edges, with a loop, parallel edges, and an isolated vertex called out",
       },
     },
     {
       heading: "How a graph is specified",
       body:
-        "To pin a graph down exactly, you give three things: the **vertex set** (all the dots), the **edge set** (all the edges), and an **edge-endpoint function** that says, for each edge, **which vertex or vertices it connects**. The endpoints are written as a set: an ordinary edge joining v₁ and v₂ has endpoint set {v₁, v₂}. Because the drawing itself doesn't matter — only *what connects to what* — the **same graph can be drawn many different ways**, and two very different-looking pictures can represent the identical graph.",
+        "To pin a graph down exactly, you give three things: the **vertex set** (all the dots), the **edge set** (all the edges), and an **edge-endpoint function** that says, for each edge, **which vertex or vertices it connects**. The endpoints are written as a set: an ordinary edge joining v₁ and v₂ has endpoint set {v₁, v₂}. Because the drawing itself doesn't matter, only what connects to what, the **same graph can be drawn many different ways**, and two very different-looking pictures can represent the identical graph.",
       figure: {
         src: "/figures/discrete/graph-example.png",
         alt: "A graph with vertices v1 through v6 and edges e1 through e7, including parallel edges, two loops, and an isolated vertex.",
@@ -32,22 +32,22 @@ export default {
     {
       heading: "Loops, parallel edges, isolated vertices",
       body:
-        "Three special features get their own names. A **loop** is an edge that joins a vertex **to itself**. Two edges are **parallel** when they connect the **same pair** of vertices — two different roads between the same two towns. And a vertex with **no edge at all** touching it is **isolated**. A graph is allowed to have any mix of these; none of them is illegal. Spotting them quickly is the first skill in reading a graph.",
+        "Three special features get their own names. A **loop** is an edge that joins a vertex **to itself**. Two edges are **parallel** when they connect the **same pair** of vertices, like two different roads between the same two towns. And a vertex with **no edge at all** touching it is **isolated**. A graph is allowed to have any mix of these; none of them is illegal. Spotting them quickly is the first skill in reading a graph.",
     },
     {
       heading: "Incidence and adjacency",
       body:
-        "Two relationship words tie it all together. An edge is **incident on** each of its endpoints — so edge e with endpoints {v₁, v₂} is incident on v₁ and on v₂. Two **vertices** that are joined by an edge are **adjacent**. Two **edges** that share a common endpoint are adjacent to each other. And a vertex joined to itself by a loop counts as **adjacent to itself**. These terms are how you'll describe graphs precisely instead of pointing at the picture.",
+        "Two relationship words tie it all together. An edge is **incident on** each of its endpoints, so edge e with endpoints {v₁, v₂} is incident on v₁ and on v₂. Two **vertices** that are joined by an edge are **adjacent**. Two **edges** that share a common endpoint are adjacent to each other. And a vertex joined to itself by a loop counts as **adjacent to itself**. These terms are how you'll describe graphs precisely instead of pointing at the picture.",
     },
     {
       heading: "Directed graphs (digraphs)",
       body:
-        "In a **directed graph**, or **digraph**, every edge carries a **direction**: it's associated with an **ordered pair** (v, w) rather than an unordered set, and is drawn as an **arrow** going *from* v *to* w. Order now matters — an arrow from v to w is not the same as one from w to v, exactly like the ordered pairs from §1.2. Digraphs model one-way relationships: one-way streets, “follows” on social media, or the “is-a” links below.",
+        "In a **directed graph**, or **digraph**, every edge carries a **direction**: it's associated with an **ordered pair** (v, w) rather than an unordered set, and is drawn as an **arrow** going from v to w. Order now matters: an arrow from v to w is not the same as one from w to v, exactly like the ordered pairs from §1.2. Digraphs model one-way relationships: one-way streets, “follows” on social media, or the “is-a” links below.",
     },
     {
       heading: "Graphs as models: networks",
       body:
-        "Graphs shine at modeling **networks**. Telephone lines, power grids, gas pipelines, airline routes, and computer networks up to the whole **Internet** are all naturally drawn as graphs — vertices for the hubs, edges for the connections. A common design is the **hub-and-spoke** model, where many local vertices feed into a few central hubs. Framing a system as a graph turns real questions (minimize cost, keep everything connected) into graph questions you can actually solve.",
+        "Graphs shine at modeling **networks**. Telephone lines, power grids, gas pipelines, airline routes, and computer networks up to the whole **Internet** are all naturally drawn as graphs, with vertices for the hubs and edges for the connections. A common design is the **hub-and-spoke** model, where many local vertices feed into a few central hubs. Framing a system as a graph turns real questions (minimize cost, keep everything connected) into graph questions you can actually solve.",
       figure: {
         src: "/figures/discrete/network-graph.png",
         alt: "An airline-style hub-and-spoke network graph connecting cities such as San Francisco, Denver, Chicago, New York, and Boston.",
@@ -57,17 +57,17 @@ export default {
     {
       heading: "Graphs as models: knowledge",
       body:
-        "A **directed graph** can also store **knowledge**. Vertices are concepts; labeled arrows record facts like “**is-a**” and “**instance-of**.” The payoff is **inference**: a program can chase arrows to derive facts nobody typed in. If “*New York Times* → big-city daily” (instance-of), “big-city daily → newspaper” (is-a), and “newspaper → matte” (paper-finish), then following the chain lets you conclude the *New York Times* uses a **matte** finish — new knowledge built from stored links.",
+        "A **directed graph** can also store **knowledge**. Vertices are concepts; labeled arrows record facts like “**is-a**” and “**instance-of**.” The payoff is **inference**: a program can chase arrows to derive facts nobody typed in. If “New York Times → big-city daily” (instance-of), “big-city daily → newspaper” (is-a), and “newspaper → matte” (paper-finish), then following the chain lets you conclude the New York Times uses a **matte** finish: new knowledge built from stored links.",
       figure: {
         src: "/figures/discrete/knowledge-graph.png",
         alt: "A directed graph knowledge base about periodicals, with is-a, instance-of, contains, and paper-finish arrows linking concepts like Newspaper, Big-city daily, and Matte.",
-        caption: "Figure 1.4.2 — a knowledge base as a directed graph",
+        caption: "Figure 1.4.2: a knowledge base as a directed graph",
       },
     },
     {
       heading: "Degree of a vertex",
       body:
-        "The **degree** of a vertex is the **number of edge-ends** meeting at it — count every edge touching the vertex. An **isolated** vertex has degree **0**. The one trap: a **loop adds 2** to a vertex's degree, because *both* of its ends attach there. So a vertex with two ordinary edges plus one loop has degree 2 + 2 = **4**. (A neat consequence: adding up the degrees of all vertices always gives an even number — twice the number of edges.)",
+        "The **degree** of a vertex is the **number of edge-ends** meeting at it, so count every edge touching the vertex. An **isolated** vertex has degree **0**. The one trap: a **loop adds 2** to a vertex's degree, because both of its ends attach there. So a vertex with two ordinary edges plus one loop has degree 2 + 2 = **4**. (A neat consequence: adding up the degrees of all vertices always gives an even number, twice the number of edges.)",
       figure: {
         src: "/figures/discrete/graph-degree.png",
         alt: "A graph with an isolated vertex v1, a vertex v2 of degree 2, and a vertex v3 with two edges plus a loop giving degree 4.",
@@ -77,11 +77,11 @@ export default {
     {
       heading: "Application: coloring a map",
       body:
-        "Here's graph modeling in action. To color a map so **no two adjacent countries share a color**, notice that only *adjacency* matters — not sizes or shapes. So build a graph: one **vertex per country**, an **edge between vertices whose countries touch**. Coloring the map now means **coloring the vertices** so adjacent vertices differ. A good strategy is to keep coloring the **uncolored vertex of highest degree** first. This is the famous graph-coloring problem — the same idea used to schedule exams or assign radio frequencies.",
+        "Here's graph modeling in action. To color a map so **no two adjacent countries share a color**, notice that only adjacency matters, not sizes or shapes. So build a graph: one **vertex per country**, an **edge between vertices whose countries touch**. Coloring the map now means **coloring the vertices** so adjacent vertices differ. A good strategy is to keep coloring the **uncolored vertex of highest degree** first. This is the famous graph-coloring problem, the same idea used to schedule exams or assign radio frequencies.",
       figure: {
         src: "/figures/discrete/map-coloring.png",
         alt: "A map divided into regions labeled A through J, to be colored so no two adjacent regions share a color.",
-        caption: "Figure 1.4.3 — a map A–J, modeled as a graph to color",
+        caption: "Figure 1.4.3: a map A–J, modeled as a graph to color",
       },
     },
   ],
@@ -108,7 +108,7 @@ export default {
       ],
       answer: 0,
       explanation:
-        "A loop is an edge whose two endpoints are the same vertex — it joins that vertex to itself.",
+        "A loop is an edge whose two endpoints are the same vertex, joining that vertex to itself.",
     },
     {
       prompt: "Two edges that connect the very same pair of vertices are called…",
@@ -175,7 +175,7 @@ export default {
       choices: ["Glossy", "Matte", "It cannot be determined", "Both"],
       answer: 1,
       explanation:
-        "Following the arrows, the New York Times is a big-city daily, which is a newspaper, whose paper-finish is matte — so the finish is matte. This is inference along a directed graph.",
+        "Following the arrows, the New York Times is a big-city daily, which is a newspaper, whose paper-finish is matte, so the finish is matte. This is inference along a directed graph.",
     },
     {
       prompt:
@@ -201,7 +201,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "A graph is determined by its vertices, edges, and endpoints — not by how it's drawn. Same three pieces ⇒ same graph, regardless of the picture.",
+        "A graph is determined by its vertices, edges, and endpoints, not by how it's drawn. Same three pieces ⇒ same graph, regardless of the picture.",
     },
     {
       prompt:
@@ -214,7 +214,7 @@ export default {
       ],
       answer: 0,
       explanation:
-        "Focusing on the uncolored vertex of maximum degree — the one connected to the most others — is an efficient heuristic for graph coloring.",
+        "Focusing on the uncolored vertex of maximum degree, the one connected to the most others, is an efficient heuristic for graph coloring.",
     },
   ],
 };

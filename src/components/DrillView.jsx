@@ -3,6 +3,7 @@ import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 import { FORMATS } from "../data/itemSchema";
 import { getDrillQueue, postDrillAttempt, getDrillExport, postDrillImport } from "../api/client";
 import PromptBody from "./PromptBody";
+import Inline from "./Inline";
 
 /**
  * DrillView — closed-book recall practice (ROADMAP.md A4).
@@ -430,7 +431,7 @@ export default function DrillView({ course, onExit }) {
             {item.criteria?.length > 0 && (
               <ul style={{ margin: "0 0 12px", padding: "0 0 0 20px", fontSize: 13, color: PALETTE.muted, lineHeight: 1.8 }}>
                 {item.criteria.map((c, i) => (
-                  <li key={i}>{c}</li>
+                  <li key={i}><Inline text={c} /></li>
                 ))}
               </ul>
             )}

@@ -14,42 +14,42 @@ export default {
     {
       heading: "Why classes need destructors",
       body:
-        "When an object with dynamically allocated memory **goes out of scope**, that memory doesn't free itself. Classes automate the cleanup with a **destructor** — a member function C++ calls **automatically** whenever the object is destroyed, so you don't have to remember to delete anything by hand.",
+        "When an object with dynamically allocated memory **goes out of scope**, that memory doesn't free itself. Classes automate the cleanup with a **destructor**: a member function C++ calls **automatically** whenever the object is destroyed, so you don't have to remember to delete anything by hand.",
     },
     {
       heading: "Writing a destructor",
       body:
-        "A destructor's name is a **tilde (~) followed by the class name** — ~MyString(). It takes **no parameters and returns no value**, and a class can have **only one**. Its body usually just calls delete (or delete[]) on whatever the class allocated with new.",
+        "A destructor's name is a **tilde (~) followed by the class name**, as in `~MyString()`. It takes **no parameters and returns no value**, and a class can have **only one**. Its body usually just calls delete (or `delete[]`) on whatever the class allocated with new.",
     },
     {
-      heading: "The MyString example",
+      heading: "The `MyString` example",
       body:
-        "MyString wraps a **dynamically allocated c-string**. Its private data is just char *str; (a pointer to the array) and int maxLength; (the declared max length). Its public interface includes constructors, a destructor, setString, getString, length, at, and a friend operator<< for printing.",
+        "`MyString` wraps a **dynamically allocated c-string**. Its private data is just `char *str;` (a pointer to the array) and `int maxLength;` (the declared max length). Its public interface includes constructors, a destructor, `setString`, `getString`, `length`, `at`, and a friend `operator<<` for printing.",
     },
     {
-      heading: "MyString's constructors",
+      heading: "`MyString`'s constructors",
       body:
-        "MyString() allocates a default 1000-char buffer: str = new char[1000];. MyString(int size) allocates size characters if size > 0, otherwise falls back to 1000. MyString(const char s[]) uses **strndup** to allocate and copy the given text in one step, then sets maxLength from strlen(str).",
+        "`MyString()` allocates a default 1000-char buffer: `str = new char[1000];`. `MyString(int size)` allocates size characters if `size > 0`, otherwise falls back to 1000. `MyString(const char s[])` uses **strndup** to allocate and copy the given text in one step, then sets maxLength from `strlen(str)`.",
     },
     {
       heading: "The copy problem",
       body:
-        "Pass a MyString to a function **by value** — void printString(MyString strObject); — and the object is **copied** into strObject. Because str is just a pointer, the default copy makes strObject.str point at the **same memory** as the original. When printString ends, its destructor deletes that memory, leaving the **original object's pointer dangling**.",
+        "Pass a `MyString` to a function **by value**, as in `void printString(MyString strObject);`, and the object is **copied** into strObject. Because str is just a pointer, the default copy makes `strObject.str` point at the **same memory** as the original. When `printString` ends, its destructor deletes that memory, leaving the **original object's pointer dangling**.",
     },
     {
       heading: "Copy constructors",
       body:
-        "The fix is a **copy constructor**: a constructor whose one parameter is a **const reference** to the same class type, called automatically whenever an object is passed **by value** or **returned** from a function. Any class that uses new should define one — MyString::MyString(const MyString& strObject) allocates a **fresh, independent** buffer with strndup instead of copying the pointer.",
+        "The fix is a **copy constructor**: a constructor whose one parameter is a **const reference** to the same class type, called automatically whenever an object is passed **by value** or **returned** from a function. Any class that uses new should define one: `MyString::MyString(const MyString& strObject)` allocates a **fresh, independent** buffer with `strndup` instead of copying the pointer.",
     },
     {
-      heading: "Overloading operator=",
+      heading: "Overloading `operator=`",
       body:
-        "Assignment — lastCopy = last; — has the same shallow-copy problem as pass-by-value: without help, both objects end up pointing at the **same memory**. The fix is to overload operator= as a **member function** (not a friend), making sure it allocates its **own memory** for the left-hand side before copying the characters over.",
+        "Assignment, as in `lastCopy = last;`, has the same shallow-copy problem as pass-by-value: without help, both objects end up pointing at the **same memory**. The fix is to overload `operator=` as a **member function** (not a friend), making sure it allocates its **own memory** for the left-hand side before copying the characters over.",
     },
     {
       heading: "Self-assignment and capacity",
       body:
-        "MyString's operator= checks whether the **existing buffer is big enough** (newLength > maxLength) before deleting it. Skipping that check means a statement like string1 = string1; would **delete the very memory it's about to read from** — so the size check protects against self-assignment as a side effect.",
+        "`MyString`'s `operator=` checks whether the **existing buffer is big enough** (`newLength > maxLength`) before deleting it. Skipping that check means a statement like `string1 = string1;` would **delete the very memory it's about to read from**, so the size check protects against self-assignment as a side effect.",
     },
     {
       heading: "The rule of three",
@@ -59,12 +59,12 @@ export default {
     {
       heading: "Pointers as reference parameters",
       body:
-        "A function that needs to **redirect** a caller's pointer to new memory must take that pointer by **reference**: void createNewArray(double*& arr, size_t n) { arr = new double[n]; } — the & makes arr an alias for the caller's own pointer variable, not a copy of it.",
+        "A function that needs to **redirect** a caller's pointer to new memory must take that pointer by **reference**: `void createNewArray(double*& arr, size_t n) { arr = new double[n]; }`. The & makes arr an alias for the caller's own pointer variable, not a copy of it.",
     },
     {
-      heading: "Pointers to structs and classes: ->",
+      heading: "Pointers to structs and classes: `->`",
       body:
-        "Given ItemType *itemPtr = new ItemType;, you could dereference and use the dot operator — (*itemPtr).number = 5555; — but C++ offers the **arrow operator**, ->, to do both steps at once: itemPtr->number = 5555; is the standard, more common way to reach a member through a pointer.",
+        "Given `ItemType *itemPtr = new ItemType;`, you could dereference and use the dot operator, as in `(*itemPtr).number = 5555;`, but C++ offers the **arrow operator**, `->`, to do both steps at once: `itemPtr->number = 5555;` is the standard, more common way to reach a member through a pointer.",
     },
   ],
   questions: [
@@ -81,7 +81,7 @@ export default {
         "Destructors run automatically as an object is destroyed, usually to free dynamically allocated memory.",
     },
     {
-      prompt: "Which is a valid destructor declaration for class MyString?",
+      prompt: "Which is a valid destructor declaration for class `MyString`?",
       choices: [
         "MyString::destroy();",
         "~MyString(int size);",
@@ -90,7 +90,7 @@ export default {
       ],
       answer: 2,
       explanation:
-        "Destructors are named ~ClassName, take no parameters, return nothing, and a class may only have one.",
+        "Destructors are named `~ClassName`, take no parameters, return nothing, and a class may only have one.",
     },
     {
       prompt: "What does this destructor do?",
@@ -103,10 +103,10 @@ export default {
       ],
       answer: 0,
       explanation:
-        "delete[] str frees the heap array str points to; the object's own (stack or member) storage is reclaimed separately.",
+        "`delete[] str` frees the heap array str points to; the object's own (stack or member) storage is reclaimed separately.",
     },
     {
-      prompt: "In MyString::MyString(int size), what happens if size is 0 or negative?",
+      prompt: "In `MyString`::`MyString(int size)`, what happens if size is 0 or negative?",
       code: "MyString::MyString(int size) {\n  if (size > 0) {\n    str = new char[size];\n    maxLength = size;\n  } else {\n    str = new char[1000];\n    maxLength = 1000;\n  }\n}",
       choices: [
         "maxLength is set to 0",
@@ -120,9 +120,9 @@ export default {
     },
     {
       prompt:
-        "void printString(MyString strObject); is called with an existing MyString. Without a copy constructor, what goes wrong when printString returns?",
+        "`void printString(MyString strObject);` is called with an existing `MyString`. Without a copy constructor, what goes wrong when `printString` returns?",
       choices: [
-        "Nothing — pass by value copies the pointer, which is always safe to do",
+        "Nothing; pass by value copies the pointer, which is always safe to do",
         "Its destructor frees memory the original's pointer still points to",
         "The compiler refuses to compile the call",
         "The original object is automatically renamed",
@@ -141,7 +141,7 @@ export default {
       ],
       answer: 0,
       explanation:
-        "A value parameter of the same class, copied on the way in would itself require copying — an infinite recursion — so the parameter must be a const reference.",
+        "A value parameter of the same class, copied on the way in would itself require copying, an infinite recursion, so the parameter must be a const reference.",
     },
     {
       prompt: "A copy constructor runs automatically in which situations?",
@@ -156,7 +156,7 @@ export default {
         "Pass-by-value arguments and function returns of the class type both trigger the copy constructor automatically.",
     },
     {
-      prompt: "Why does MyString's copy constructor use strndup instead of copying the pointer str directly?",
+      prompt: "Why does `MyString`'s copy constructor use `strndup` instead of copying the pointer str directly?",
       code: "MyString::MyString(const MyString& strObject) {\n  maxLength = strObject.length();\n  str = strndup(strObject.str, 1000);\n}",
       choices: [
         "So the new object gets its own memory instead of sharing the original's",
@@ -166,10 +166,10 @@ export default {
       ],
       answer: 0,
       explanation:
-        "strndup allocates a fresh buffer and copies the characters, so the new object doesn't share memory with the original.",
+        "`strndup` allocates a fresh buffer and copies the characters, so the new object doesn't share memory with the original.",
     },
     {
-      prompt: "Why must operator= be overloaded for a class like MyString?",
+      prompt: "Why must `operator=` be overloaded for a class like `MyString`?",
       choices: [
         "It's required to make the class printable",
         "The default assignment copies the pointer, so both objects end up on the same memory",
@@ -181,7 +181,7 @@ export default {
         "Without an overload, assignment copies str's address rather than its contents, so both objects end up sharing one buffer.",
     },
     {
-      prompt: "In MyString's overloaded operator=, why check `if (newLength > maxLength)` before deleting str?",
+      prompt: "In `MyString`'s overloaded `operator=`, why check `if (newLength > maxLength)` before deleting str?",
       code: "if (newLength > maxLength) {\n  delete [] str;\n  maxLength = newLength;\n  str = strndup(rightSide.str, 1000);\n} else {\n  strncpy(str, rightSide.str, 1000);\n}",
       choices: [
         "It has no real purpose",
@@ -191,7 +191,7 @@ export default {
       ],
       answer: 3,
       explanation:
-        "Deleting str unconditionally would break string1 = string1;, since rightSide.str and str are the same memory being read and freed at once.",
+        "Deleting str unconditionally would break `string1 = string1;`, since rightSide.str and str are the same memory being read and freed at once.",
     },
     {
       prompt: "A class allocates memory with new in its constructor. Which three member functions should it define together?",
@@ -203,10 +203,10 @@ export default {
       ],
       answer: 1,
       explanation:
-        "This trio — destructor, copy constructor, operator= — keeps dynamic memory correct across destruction, copying, and assignment.",
+        "This trio of destructor, copy constructor, and `operator=` keeps dynamic memory correct across destruction, copying, and assignment.",
     },
     {
-      prompt: "Why does createNewArray take arr as double*& instead of double*?",
+      prompt: "Why does `createNewArray` take arr as `double*&` instead of `double*`?",
       code: "void createNewArray(double*& arr, size_t n) {\n  arr = new double[n];\n}",
       choices: [
         "Because double*& is the only form the new operator accepts here",
@@ -219,7 +219,7 @@ export default {
         "Taking the pointer by reference lets the function change what the caller's pointer variable itself points to, not just a local copy.",
     },
     {
-      prompt: "Given ItemType *itemPtr = new ItemType;, which two lines do the same thing?",
+      prompt: "Given `ItemType *itemPtr = new ItemType;`, which two lines do the same thing?",
       code: "(*itemPtr).number = 5555;\nitemPtr->number = 5555;",
       choices: [
         "The second line is a syntax error",
@@ -229,7 +229,7 @@ export default {
       ],
       answer: 2,
       explanation:
-        "-> combines dereference-then-dot into one operator, so itemPtr->number is equivalent to (*itemPtr).number.",
+        "`->` combines dereference-then-dot into one operator, so `itemPtr->number` is equivalent to `(*itemPtr).number`.",
     },
   ],
   items: [
@@ -266,7 +266,7 @@ export default {
       topicId: "dynamic-classes",
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "Write the MyString destructor, given `private: char *str;`.",
+      prompt: "Write the `MyString` destructor, given `private: char *str;`.",
       expected: "MyString::~MyString() {\n delete[] str;\n}",
       criteria: [
         "Names the destructor ~MyString()",
@@ -293,9 +293,9 @@ export default {
       format: FORMATS.ERROR,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "`void printString(MyString strObject);` is called as `printString(name);` where name is an existing MyString, and MyString has no copy constructor. What goes wrong?",
+        "`void printString(MyString strObject);` is called as `printString(name);` where name is an existing `MyString`, and `MyString` has no copy constructor. What goes wrong?",
       expected:
-        "The object name is copied to the parameter strObject, but since we're using dynamic allocation, both name and strObject end up pointing to the same location. When printString terminates, the destructor runs and deallocates the memory for strObject — which also deallocates it for name. The original object name is now pointing to memory that has been deallocated.",
+        "The object name is copied to the parameter strObject, but since we're using dynamic allocation, both name and strObject end up pointing to the same location. When printString terminates, the destructor runs and deallocates the memory for strObject, which also deallocates it for name. The original object name is now pointing to memory that has been deallocated.",
       criteria: [
         "States name and strObject end up pointing to the same memory location",
         "States printString's destructor deallocates that shared memory when it terminates",
@@ -349,7 +349,7 @@ export default {
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Write MyString's copy constructor, given `private: char *str; int maxLength;` and a `length()` accessor.",
+        "Write `MyString`'s copy constructor, given `private: char *str; int maxLength;` and a `length()` accessor.",
       expected:
         "MyString::MyString(const MyString& strObject) {\n maxLength = strObject.length();\n str = strndup(strObject.str, 1000);\n}",
       criteria: [
@@ -379,9 +379,9 @@ export default {
       format: FORMATS.ERROR,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "In MyString's overloaded operator=, why does it check `if (newLength > maxLength)` before calling `delete [] str;`?\n```\nvoid MyString::operator = (const MyString &rightSide){\n int newLength = strlen(rightSide.str);\n if (newLength > maxLength)\n {\n delete [] str;\n maxLength = newLength;\n str = strndup(rightSide.str, 1000);\n }\n else {\n strncpy(str, rightSide.str, 1000);\n }\n}\n```",
+        "In `MyString`'s overloaded `operator=`, why does it check `if (newLength > maxLength)` before calling `delete [] str;`?\n```\nvoid MyString::operator = (const MyString &rightSide){\n int newLength = strlen(rightSide.str);\n if (newLength > maxLength)\n {\n delete [] str;\n maxLength = newLength;\n str = strndup(rightSide.str, 1000);\n }\n else {\n strncpy(str, rightSide.str, 1000);\n }\n}\n```",
       expected:
-        "Before deleting, the code checks whether maxLength is already big enough. If it didn't check, a statement like string1 = string1; would delete the memory allocated to the string before it's done being read from — self-assignment would destroy the very data operator= is trying to copy.",
+        "Before deleting, the code checks whether maxLength is already big enough. If it didn't check, a statement like string1 = string1; would delete the memory allocated to the string before it's done being read from; self-assignment would destroy the very data operator= is trying to copy.",
       criteria: [
         "States the check avoids unnecessarily/incorrectly deleting str",
         "Names the specific failure case: string1 = string1; would delete memory the statement still needs to read",
@@ -409,7 +409,7 @@ export default {
       prompt:
         "Given `ItemType *itemPtr = new ItemType;`, how do `(*itemPtr).number` and `itemPtr->number` compare?",
       expected:
-        "(*itemPtr) dereferences the structure, and number can then be accessed with the dot operator: (*itemPtr).number = 5555;. The arrow operator -> replaces that \"*\" and \".\" combination in one step — itemPtr->number = 5555; — and is the most common way to access members of pointers to structures.",
+        "(*itemPtr) dereferences the structure, and number can then be accessed with the dot operator: (*itemPtr).number = 5555;. The arrow operator -> replaces that \"*\" and \".\" combination in one step, so itemPtr->number = 5555; is the most common way to access members of pointers to structures.",
       criteria: [
         "States (*itemPtr).number dereferences then uses the dot operator",
         "States itemPtr->number does the same thing in one operator",
@@ -488,7 +488,7 @@ export default {
       topicId: "dynamic-classes",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "Which is a valid destructor declaration for class MyString?",
+      prompt: "Which is a valid destructor declaration for class `MyString`?",
       choices: [
         "MyString::destroy();",
         "~MyString(int size);",
@@ -512,7 +512,7 @@ export default {
       topicId: "dynamic-classes",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "In MyString::MyString(int size), what happens if size is 0 or negative?\n```\nMyString::MyString(int size) {\n  if (size > 0) {\n    str = new char[size];\n    maxLength = size;\n  } else {\n    str = new char[1000];\n    maxLength = 1000;\n  }\n}\n```",
+      prompt: "In `MyString`::`MyString(int size)`, what happens if size is 0 or negative?\n```\nMyString::MyString(int size) {\n  if (size > 0) {\n    str = new char[size];\n    maxLength = size;\n  } else {\n    str = new char[1000];\n    maxLength = 1000;\n  }\n}\n```",
       choices: [
         "maxLength is set to 0",
         "The constructor throws an exception that the caller is expected to catch",
@@ -536,7 +536,7 @@ export default {
       topicId: "dynamic-classes",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "Why does MyString's copy constructor use strndup instead of copying the pointer str directly?\n```\nMyString::MyString(const MyString& strObject) {\n  maxLength = strObject.length();\n  str = strndup(strObject.str, 1000);\n}\n```",
+      prompt: "Why does `MyString`'s copy constructor use `strndup` instead of copying the pointer str directly?\n```\nMyString::MyString(const MyString& strObject) {\n  maxLength = strObject.length();\n  str = strndup(strObject.str, 1000);\n}\n```",
       choices: [
         "So the new object gets its own memory instead of sharing the original's",
         "Because strndup is faster than assigning the pointer across and copying later",
@@ -560,7 +560,7 @@ export default {
       topicId: "dynamic-classes",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "Why must operator= be overloaded for a class like MyString?",
+      prompt: "Why must `operator=` be overloaded for a class like `MyString`?",
       choices: [
         "It's required to make the class printable",
         "The default assignment copies the pointer, so both objects end up on the same memory",

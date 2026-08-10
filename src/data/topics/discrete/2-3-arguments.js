@@ -4,44 +4,44 @@
 export default {
   id: "discrete-2-3-arguments",
   title: "2.3 Valid and Invalid Arguments",
-  subtitle: "CS3000 — §2.3",
+  subtitle: "CS3000 §2.3",
   course: "discrete",
   showChart: false,
   cards: [
     {
       heading: "What makes an argument valid",
       body:
-        "An **argument form** is **valid** when, in **every** situation where **all the premises are true**, the **conclusion is also true** — the conclusion follows *necessarily* from the premises. Validity is about **form, not content**: it doesn't care whether the premises are actually true, only whether *true premises would force* a true conclusion. To test validity with a truth table, you only check the **critical rows** — the rows where **every premise is true** — and see whether the conclusion holds in all of them.",
+        "An **argument form** is **valid** when, in **every** situation where **all the premises are true**, the **conclusion is also true**, so the conclusion follows necessarily from the premises. Validity is about **form, not content**: it doesn't care whether the premises are actually true, only whether true premises would force a true conclusion. To test validity with a truth table, you only check the **critical rows**, the rows where **every premise is true**, and see whether the conclusion holds in all of them.",
     },
     {
       heading: "Valid vs. actually true",
       body:
-        "Keep two ideas separate. **Validity** is about the *form*; **truth** is about the *content*. A valid argument can have a **false** premise and a **false** conclusion (still valid — the form is fine). And an **invalid** argument can happen to have a **true** conclusion (still invalid — the conclusion didn't *follow*). The only thing validity promises: if the premises **were** all true, the conclusion **could not** be false. Never confuse “well-formed reasoning” with “true facts.”",
+        "Keep two ideas separate. **Validity** is about the form; **truth** is about the content. A valid argument can have a **false** premise and a **false** conclusion (still valid, since the form is fine). And an **invalid** argument can happen to have a **true** conclusion (still invalid, since the conclusion didn't follow). The only thing validity promises: if the premises **were** all true, the conclusion **could not** be false. Never confuse “well-formed reasoning” with “true facts.”",
     },
     {
       heading: "Modus ponens & modus tollens",
       body:
-        "A **syllogism** is an argument with two premises and a conclusion. The two most famous valid forms: **Modus ponens** — “p → q; p; **∴ q**” (affirm the hypothesis, get the conclusion). **Modus tollens** — “p → q; **~q**; **∴ ~p**” (deny the conclusion, deny the hypothesis). Modus tollens is really modus ponens applied to the contrapositive. Both are the bedrock rules you'll use constantly in proofs.",
+        "A **syllogism** is an argument with two premises and a conclusion. The two most famous valid forms: **Modus ponens**, “p → q; p; **∴ q**” (affirm the hypothesis, get the conclusion). **Modus tollens**, “p → q; **~q**; **∴ ~p**” (deny the conclusion, deny the hypothesis). Modus tollens is really modus ponens applied to the contrapositive. Both are the bedrock rules you'll use constantly in proofs.",
     },
     {
       heading: "Rules of inference",
       body:
-        "A **rule of inference** is just a valid argument form you can reuse as a building block. Besides modus ponens/tollens: **generalization** (p ∴ p ∨ q — weaken to an “or”), **specialization** (p ∧ q ∴ p — pull out one part), **elimination** (p ∨ q; ~q ∴ p — rule one out), **transitivity** (p → q; q → r ∴ p → r — chain implications), **conjunction** (p; q ∴ p ∧ q), and **proof by division into cases** (p ∨ q; p → r; q → r ∴ r). Long proofs are these small steps chained together.",
+        "A **rule of inference** is just a valid argument form you can reuse as a building block. Besides modus ponens/tollens: **generalization** (p ∴ p ∨ q, weakening to an “or”), **specialization** (p ∧ q ∴ p, pulling out one part), **elimination** (p ∨ q; ~q ∴ p, ruling one out), **transitivity** (p → q; q → r ∴ p → r, chaining implications), **conjunction** (p; q ∴ p ∧ q), and **proof by division into cases** (p ∨ q; p → r; q → r ∴ r). Long proofs are these small steps chained together.",
       figure: {
         src: "/figures/discrete/rules-of-inference.png",
         alt: "Table 2.3.1 summarizing valid argument forms: modus ponens, modus tollens, generalization, specialization, conjunction, elimination, transitivity, proof by division into cases, and the contradiction rule.",
-        caption: "Table 2.3.1 — a summary of valid argument forms (rules of inference)",
+        caption: "Table 2.3.1: a summary of valid argument forms (rules of inference)",
       },
     },
     {
       heading: "Converse & inverse errors (fallacies)",
       body:
-        "A **fallacy** is an error in reasoning that makes an argument **invalid**. Two fallacies mimic the valid rules. **Converse error**: “p → q; **q**; ∴ p” — affirming the conclusion. (“If Zeke cheats he sits in back; Zeke sits in back; ∴ Zeke cheats” — wrong, plenty of non-cheaters sit in back.) **Inverse error**: “p → q; **~p**; ∴ ~q” — denying the hypothesis. To show *invalidity*, find **one** critical row (or one real example) with **true premises but a false conclusion**.",
+        "A **fallacy** is an error in reasoning that makes an argument **invalid**. Two fallacies mimic the valid rules. **Converse error**: “p → q; **q**; ∴ p”, affirming the conclusion. (“If Zeke cheats he sits in back; Zeke sits in back; ∴ Zeke cheats” is wrong, since plenty of non-cheaters sit in back.) **Inverse error**: “p → q; **~p**; ∴ ~q”, denying the hypothesis. To show invalidity, find **one** critical row (or one real example) with **true premises but a false conclusion**.",
     },
     {
       heading: "Contradiction rule & problem-solving",
       body:
-        "The **contradiction rule** is powerful: if assuming **~p** leads to a **contradiction c** (~p → c), then **p** must be true (∴ p). This is the engine behind **proof by contradiction**. In practice you chain rules of inference to deduce new facts — “Where are my glasses?” puzzles and Smullyan's **knights-and-knaves** riddles are solved by applying modus ponens, modus tollens, elimination, and the contradiction rule step by step until the answer drops out.",
+        "The **contradiction rule** is powerful: if assuming **~p** leads to a **contradiction c** (~p → c), then **p** must be true (∴ p). This is the engine behind **proof by contradiction**. In practice you chain rules of inference to deduce new facts: “Where are my glasses?” puzzles and Smullyan's **knights-and-knaves** riddles are solved by applying modus ponens, modus tollens, elimination, and the contradiction rule step by step until the answer drops out.",
     },
   ],
   questions: [
@@ -67,14 +67,14 @@ export default {
       ],
       answer: 1,
       explanation:
-        "You only inspect the critical rows — those in which all premises are true — because that's where an invalid argument would reveal a false conclusion.",
+        "You only inspect the critical rows, those in which all premises are true, because that's where an invalid argument would reveal a false conclusion.",
     },
     {
       prompt: "Identify the form: “If p then q. p. ∴ q.”",
       choices: ["Modus tollens", "Modus ponens", "Converse error", "Elimination"],
       answer: 1,
       explanation:
-        "Affirming the hypothesis to conclude the conclusion is modus ponens — a valid form.",
+        "Affirming the hypothesis to conclude the conclusion is modus ponens, a valid form.",
     },
     {
       prompt: "“If 870,232 is divisible by 6, then it is divisible by 3. 870,232 is not divisible by 3. ∴ ?”",
@@ -98,7 +98,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "Affirming the conclusion q to infer p is the converse error — invalid. A true q can occur without p.",
+        "Affirming the conclusion q to infer p is the converse error, which is invalid. A true q can occur without p.",
     },
     {
       prompt: "Which argument form is the inverse error (invalid)?",
@@ -117,7 +117,7 @@ export default {
       choices: ["Elimination", "Transitivity", "Generalization", "Specialization"],
       answer: 1,
       explanation:
-        "Chaining implications — if p implies q and q implies r, then p implies r — is transitivity.",
+        "Chaining implications, so that p implies q and q implies r gives p implies r, is transitivity.",
     },
     {
       prompt: "“Ana knows numerical analysis AND Ana knows graph algorithms. ∴ Ana knows graph algorithms.” This uses…",
@@ -131,13 +131,13 @@ export default {
       choices: ["Elimination", "Transitivity", "Modus ponens", "Generalization"],
       answer: 0,
       explanation:
-        "Given p ∨ q and ~q, concluding p is elimination — rule one alternative out and the other must hold.",
+        "Given p ∨ q and ~q, concluding p is elimination: rule one alternative out and the other must hold.",
     },
     {
       prompt: "A valid argument has a false premise and a false conclusion. Is the argument still valid?",
       choices: [
-        "No — a false premise or conclusion makes it invalid",
-        "Yes — validity is about form",
+        "No, a false premise or conclusion makes it invalid",
+        "Yes, validity is about form",
         "Only if the conclusion is true",
         "Only if it uses modus ponens",
       ],
@@ -151,7 +151,7 @@ export default {
         "Show that every single row has a true conclusion in it",
         "Find a critical row with a false conclusion",
         "Show the premises are false",
-        "You can't — all forms are valid",
+        "You can't; all forms are valid",
       ],
       answer: 1,
       explanation:

@@ -5,34 +5,34 @@
 export default {
   id: "discrete-2-1-logical-form",
   title: "2.1 Logical Form and Logical Equivalence",
-  subtitle: "CS3000 — §2.1",
+  subtitle: "CS3000 §2.1",
   course: "discrete",
   showChart: false,
   cards: [
     {
       heading: "Arguments, premises, conclusion",
       body:
-        "An **argument** is a sequence of statements meant to establish the truth of a final claim. That final claim is the **conclusion**; the statements leading up to it are the **premises**. Logic studies the **form** of an argument, not its **content** — it can't judge whether the ideas are worthwhile, only whether the conclusion **follows necessarily** from the premises. That focus on form is why logic is called the science of *necessary inference*. We write **∴** for the word “therefore,” just before the conclusion.",
+        "An **argument** is a sequence of statements meant to establish the truth of a final claim. That final claim is the **conclusion**; the statements leading up to it are the **premises**. Logic studies the **form** of an argument, not its **content**: it can't judge whether the ideas are worthwhile, only whether the conclusion **follows necessarily** from the premises. That focus on form is why logic is called the science of necessary inference. We write **∴** for the word “therefore,” just before the conclusion.",
     },
     {
       heading: "Logical form",
       body:
-        "Two arguments about totally different topics can share the exact same **logical form**. To expose it, we replace whole component sentences with letters — **p**, **q**, **r** — and combine them with logic words. For example, both “If Jane is a math or CS major, then she takes Math 150” and a sentence about studying share the skeleton “**If p or q, then r**.” Once you see the form, you can judge the reasoning without being distracted by the subject matter.",
+        "Two arguments about totally different topics can share the exact same **logical form**. To expose it, we replace whole component sentences with letters (**p**, **q**, **r**) and combine them with logic words. For example, both “If Jane is a math or CS major, then she takes Math 150” and a sentence about studying share the skeleton “**If p or q, then r**.” Once you see the form, you can judge the reasoning without being distracted by the subject matter.",
     },
     {
       heading: "What counts as a statement",
       body:
-        "A **statement** (or proposition) is a sentence that is **definitely true or definitely false** — one or the other, not both. “Two plus two equals four” is a true statement; “two plus two equals five” is a false one. But “**x > 0**” is **not** a statement on its own: its truth depends on the value of x (true for x = 3, false for x = −3). A sentence with a free variable only becomes a statement once the variable is given a value.",
+        "A **statement** (or proposition) is a sentence that is **definitely true or definitely false**, one or the other, not both. “Two plus two equals four” is a true statement; “two plus two equals five” is a false one. But “**x > 0**” is **not** a statement on its own: its truth depends on the value of x (true for x = 3, false for x = −3). A sentence with a free variable only becomes a statement once the variable is given a value.",
     },
     {
       heading: "Compound statements: ~, ∧, ∨",
       body:
-        "Three symbols build bigger statements from simpler ones. **~** means **not** (negation): **~p** is “it is not the case that p.” **∧** means **and** (conjunction): **p ∧ q** claims both hold. **∨** means **or** (disjunction): **p ∨ q** claims at least one holds — this is the *inclusive* or (p, or q, or both). Two English cues to remember: “**but**” translates to **∧** (“not hot but sunny” = ~h ∧ s), and “**neither p nor q**” means **~p ∧ ~q**.",
+        "Three symbols build bigger statements from simpler ones. **~** means **not** (negation): **~p** is “it is not the case that p.” **∧** means **and** (conjunction): **p ∧ q** claims both hold. **∨** means **or** (disjunction): **p ∨ q** claims at least one holds, and this is the inclusive or (p, or q, or both). Two English cues to remember: “**but**” translates to **∧** (“not hot but sunny” = ~h ∧ s), and “**neither p nor q**” means **~p ∧ ~q**.",
     },
     {
       heading: "Order of operations",
       body:
-        "Just like arithmetic, logic has precedence rules. **~ is performed first**, so **~p ∧ q** means **(~p) ∧ q**, not ~(p ∧ q). By contrast, **∧ and ∨ are coequal** — neither outranks the other — so an expression like **p ∧ q ∨ r** is **ambiguous** and considered meaningless until you add **parentheses**: it must be written as either **(p ∧ q) ∨ r** or **p ∧ (q ∨ r)**. When in doubt, parenthesize.",
+        "Just like arithmetic, logic has precedence rules. **~ is performed first**, so **~p ∧ q** means **(~p) ∧ q**, not ~(p ∧ q). By contrast, **∧ and ∨ are coequal**, with neither outranking the other, so an expression like **p ∧ q ∨ r** is **ambiguous** and considered meaningless until you add **parentheses**: it must be written as either **(p ∧ q) ∨ r** or **p ∧ (q ∨ r)**. When in doubt, parenthesize.",
     },
     {
       heading: "Truth tables",
@@ -47,7 +47,7 @@ export default {
     {
       heading: "Statement forms and exclusive or",
       body:
-        "An expression built from variables and ~, ∧, ∨ is a **statement form** (or propositional form). To find its truth values, work like algebra: for each row, evaluate the **innermost parentheses first**, then work outward. A classic example is the **exclusive or** — “p or q **but not both**” — which is *not* a single symbol but the form **(p ∨ q) ∧ ~(p ∧ q)**. Building its truth table shows it is true in exactly the two rows where p and q **differ**.",
+        "An expression built from variables and ~, ∧, ∨ is a **statement form** (or propositional form). To find its truth values, work like algebra: for each row, evaluate the **innermost parentheses first**, then work outward. A classic example is the **exclusive or**, “p or q **but not both**”, which is not a single symbol but the form **(p ∨ q) ∧ ~(p ∧ q)**. Building its truth table shows it is true in exactly the two rows where p and q **differ**.",
       figure: {
         src: "/figures/discrete/truth-table-or.png",
         alt: "Truth table for p or q: false only in the row where both p and q are false.",
@@ -57,7 +57,7 @@ export default {
     {
       heading: "Logical equivalence",
       body:
-        "Two statement forms are **logically equivalent** — written **P ≡ Q** — when they have the **same truth value in every row** of their truth table. Then you can swap one for the other freely. The simplest example is the **double negative law**: **~(~p) ≡ p**. To *prove* an equivalence, build both truth tables and check every row matches. To *disprove* one, you only need **a single row** (or one concrete example) where they differ — one mismatch is enough.",
+        "Two statement forms are **logically equivalent**, written **P ≡ Q**, when they have the **same truth value in every row** of their truth table. Then you can swap one for the other freely. The simplest example is the **double negative law**: **~(~p) ≡ p**. To prove an equivalence, build both truth tables and check every row matches. To disprove one, you only need **a single row** (or one concrete example) where they differ, since one mismatch is enough.",
     },
     {
       heading: "De Morgan's laws",
@@ -67,11 +67,11 @@ export default {
     {
       heading: "Tautologies, contradictions & the laws",
       body:
-        "A **tautology** (**t**) is a statement form that is **always true**, no matter the inputs — like **p ∨ ~p**. A **contradiction** (**c**) is **always false** — like **p ∧ ~p**. Combined with the variables, these anchor a whole toolkit of named equivalences (**commutative, associative, distributive, identity, De Morgan's, absorption, …**) collected in **Theorem 2.1.1**. You use them like algebra rules — replacing pieces with equivalent pieces — to **simplify** statement forms without ever building a truth table.",
+        "A **tautology** (**t**) is a statement form that is **always true**, no matter the inputs, like **p ∨ ~p**. A **contradiction** (**c**) is **always false**, like **p ∧ ~p**. Combined with the variables, these anchor a whole toolkit of named equivalences (**commutative, associative, distributive, identity, De Morgan's, absorption, …**) collected in **Theorem 2.1.1**. You use them like algebra rules, replacing pieces with equivalent pieces, to **simplify** statement forms without ever building a truth table.",
       figure: {
         src: "/figures/discrete/logical-equivalences.png",
         alt: "Theorem 2.1.1: a summary table of logical equivalences including commutative, associative, distributive, identity, negation, double negative, idempotent, universal bound, De Morgan's, and absorption laws.",
-        caption: "Theorem 2.1.1 — the summary of logical equivalences",
+        caption: "Theorem 2.1.1: the summary of logical equivalences",
       },
     },
   ],
@@ -94,7 +94,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "Logic studies form — whether the conclusion follows necessarily — not the intrinsic merit of the content.",
+        "Logic studies form, meaning whether the conclusion follows necessarily, not the intrinsic merit of the content.",
     },
     {
       prompt: "Which of the following is a statement?",
@@ -128,7 +128,7 @@ export default {
         "the ∧, because it's leftmost",
         "the ~, because negation binds tightest",
         "they are equal, so it's ambiguous",
-        "neither — parentheses are required",
+        "neither; parentheses are required",
       ],
       answer: 1,
       explanation:
@@ -180,7 +180,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "Logical equivalence means identical truth values for every combination of inputs — matching in all rows.",
+        "Logical equivalence means identical truth values for every combination of inputs, matching in all rows.",
     },
     {
       prompt: "To show that two statement forms are NOT logically equivalent, it is enough to…",
@@ -199,7 +199,7 @@ export default {
       choices: ["~p ∧ ~q", "~p ∨ ~q", "p ∨ q", "~(p ∨ q)"],
       answer: 1,
       explanation:
-        "~(p ∧ q) ≡ ~p ∨ ~q — negate each part and switch ∧ to ∨.",
+        "~(p ∧ q) ≡ ~p ∨ ~q: negate each part and switch ∧ to ∨.",
     },
     {
       prompt: "Use De Morgan's laws to negate “−1 < x ≤ 4” (i.e. −1 < x and x ≤ 4).",

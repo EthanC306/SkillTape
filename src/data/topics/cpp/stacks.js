@@ -20,7 +20,7 @@ export default {
     {
       heading: "Underflow and overflow",
       body:
-        "Two error conditions come from misusing the two operations. **Stack underflow** is the condition resulting from trying to **pop** an item from an **empty** stack — there is nothing on top to remove. **Stack overflow** is the condition resulting from trying to **push** an item onto a **full** stack — there is no room left on top.",
+        "Two error conditions come from misusing the two operations. **Stack underflow** is the condition resulting from trying to **pop** an item from an **empty** stack: there is nothing on top to remove. **Stack overflow** is the condition resulting from trying to **push** an item onto a **full** stack: there is no room left on top.",
     },
     {
       heading: "Array implementation of the stack",
@@ -30,12 +30,12 @@ export default {
     {
       heading: "Other useful functions",
       body:
-        "Three more functions round out the class. **peek** retrieves the top value of the stack **without popping it** — the item stays on the stack. **isEmpty** returns **true** if the stack is empty. **size** returns the **number of elements** on top of the stack.",
+        "Three more functions round out the class. **peek** retrieves the top value of the stack **without popping it**, so the item stays on the stack. **isEmpty** returns **true** if the stack is empty. **size** returns the **number of elements** on top of the stack.",
     },
     {
       heading: "Assert",
       body:
-        "What should you do if the stack is full, or if something tries to pop from an empty stack? You can use the **assert** utility to generate a **run-time error** when a stack operation can't be completed. It is found in the **cassert** library, and you use it as assert(some condition) — for example, assert(x > 0);. If the condition fails, assert displays an **error message**; if the condition is **true**, assert prints nothing at all.",
+        "What should you do if the stack is full, or if something tries to `pop` from an empty stack? You can use the **assert** utility to generate a **run-time error** when a stack operation can't be completed. It is found in the **cassert** library, and you use it as `assert(some condition)`, for example `assert(x > 0);`. If the condition fails, `assert` displays an **error message**; if the condition is **true**, `assert` prints nothing at all.",
     },
     {
       heading: "The array stack class",
@@ -45,42 +45,42 @@ export default {
         "const int CAPACITY = 64;\n\ntemplate <typename Item>\nclass Stack {\n  public:\n    Stack() { top = -1; }\n\n    void push(const Item& entry);\n    Item pop();\n    size_t size() const { return top + 1; }\n    bool isEmpty() const { return top == -1; }\n    Item peek() const;\n\n  private:\n    Item data[CAPACITY];\n    int top;\n};",
     },
     {
-      heading: "push, array version",
+      heading: "`push`, array version",
       body:
-        "push takes the entry by **const reference** and does exactly what the description said, in that order. The **assert** guards against **overflow** — top must still be below **CAPACITY - 1**, or there is no free slot above it. Then top is **incremented** first, and only after that is the entry stored at data[top].",
+        "`push` takes the entry by **const reference** and does exactly what the description said, in that order. The **assert** guards against **overflow**: top must still be below **CAPACITY - 1**, or there is no free slot above it. Then top is **incremented** first, and only after that is the entry stored at `data[top]`.",
       code:
         "template <typename Item>\nvoid Stack<Item>::push(const Item& entry){\n    assert(top < CAPACITY - 1);\n    top++;\n    data[top] = entry;\n}",
     },
     {
-      heading: "pop and peek, array version",
+      heading: "`pop` and `peek`, array version",
       body:
-        "Both start with **assert(!isEmpty())**, which is the guard against **underflow**. pop **decrements top first**, so the item it wants is now one slot above the new top — that is why it returns **data[top + 1]**. peek doesn't touch top at all; it just returns **data[top]**, which is why it is declared **const**.",
+        "Both start with **assert(!isEmpty())**, which is the guard against **underflow**. `pop` **decrements top first**, so the item it wants is now one slot above the new top, which is why it returns **data[top + 1]**. `peek` doesn't touch top at all; it just returns **data[top]**, which is why it is declared **const**.",
       code:
         "template <typename Item>\nItem Stack<Item>::pop() {\n    assert(!isEmpty());\n    top--;\n    return data[top + 1];\n}\n\ntemplate <typename Item>\nItem Stack<Item>::peek() const {\n    assert(!isEmpty());\n    return data[top];\n}",
     },
     {
       heading: "Linked list implementation of a stack",
       body:
-        "The same stack can store its items in a linked list instead. The top of the stack is the head node, pointed to by **topPtr**, and the stack is empty when topPtr is pointing to **nullptr**. Pushing an item is equivalent to **inserting at the head** of the list, and popping is equivalent to removing the head node. Because the list is built from dynamically allocated nodes, the stack should have a **destructor**, a **copy constructor**, and an **overloaded assignment operator**.",
+        "The same stack can store its items in a linked list instead. The top of the stack is the head node, pointed to by **topPtr**, and the stack is empty when `topPtr` is pointing to **nullptr**. Pushing an item is equivalent to **inserting at the head** of the list, and popping is equivalent to removing the head node. Because the list is built from dynamically allocated nodes, the stack should have a **destructor**, a **copy constructor**, and an **overloaded assignment operator**.",
     },
     {
       heading: "The linked-list stack class",
       body:
-        "The public interface is unchanged — push, pop, peek, size, isEmpty — so code using the stack can't tell which implementation is underneath. What changed is the private side: instead of an array and an int index, there is a **Node<Item> pointer** named **topPtr** and a **size_t** counter named **numItems**. size just returns numItems, and isEmpty tests **numItems == 0**.",
+        "The public interface is unchanged (`push`, `pop`, `peek`, `size`, `isEmpty`), so code using the stack can't tell which implementation is underneath. What changed is the private side: instead of an array and an int index, there is a **Node<Item> pointer** named **topPtr** and a **size_t** counter named **numItems**. size just returns `numItems`, and `isEmpty` tests **numItems == 0**.",
       code:
         "template <typename Item>\nclass Stack {\npublic:\n    Stack();\n    size_t size() const { return numItems; }\n    bool isEmpty() const { return numItems == 0; }\n    void push(const Item &entry);\n    Item pop();\n    Item peek() const;\nprivate:\n    Node<Item> *topPtr;\n    size_t numItems;\n};",
     },
     {
-      heading: "Constructor and push",
+      heading: "Constructor and `push`",
       body:
-        "The constructor makes an empty stack by setting **topPtr** to **nullptr** and **numItems** to **0**. push inserts at the beginning of the list: it builds a new node holding the entry whose next pointer is the **old topPtr**, points topPtr at that new node, and **increments numItems**.",
+        "The constructor makes an empty stack by setting **topPtr** to **nullptr** and **numItems** to **0**. `push` inserts at the beginning of the list: it builds a new node holding the entry whose next pointer is the **old topPtr**, points `topPtr` at that new node, and **increments numItems**.",
       code:
         "template <typename Item>\nStack<Item>::Stack() {\n    topPtr = nullptr;\n    numItems = 0;\n}\n\ntemplate <typename Item>\nvoid Stack<Item>::push(const Item &entry){\n    // insert at the begining\n    Node<Item> *temp =\n            new Node<Item>(entry, topPtr);\n    topPtr = temp;\n    numItems++;\n}",
     },
     {
-      heading: "pop and peek, linked-list version",
+      heading: "`pop` and `peek`, linked-list version",
       body:
-        "pop removes the head node. It saves the address of that node in **delPtr** and its value in topItem, advances topPtr to **topPtr->getNext()**, then **deletes** the old head and **decrements numItems** before returning topItem. peek does far less: it just returns **topPtr->getData()** and leaves the list alone. Both open with **assert(!isEmpty())**.",
+        "`pop` removes the head node. It saves the address of that node in **delPtr** and its value in `topItem`, advances `topPtr` to **topPtr->getNext()**, then **deletes** the old head and **decrements numItems** before returning `topItem`. `peek` does far less: it just returns **topPtr->getData()** and leaves the list alone. Both open with **assert(!isEmpty())**.",
       code:
         "template <typename Item>\nItem Stack<Item>::pop() {\n    assert(!isEmpty());\n    Node<Item> *delPtr = topPtr;\n    Item topItem = topPtr->getData();\n    topPtr = topPtr->getNext();\n    delete delPtr;\n    numItems--;\n    return topItem;\n}\n\ntemplate <typename Item>\nItem Stack<Item>::peek() const {\n    assert(!isEmpty());\n    return topPtr->getData();\n}",
     },
@@ -99,7 +99,7 @@ export default {
         "A stack restricts all access to a single end called the top, which is what makes it a stack rather than a general list.",
     },
     {
-      prompt: "You push 3, then 7, then 5 onto an empty stack. What does the next pop return?",
+      prompt: "You `push` 3, then 7, then 5 onto an empty stack. What does the next `pop` return?",
       choices: ["3", "7", "5", "The smallest value, 3"],
       answer: 2,
       explanation:
@@ -137,12 +137,12 @@ export default {
         "top is incremented first so it names a free slot, and the entry is then written at that new top position.",
     },
     {
-      prompt: "What is this assert protecting against?",
+      prompt: "What is this `assert` protecting against?",
       code: "template <typename Item>\nvoid Stack<Item>::push(const Item& entry){\n    assert(top < CAPACITY - 1);\n    top++;\n    data[top] = entry;\n}",
       choices: [
-        "Underflow — popping from an empty stack",
+        "Underflow: popping from an empty stack",
         "Pushing an item of the wrong type",
-        "Overflow — pushing onto a full stack",
+        "Overflow: pushing onto a full stack",
         "A null pointer being stored in data",
       ],
       answer: 2,
@@ -150,7 +150,7 @@ export default {
         "If top has already reached the last index, incrementing it would run past the array, which is the overflow condition.",
     },
     {
-      prompt: "Why does size return top + 1?",
+      prompt: "Why does size return `top + 1`?",
       code: "size_t size() const { return top + 1; }\nbool isEmpty() const { return top == -1; }",
       choices: [
         "One slot in data is always held in reserve and is never written to",
@@ -163,7 +163,7 @@ export default {
         "Converting the zero-based index of the top element to a count means adding one, and that also makes the empty case come out as 0.",
     },
     {
-      prompt: "Why does this pop return data[top + 1] instead of data[top]?",
+      prompt: "Why does this `pop` return `data[top + 1]` instead of `data[top]`?",
       code: "template <typename Item>\nItem Stack<Item>::pop() {\n    assert(!isEmpty());\n    top--;\n    return data[top + 1];\n}",
       choices: [
         "top was already decremented, so the item sits one slot above",
@@ -173,22 +173,22 @@ export default {
       ],
       answer: 0,
       explanation:
-        "The decrement happens first, so top + 1 is the slot that held the item being removed.",
+        "The decrement happens first, so `top + 1` is the slot that held the item being removed.",
     },
     {
-      prompt: "What is the difference between peek and pop?",
+      prompt: "What is the difference between `peek` and `pop`?",
       choices: [
         "peek returns the bottom item; pop returns the top item",
         "peek retrieves the top value without removing it; pop removes it",
         "peek works only on empty stacks; pop works only on full ones",
-        "There is none — peek is just another name for pop",
+        "There is none; peek is just another name for pop",
       ],
       answer: 1,
       explanation:
-        "peek is the read-only look at the top of the stack, which is why it is declared const and leaves top unchanged.",
+        "`peek` is the read-only look at the top of the stack, which is why it is declared const and leaves top unchanged.",
     },
     {
-      prompt: "What does assert do when its condition is true?",
+      prompt: "What does `assert` do when its condition is true?",
       choices: [
         "It prints a confirmation message",
         "It stops the program normally",
@@ -197,7 +197,7 @@ export default {
       ],
       answer: 2,
       explanation:
-        "assert is silent on success and only speaks up — with an error message at run time — when the condition fails.",
+        "`assert` is silent on success and only speaks up, with an error message at run time, when the condition fails.",
     },
     {
       prompt: "In the linked list implementation, what marks an empty stack?",
@@ -212,7 +212,7 @@ export default {
         "The top of the stack is the head node, so an empty stack is one whose head pointer points nowhere.",
     },
     {
-      prompt: "What list operation is this push performing?",
+      prompt: "What list operation is this `push` performing?",
       code: "template <typename Item>\nvoid Stack<Item>::push(const Item &entry){\n    // insert at the begining\n    Node<Item> *temp =\n            new Node<Item>(entry, topPtr);\n    topPtr = temp;\n    numItems++;\n}",
       choices: [
         "Inserting after the head node",
@@ -222,10 +222,10 @@ export default {
       ],
       answer: 3,
       explanation:
-        "The new node's next pointer is the old topPtr and topPtr is then moved to the new node, which is insertion at the head.",
+        "The new node's next pointer is the old `topPtr` and `topPtr` is then moved to the new node, which is insertion at the head.",
     },
     {
-      prompt: "Why does pop save topPtr in delPtr before advancing it?",
+      prompt: "Why does `pop` save `topPtr` in `delPtr` before advancing it?",
       code: "Node<Item> *delPtr = topPtr;\nItem topItem = topPtr->getData();\ntopPtr = topPtr->getNext();\ndelete delPtr;\nnumItems--;\nreturn topItem;",
       choices: [
         "delPtr is needed to decrement numItems correctly",
@@ -235,7 +235,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "The removed node still has to be deleted, so its address must be kept somewhere before topPtr is reassigned.",
+        "The removed node still has to be deleted, so its address must be kept somewhere before `topPtr` is reassigned.",
     },
     {
       prompt: "Why should the linked list stack have a destructor, a copy constructor, and an overloaded assignment operator?",
@@ -258,7 +258,7 @@ export default {
       origin: ITEM_ORIGIN.GENERATED,
       prompt: "What is a stack, and what are Stack Underflow and Stack Overflow?",
       expected:
-        "A stack is a data structure of ordered entries such that entries can only be inserted and removed at one end called the top — it's called a Last-In/First-Out (LIFO) data structure. Stack Underflow is the condition resulting from trying to pop (remove) an item from an empty stack. Stack Overflow is the condition resulting from trying to push an item onto a full stack.",
+        "A stack is a data structure of ordered entries such that entries can only be inserted and removed at one end called the top. It's called a Last-In/First-Out (LIFO) data structure. Stack Underflow is the condition resulting from trying to pop (remove) an item from an empty stack. Stack Overflow is the condition resulting from trying to push an item onto a full stack.",
       criteria: [
         "States entries are inserted/removed only at the top, and describes LIFO",
         "Defines Underflow as popping from an empty stack",
@@ -311,7 +311,7 @@ export default {
       topicId: "stacks",
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "Write the array-based push function, given `Item data[CAPACITY]; int top;`.",
+      prompt: "Write the array-based `push` function, given `Item data[CAPACITY]; int top;`.",
       expected:
         "template <typename Item>\nvoid Stack<Item>::push(const Item& entry){\nassert(top < CAPACITY - 1);\ntop++;\ndata[top] = entry;\n}",
       criteria: [
@@ -339,7 +339,7 @@ export default {
       topicId: "stacks",
       format: FORMATS.RECALL,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "What does assert do, and where does it come from?",
+      prompt: "What does `assert` do, and where does it come from?",
       expected:
         "We can use the \"assert\" utility to generate a run-time error when we can't complete a stack operation. It is found in the \"cassert\" library. Usage: assert(some condition), e.g. assert(x > 0);. assert will display an error message if the condition fails, and assert does not print anything if the condition is true.",
       criteria: [
@@ -396,7 +396,7 @@ export default {
       format: FORMATS.TRACE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Trace this linked-list stack pop() call:\n```\ntemplate <typename Item>\nItem Stack<Item>::pop() {\nassert(!isEmpty());\nNode<Item> *delPtr = topPtr;\nItem topItem = topPtr->getData();\ntopPtr = topPtr->getNext();\ndelete delPtr;\nnumItems--;\nreturn topItem;\n}\n```\nWhat happens to topPtr, and what is returned?",
+        "Trace this linked-list stack `pop`() call:\n```\ntemplate <typename Item>\nItem Stack<Item>::pop() {\nassert(!isEmpty());\nNode<Item> *delPtr = topPtr;\nItem topItem = topPtr->getData();\ntopPtr = topPtr->getNext();\ndelete delPtr;\nnumItems--;\nreturn topItem;\n}\n```\nWhat happens to `topPtr`, and what is returned?",
       expected:
         "delPtr saves the current topPtr. topItem is read from topPtr->getData() before anything is deallocated. topPtr is then advanced to the second node via topPtr->getNext(). The old top node (delPtr) is deleted, numItems is decremented, and topItem (the value that was on top before the pop) is returned.",
       criteria: [
@@ -425,7 +425,7 @@ export default {
       origin: ITEM_ORIGIN.GENERATED,
       prompt: "What three special member functions should a linked-list-based Stack have, and why?",
       expected:
-        "The stack should have a destructor, a copy constructor, and an overloaded assignment operator — because the items are stored in a linked list, so the stack owns dynamically allocated nodes that the compiler's default copy/destroy behavior would not handle correctly.",
+        "The stack should have a destructor, a copy constructor, and an overloaded assignment operator, because the items are stored in a linked list, so the stack owns dynamically allocated nodes that the compiler's default copy/destroy behavior would not handle correctly.",
       criteria: [
         "Names all three: destructor, copy constructor, overloaded assignment operator",
         "Attributes the need to the stack owning dynamically allocated (linked-list) nodes",
@@ -459,9 +459,9 @@ export default {
         "template <typename Item>\nItem Stack<Item>::pop() {\nassert(!isEmpty());\ntop--;\nreturn data[top + 1];\n}",
       criteria: [
         "Asserts !isEmpty() before touching the array, guarding against underflow",
-        "Decrements top first, then returns data[top + 1] — the slot that was just logically removed",
+        "Decrements top first, then returns data[top + 1], the slot that was just logically removed",
         "Returns Item by value; the popped element is handed back, not just discarded",
-        "Nothing is erased from the array — popping only moves top",
+        "Nothing is erased from the array; popping only moves top",
       ],
       timeBudgetSec: 120,
       provenance: {
@@ -486,7 +486,7 @@ export default {
         "template <typename Item>\nItem Stack<Item>::peek() const {\nassert(!isEmpty());\nreturn data[top];\n}",
       criteria: [
         "Asserts !isEmpty() before reading",
-        "Returns data[top] — no change to top, unlike pop",
+        "Returns data[top], with no change to top, unlike pop",
         "Marked const, because peek doesn't modify the stack",
       ],
       timeBudgetSec: 90,
@@ -511,7 +511,7 @@ export default {
         "template <typename Item>\nStack<Item>::Stack() {\ntopPtr = nullptr;\nnumItems = 0;\n}",
       criteria: [
         "Prefixed with template <typename Item> and defined as Stack<Item>::Stack()",
-        "Sets topPtr = nullptr — an empty stack points at no node",
+        "Sets topPtr = nullptr, since an empty stack points at no node",
         "Sets numItems = 0 so size() starts correct",
       ],
       timeBudgetSec: 90,
@@ -537,10 +537,10 @@ export default {
         "template <typename Item>\nvoid Stack<Item>::push(const Item &entry){\n// insert at the begining\nNode<Item> *temp =\nnew Node<Item>(entry, topPtr);\ntopPtr = temp;\nnumItems++;\n}",
       criteria: [
         "Takes the entry by const reference",
-        "Allocates a new node whose next already points at the old topPtr — this is just a head insert",
+        "Allocates a new node whose next already points at the old topPtr, so this is just a head insert",
         "Moves topPtr to the new node",
         "Increments numItems",
-        "No assert is needed — a linked stack has no fixed capacity to overflow",
+        "No assert is needed, since a linked stack has no fixed capacity to overflow",
       ],
       timeBudgetSec: 150,
       provenance: {
@@ -566,8 +566,8 @@ export default {
       criteria: [
         "Asserts !isEmpty() first",
         "Saves the doomed node in delPtr AND copies its data into topItem before anything is freed",
-        "Advances topPtr = topPtr->getNext() before delete delPtr — order matters, the node is gone after the delete",
-        "Frees the old top node, so popping doesn't leak — unlike the array version, which just moves an index",
+        "Advances topPtr = topPtr->getNext() before delete delPtr, since the node is gone after the delete",
+        "Frees the old top node, so popping doesn't leak, unlike the array version, which just moves an index",
         "Decrements numItems and returns the saved topItem, not topPtr->getData()",
       ],
       timeBudgetSec: 180,
@@ -593,7 +593,7 @@ export default {
       criteria: [
         "Asserts !isEmpty() before dereferencing topPtr",
         "Returns topPtr->getData()",
-        "Marked const, and nothing is deleted or unlinked — the difference from pop",
+        "Marked const, and nothing is deleted or unlinked, which is the difference from pop",
       ],
       timeBudgetSec: 90,
       provenance: {
@@ -635,7 +635,7 @@ export default {
       topicId: "stacks",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "You push 3, then 7, then 5 onto an empty stack. What does the next pop return?",
+      prompt: "You `push` 3, then 7, then 5 onto an empty stack. What does the next `pop` return?",
       choices: [
         "3",
         "7",
@@ -683,15 +683,15 @@ export default {
       topicId: "stacks",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "What is this assert protecting against?\n```\ntemplate <typename Item>\nvoid Stack<Item>::push(const Item& entry){\n    assert(top < CAPACITY - 1);\n    top++;\n    data[top] = entry;\n}\n```",
+      prompt: "What is this `assert` protecting against?\n```\ntemplate <typename Item>\nvoid Stack<Item>::push(const Item& entry){\n    assert(top < CAPACITY - 1);\n    top++;\n    data[top] = entry;\n}\n```",
       choices: [
-        "Underflow — popping from an empty stack",
+        "Underflow: popping from an empty stack",
         "Pushing an item of the wrong type",
-        "Overflow — pushing onto a full stack",
+        "Overflow: pushing onto a full stack",
         "A null pointer being stored in data",
       ],
       answerIndex: 2,
-      expected: "Overflow — pushing onto a full stack",
+      expected: "Overflow: pushing onto a full stack",
       criteria: [
         "If top has already reached the last index, incrementing it would run past the array, which is the overflow condition.",
       ],
@@ -707,7 +707,7 @@ export default {
       topicId: "stacks",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "Why does size return top + 1?\n```\nsize_t size() const { return top + 1; }\nbool isEmpty() const { return top == -1; }\n```",
+      prompt: "Why does size return `top + 1`?\n```\nsize_t size() const { return top + 1; }\nbool isEmpty() const { return top == -1; }\n```",
       choices: [
         "One slot in data is always held in reserve and is never written to",
         "It counts the top element twice on purpose",

@@ -14,42 +14,42 @@ export default {
     {
       heading: "Why go doubly linked?",
       body:
-        "A singly linked list only stores a **next** pointer, so walking **backward** through it is inefficient — you'd have to restart from head. A doubly linked list fixes this by giving each node **two** pointers: **next** (forward) and **previous** (backward).",
+        "A singly linked list only stores a **next** pointer, so walking **backward** through it is inefficient, since you'd have to restart from `head`. A doubly linked list fixes this by giving each node **two** pointers: **next** (forward) and **previous** (backward).",
     },
     {
-      heading: "The DNode class",
+      heading: "The `DNode` class",
       body:
-        "`class DNode { private: int data; DNode *next; DNode *previous; };`. The list itself now needs pointers at **both ends** conceptually — head's previous is nullptr, and the last node's next is nullptr, forming a chain that can be walked in either direction.",
+        "`class DNode { private: int data; DNode *next; DNode *previous; };`. The list itself now needs pointers at **both ends** conceptually: `head`'s `previous` is `nullptr`, and the last node's `next` is `nullptr`, forming a chain that can be walked in either direction.",
     },
     {
-      heading: "DNode constructor",
+      heading: "`DNode` constructor",
       body:
-        "`DNode::DNode(const DataType newData, DNode *newNext, DNode *newPrevious) { data = newData; next = newNext; previous = newPrevious; }` — sets all three fields explicitly, unlike a singly linked node which only tracks one neighbor.",
+        "`DNode::DNode(const DataType newData, DNode *newNext, DNode *newPrevious) { data = newData; next = newNext; previous = newPrevious; }` sets all three fields explicitly, unlike a singly linked node which only tracks one neighbor.",
     },
     {
-      heading: "Insert after a cursor — the empty-list case",
+      heading: "Insert after a `cursor`: the empty-list case",
       body:
-        "`insertAfter(DNode *&head, DNode *cursor, int value)` first handles an **empty list**: if head is nullptr, the new node becomes head with **both** next and previous set to nullptr, then the function returns early.",
+        "`insertAfter(DNode *&head, DNode *cursor, int value)` first handles an **empty list**: if `head` is `nullptr`, the new node becomes `head` with **both** `next` and `previous` set to `nullptr`, then the function returns early.",
     },
     {
-      heading: "Insert after a cursor — the general case",
+      heading: "Insert after a `cursor`: the general case",
       body:
-        "`temp->next = cursor->next; temp->prev = cursor; if (cursor->next != nullptr) cursor->next->prev = temp; cursor->next = temp;` — four pointer updates are needed (versus two for a singly linked list) because both **temp's own links** and the **neighboring nodes' links back** must be set. The nullptr check guards against cursor being the last node.",
+        "`temp->next = cursor->next; temp->prev = cursor; if (cursor->next != nullptr) cursor->next->prev = temp; cursor->next = temp;` needs four pointer updates (versus two for a singly linked list) because both **temp's own links** and the **neighboring nodes' links back** must be set. The `nullptr` check guards against `cursor` being the last node.",
     },
     {
-      heading: "Delete — three cases, now with previous",
+      heading: "Delete: three cases, now with `previous`",
       body:
-        "Deleting cursor still has three cases, but each is aware of **previous** as well as next: (1) cursor is the **first node** — advance head, and if the new head isn't null, clear its previous; (2) cursor is the **last node** — clear the previous node's next; (3) cursor is in the **middle** — splice it out by connecting its neighbors to each other in **both directions**.",
+        "Deleting `cursor` still has three cases, but each is aware of **previous** as well as `next`: (1) `cursor` is the **first node**, so advance `head`, and if the new `head` isn't null, clear its `previous`; (2) `cursor` is the **last node**, so clear the `previous` node's `next`; (3) `cursor` is in the **middle**, so splice it out by connecting its neighbors to each other in **both directions**.",
     },
     {
-      heading: "Delete — middle-of-list splice",
+      heading: "Delete: middle-of-list splice",
       body:
-        "`DNode *after = cursor->getNext(); DNode *before = cursor->getPrevious(); before->setNext(after); after->setPrevious(before);` — unlike a singly linked list, no separate loop is needed to **find** the previous node, because each node already stores it directly. That's the main efficiency win of the doubly linked structure.",
+        "`DNode *after = cursor->getNext(); DNode *before = cursor->getPrevious(); before->setNext(after); after->setPrevious(before);`. Unlike a singly linked list, no separate loop is needed to **find** the `previous` node, because each node already stores it directly. That's the main efficiency win of the doubly linked structure.",
     },
     {
       heading: "What's left as exercises",
       body:
-        "Common follow-up algorithms for a doubly linked list: **output forward and backward** (using next then previous), **length**, **list clear**, **list copy**, and **search** — each following the same traversal patterns as singly linked lists, just with the option to go either direction.",
+        "Common follow-up algorithms for a doubly linked list: **output forward and backward** (using `next` then `previous`), **length**, **list clear**, **list copy**, and **search**, each following the same traversal patterns as singly linked lists, just with the option to go either direction.",
     },
   ],
   questions: [
@@ -63,10 +63,10 @@ export default {
       ],
       answer: 3,
       explanation:
-        "Each DNode stores both next and previous, so the list can be walked backward without restarting from head.",
+        "Each `DNode` stores both `next` and `previous`, so the list can be walked backward without restarting from `head`.",
     },
     {
-      prompt: "In the DNode class, what are the three private members?",
+      prompt: "In the `DNode` class, what are the three private members?",
       code: "class DNode {\nprivate:\n    int data;\n    DNode *next;\n    DNode *previous;\n};",
       choices: [
         "data, next, and previous",
@@ -76,11 +76,11 @@ export default {
       ],
       answer: 0,
       explanation:
-        "A doubly linked node stores its data plus pointers to both its next and previous neighbors.",
+        "A doubly linked node stores its data plus pointers to both its `next` and `previous` neighbors.",
     },
     {
       prompt:
-        "In insertAfter(head, cursor, value), what happens if head == nullptr?",
+        "In `insertAfter(head, cursor, value)`, what happens if `head` == `nullptr`?",
       code: "if (head == nullptr) {\n    head = temp;\n    temp->next = nullptr;\n    temp->prev = nullptr;\n    return;\n}",
       choices: [
         "It throws an exception",
@@ -90,20 +90,20 @@ export default {
       ],
       answer: 2,
       explanation:
-        "An empty list is a special case handled before any cursor-relative linking: the new node simply becomes the sole node in the list.",
+        "An empty list is a special case handled before any `cursor`-relative linking: the new node simply becomes the sole node in the list.",
     },
     {
-      prompt: "Why does inserting after a cursor need four pointer updates instead of two?",
+      prompt: "Why does inserting after a `cursor` need four pointer updates instead of two?",
       code: "temp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr)\n    cursor->next->prev = temp;\ncursor->next = temp;",
       choices: [
         "Because temp's own links and the neighbours' back-links to temp both need setting",
         "Because C++ requires every pointer field in a node to be initialized exactly twice",
         "Because cursor must be duplicated",
-        "It doesn't — two updates are always enough",
+        "It doesn't; two updates are always enough",
       ],
       answer: 0,
       explanation:
-        "A doubly linked insert must wire up temp's next and prev, plus fix up cursor->next and (if it exists) cursor->next's old prev pointer.",
+        "A doubly linked insert must wire up temp's `next` and `prev`, plus fix up `cursor->next` and (if it exists) `cursor->next`'s old `prev` pointer.",
     },
     {
       prompt: "Why is `if (cursor->next != nullptr)` needed before `cursor->next->prev = temp;`?",
@@ -115,20 +115,20 @@ export default {
       ],
       answer: 1,
       explanation:
-        "If cursor is the last node, cursor->next is nullptr, and dereferencing it (cursor->next->prev) would be undefined behavior.",
+        "If `cursor` is the last node, `cursor->next` is `nullptr`, and dereferencing it (`cursor->next->prev`) would be undefined behavior.",
     },
     {
-      prompt: "When deleting the first node in a doubly linked list, what must happen to the new head?",
+      prompt: "When deleting the first node in a doubly linked list, what must happen to the new `head`?",
       code: "if (cursor == head) {\n    head = cursor->getNext();\n    if (head != nullptr) {\n        head->setPrevious(nullptr);\n    }\n}",
       choices: [
         "Its next pointer must be cleared to nullptr",
         "Its previous pointer must be set to nullptr",
         "It must be deleted immediately",
-        "Nothing — the new head can keep whatever previous pointer it already had",
+        "Nothing; the new head can keep whatever previous pointer it already had",
       ],
       answer: 1,
       explanation:
-        "After removing the old first node, the new first node's previous must be nullptr since nothing precedes it anymore.",
+        "After removing the old first node, the new first node's `previous` must be `nullptr` since nothing precedes it anymore.",
     },
     {
       prompt:
@@ -137,12 +137,12 @@ export default {
       choices: [
         "It avoids calling delete on the node",
         "Middle nodes can't be deleted from a singly linked list at all, only from a doubly linked one",
-        "The previous node is already known — no search loop",
+        "The previous node is already known, so no search loop",
         "It doesn't require updating any pointers",
       ],
       answer: 2,
       explanation:
-        "A singly linked list must walk from head to find the predecessor before it can delete; a doubly linked node already stores that pointer.",
+        "A singly linked list must walk from `head` to find the predecessor before it can delete; a doubly linked node already stores that pointer.",
     },
     {
       prompt: "Deleting a node in a doubly linked list has how many distinct cases?",
@@ -154,7 +154,7 @@ export default {
       ],
       answer: 3,
       explanation:
-        "Deletion branches on whether the target is the head, the last node (next is nullptr), or somewhere in the middle.",
+        "Deletion branches on whether the target is the `head`, the last node (`next` is `nullptr`), or somewhere in the middle.",
     },
   ],
   items: [
@@ -191,7 +191,7 @@ export default {
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Write the DNode constructor, given `data`, `next`, `previous` fields and parameters `newData`, `newNext`, `newPrevious`.",
+        "Write the `DNode` constructor, given `data`, `next`, `previous` fields and parameters `newData`, `newNext`, `newPrevious`.",
       expected:
         "DNode::DNode(const DataType newData,\nDNode * newNext,\nDNode *newPrevious)\n{\ndata = newData;\nnext = newNext;\nprevious = newPrevious;\n}",
       criteria: [
@@ -220,7 +220,7 @@ export default {
       format: FORMATS.TRACE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Trace `insertAfter(head, cursor, value)` when the list is empty (head == nullptr):\n```\nif (head == nullptr)//list is empty\n{ head = temp;\ntemp->next = NULL;\ntemp->prev = NULL;\nreturn;\n}\n```\nWhat does the list look like afterward?",
+        "Trace `insertAfter(head, cursor, value)` when the list is empty (`head` == `nullptr`):\n```\nif (head == nullptr)//list is empty\n{ head = temp;\ntemp->next = NULL;\ntemp->prev = NULL;\nreturn;\n}\n```\nWhat does the list look like afterward?",
       expected:
         "temp becomes head, and both temp->next and temp->prev are set to NULL. The function returns immediately without touching cursor, since there's nothing else in the list. The list now has exactly one node: head, with no next and no previous.",
       criteria: [
@@ -251,7 +251,7 @@ export default {
       prompt:
         "What would go wrong if this line were removed from insertAfter?\n```\ntemp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr) //check if at end of list\n cursor->next->prev = temp;\ncursor->next = temp;\n```",
       expected:
-        "The nullptr check guards against cursor being the last node in the list — if cursor->next is nullptr (cursor is at the end), there is no next node whose prev pointer needs updating, and `cursor->next->prev = temp;` would dereference a null pointer. Removing the check would cause undefined behavior whenever inserting after the last node.",
+        "The nullptr check guards against cursor being the last node in the list. If cursor->next is nullptr (cursor is at the end), there is no next node whose prev pointer needs updating, and `cursor->next->prev = temp;` would dereference a null pointer. Removing the check would cause undefined behavior whenever inserting after the last node.",
       criteria: [
         "States the check exists because cursor might be at the end of the list (cursor->next is nullptr)",
         "States without it, cursor->next->prev would dereference a null pointer",
@@ -276,7 +276,7 @@ export default {
       topicId: "doubly-linked-lists",
       format: FORMATS.RECALL,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "What are the three cases deleteNode must handle in a doubly linked list?",
+      prompt: "What are the three cases `deleteNode` must handle in a doubly linked list?",
       expected:
         "Deletion has three options: (1) deleting the first node, (2) deleting the last node, (3) deleting a node in the middle.",
       criteria: [
@@ -304,9 +304,9 @@ export default {
       format: FORMATS.COMPARE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Compare deleting a middle node in a doubly linked list to a singly linked list — why can `DList::deleteNode`'s middle case splice directly without a search loop?",
+        "Compare deleting a middle node in a doubly linked list to a singly linked list. Why can `DList::deleteNode`'s middle case splice directly without a search loop?",
       expected:
-        "In the middle case: DNode *after = cursor->getNext(); DNode *before = cursor->getPrevious(); before->setNext(after); after->setPrevious(before);. Because each DNode already stores its previous pointer directly, before is available in O(1) — there's no need to walk from head to find it, unlike a singly linked list's delete, which must loop until previous->getNext() == current.",
+        "In the middle case: DNode *after = cursor->getNext(); DNode *before = cursor->getPrevious(); before->setNext(after); after->setPrevious(before);. Because each DNode already stores its previous pointer directly, before is available in O(1), with no need to walk from head to find it, unlike a singly linked list's delete, which must loop until previous->getNext() == current.",
       criteria: [
         "Quotes/describes the middle-case splice using getNext()/getPrevious()",
         "Explains previous is already known via cursor->getPrevious(), no search loop needed",
@@ -332,7 +332,7 @@ export default {
       topicId: "doubly-linked-lists",
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "Write the List destructor — deallocate every node in the list.",
+      prompt: "Write the List destructor: deallocate every node in the list.",
       // Transcribed verbatim from the lecture slide (also quoted in the
       // "List destructor" card in linked-lists-algorithms.js). Note the slide's
       // version reads cursor->getNext() AFTER deleteNode(cursor) has freed it —
@@ -341,7 +341,7 @@ export default {
         "List::~List()\n{\n//deallocate all the nodes\nNode *cursor = head;\nwhile(cursor != nullptr){\ndeleteNode(cursor);\ncursor = cursor->getNext();\n}\n}",
       criteria: [
         "Starts a cursor at head and loops while cursor != nullptr",
-        "Frees each node on the way through — deleteNode(cursor)",
+        "Frees each node on the way through, via deleteNode(cursor)",
         "Advances with cursor = cursor->getNext() so every node is visited",
         "Worth noting: reading cursor->getNext() after deleteNode(cursor) has freed that node is a use-after-free; a safe version saves next (or the doomed node) before deleting",
       ],
@@ -355,14 +355,14 @@ export default {
       topicId: "doubly-linked-lists",
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.EXTRACTED,
-      prompt: "Write List::outputForward() — output a doubly linked list from head to tail.",
+      prompt: "Write `List::outputForward()`: output a doubly linked list from `head` to tail.",
       expected:
         "void List::outputForward() const{\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        cout << cursor->getData() << \" \";\n        cursor = cursor->getNext();\n    }\n    cout << endl;\n}",
       criteria: [
         "Starts the cursor at head",
         "Loops while cursor != nullptr, printing cursor->getData()",
         "Advances with cursor = cursor->getNext()",
-        "Marked const — the traversal doesn't modify the list",
+        "Marked const, since the traversal doesn't modify the list",
       ],
       timeBudgetSec: 120,
       provenance: {
@@ -381,14 +381,14 @@ export default {
       topicId: "doubly-linked-lists",
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.EXTRACTED,
-      prompt: "Write List::outputBackward() — output a doubly linked list from tail to head.",
+      prompt: "Write `List::outputBackward()`: output a doubly linked list from tail to `head`.",
       expected:
         "void List::outputBackward() const{\n    Node *cursor = tail;\n    while (cursor != nullptr) {\n        cout << cursor->getData() << \" \";\n        cursor = cursor->getPrevious();\n    }\n    cout << endl;\n}",
       criteria: [
         "Starts the cursor at tail, not head",
         "Loops while cursor != nullptr, printing cursor->getData()",
-        "Walks backward with cursor = cursor->getPrevious() — only possible because each node stores a previous pointer",
-        "Marked const — the traversal doesn't modify the list",
+        "Walks backward with cursor = cursor->getPrevious(), only possible because each node stores a previous pointer",
+        "Marked const, since the traversal doesn't modify the list",
       ],
       timeBudgetSec: 120,
       provenance: {
@@ -408,14 +408,14 @@ export default {
       topicId: "doubly-linked-lists",
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.EXTRACTED,
-      prompt: "Write List::length() — a function that returns the count of nodes in the list.",
+      prompt: "Write `List::length()`: a function that returns the count of nodes in the list.",
       expected:
         "int List::length() const{\n    int count = 0;\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        count++;\n        cursor = cursor->getNext();\n    }\n    return count;\n} // length",
       criteria: [
         "Initializes count to 0 and cursor to head",
         "Increments count once per node while cursor != nullptr",
         "Advances with cursor = cursor->getNext()",
-        "Returns count after the loop — O(n), every node must be touched",
+        "Returns count after the loop: O(n), since every node must be touched",
       ],
       timeBudgetSec: 120,
       provenance: {
@@ -434,12 +434,12 @@ export default {
       topicId: "doubly-linked-lists",
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.EXTRACTED,
-      prompt: "Write List::clear() — deallocate every node and leave the list empty.",
+      prompt: "Write `List::clear()`: deallocate every node and leave the list empty.",
       expected:
         "void List::clear(){\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        Node *doomed = cursor;\n        cursor = cursor->getNext();\n        delete doomed;\n    }\n    head = nullptr;\n    tail = nullptr;\n}",
       criteria: [
         "Saves the node to be freed (doomed) before advancing the cursor",
-        "Advances cursor = cursor->getNext() BEFORE delete doomed — reading getNext() off a freed node is undefined behavior",
+        "Advances cursor = cursor->getNext() BEFORE delete doomed, because reading getNext() off a freed node is undefined behavior",
         "Deletes every node exactly once",
         "Resets both head and tail to nullptr so the emptied list has no dangling pointers",
       ],
@@ -460,14 +460,14 @@ export default {
       topicId: "doubly-linked-lists",
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.EXTRACTED,
-      prompt: "Write List::copy(const List &source) — make this list a copy of source.",
+      prompt: "Write `List::copy(const List &source)`: make this list a copy of source.",
       expected:
         "void List::copy(const List &source){\n    clear();\n    Node *cursor = source.head;\n    while (cursor != nullptr) {\n        addToTail(cursor->getData());\n        cursor = cursor->getNext();\n    }\n} // copy",
       criteria: [
         "Calls clear() first so the existing nodes are freed instead of leaked",
-        "Walks source with a cursor starting at source.head — not this list's head, which clear() just emptied",
+        "Walks source with a cursor starting at source.head, not this list's head, which clear() just emptied",
         "Calls addToTail(cursor->getData()) per node so the copy keeps the original order",
-        "Deep copy — new nodes are allocated rather than sharing source's pointers",
+        "Deep copy: new nodes are allocated rather than sharing source's pointers",
       ],
       timeBudgetSec: 150,
       provenance: {
@@ -486,7 +486,7 @@ export default {
       topicId: "doubly-linked-lists",
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.EXTRACTED,
-      prompt: "Write List::search(const DataType &target) — return whether target appears in the list.",
+      prompt: "Write `List::search(const DataType &target)`: return whether target appears in the list.",
       expected:
         "bool List::search(const DataType &target) const{\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        if (cursor->getData() == target) {\n            return true;\n        }\n        cursor = cursor->getNext();\n    }\n    return false;\n} // search",
       criteria: [
@@ -512,7 +512,7 @@ export default {
       topicId: "doubly-linked-lists",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "In the DNode class, what are the three private members?\n```\nclass DNode {\nprivate:\n    int data;\n    DNode *next;\n    DNode *previous;\n};\n```",
+      prompt: "In the `DNode` class, what are the three private members?\n```\nclass DNode {\nprivate:\n    int data;\n    DNode *next;\n    DNode *previous;\n};\n```",
       choices: [
         "data, next, and previous",
         "data, head, and tail",
@@ -536,12 +536,12 @@ export default {
       topicId: "doubly-linked-lists",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "Why does inserting after a cursor need four pointer updates instead of two?\n```\ntemp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr)\n    cursor->next->prev = temp;\ncursor->next = temp;\n```",
+      prompt: "Why does inserting after a `cursor` need four pointer updates instead of two?\n```\ntemp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr)\n    cursor->next->prev = temp;\ncursor->next = temp;\n```",
       choices: [
         "Because temp's own links and the neighbours' back-links to temp both need setting",
         "Because C++ requires every pointer field in a node to be initialized exactly twice",
         "Because cursor must be duplicated",
-        "It doesn't — two updates are always enough",
+        "It doesn't; two updates are always enough",
       ],
       answerIndex: 0,
       expected: "Because temp's own links and the neighbours' back-links to temp both need setting",
@@ -584,12 +584,12 @@ export default {
       topicId: "doubly-linked-lists",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "When deleting the first node in a doubly linked list, what must happen to the new head?\n```\nif (cursor == head) {\n    head = cursor->getNext();\n    if (head != nullptr) {\n        head->setPrevious(nullptr);\n    }\n}\n```",
+      prompt: "When deleting the first node in a doubly linked list, what must happen to the new `head`?\n```\nif (cursor == head) {\n    head = cursor->getNext();\n    if (head != nullptr) {\n        head->setPrevious(nullptr);\n    }\n}\n```",
       choices: [
         "Its next pointer must be cleared to nullptr",
         "Its previous pointer must be set to nullptr",
         "It must be deleted immediately",
-        "Nothing — the new head can keep whatever previous pointer it already had",
+        "Nothing; the new head can keep whatever previous pointer it already had",
       ],
       answerIndex: 1,
       expected: "Its previous pointer must be set to nullptr",

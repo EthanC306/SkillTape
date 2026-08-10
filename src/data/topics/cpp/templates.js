@@ -15,31 +15,31 @@ export default {
     {
       heading: "Why templates exist",
       body:
-        "Quite often you need an algorithm that works on **different data types**. One way to get that is **overloaded functions** — writing void swap(int&, int&), void swap(double&, double&), and void swap(string&, string&) as three separate functions. That's the same logic copied three times. **Templates** are the other way: you write the function **once** and the compiler generates a version for whatever type you use it with.",
+        "Quite often you need an algorithm that works on **different data types**. One way to get that is **overloaded functions**: writing `void swap(int&, int&)`, `void swap(double&, double&)`, and `void swap(string&, string&)` as three separate functions. That's the same logic copied three times. **Templates** are the other way: you write the function **once** and the compiler generates a version for whatever type you use it with.",
     },
     {
       heading: "Declaring a template function",
       body:
-        "A template function takes a **generic type** — a stand-in name for a type that isn't decided yet. You introduce it with the keyword **typename** or the keyword **class**; the two are interchangeable here, and this course uses **typename** because it reads more clearly. The declaration goes on its own line above the function: **template <typename T>**. The name **T** is just an identifier — any valid name works — and it will **match any type** you send in.",
+        "A template function takes a **generic type**, a stand-in name for a type that isn't decided yet. You introduce it with the keyword **typename** or the keyword **class**; the two are interchangeable here, and this course uses **typename** because it reads more clearly. The declaration goes on its own line above the function: **template <typename T>**. The name **T** is just an identifier (any valid name works), and it will **match any type** you send in.",
     },
     {
-      heading: "The swap template function",
+      heading: "The `swap` template function",
       body:
-        "Here is swap written once for every type. The line **template <typename T>** announces the generic type, and then **T** is used everywhere a concrete type would normally go: the two **reference** parameters and the local **temp** variable are all of type T.",
+        "Here is `swap` written once for every type. The line **template <typename T>** announces the generic type, and then **T** is used everywhere a concrete type would normally go: the two **reference** parameters and the local **temp** variable are all of type T.",
       code:
         "template <typename T>\nvoid swap (T &first, T &second)\n{\n    T temp = first;\n    first = second;\n    second = temp;\n}",
     },
     {
       heading: "Calling a template function",
       body:
-        "You call it like any ordinary function — no special syntax. The compiler looks at the **arguments** you passed and figures out what T must be, then generates that version. Passing two ints makes T become **int**; passing two chars makes T become **char**. The same source code serves both calls.",
+        "You call it like any ordinary function, with no special syntax. The compiler looks at the **arguments** you passed and figures out what T must be, then generates that version. Passing two ints makes T become **int**; passing two chars makes T become **char**. The same source code serves both calls.",
       code:
         "//swap integers\nint integer1 = 1, integer2 = 2;\nswap(integer1, integer2);\ncout << \"Swapped integer values are \"\n     << integer1 << \" \" << integer2 << endl;\n\n//swap characters\nchar symbol1 = 'A', symbol2 = 'B';\nswap(symbol1, symbol2);\ncout << \"Swapped character values are \"\n     << symbol1 << \" \" << symbol2 << endl;",
     },
     {
       heading: "Class templates",
       body:
-        "The same idea works on **classes**. Suppose you want a **Pair** class that stores two values of any type. Rather than designing a separate class for int pairs, char pairs, and string pairs, you design a **single template class** that takes a generic type. The **template <typename T>** line goes directly above the **class** keyword, and T is then usable anywhere inside the class — parameters, return types, and the private data members.",
+        "The same idea works on **classes**. Suppose you want a **Pair** class that stores two values of any type. Rather than designing a separate class for int pairs, char pairs, and string pairs, you design a **single template class** that takes a generic type. The **template <typename T>** line goes directly above the **class** keyword, and T is then usable anywhere inside the class: parameters, return types, and the private data members.",
     },
     {
       heading: "The Pair template class",
@@ -51,28 +51,28 @@ export default {
     {
       heading: "Using a template class",
       body:
-        "Unlike a template function, a template class can't deduce its type from how you use it — you have to **state the type in angle brackets** when you declare the object. **Pair <int> score;** makes a pair of ints; **Pair <char> seats;** makes a pair of chars. After that, the objects behave like ordinary objects: score.setFirst(3); and ch = seats.getSecond();.",
+        "Unlike a template function, a template class can't deduce its type from how you use it, so you have to **state the type in angle brackets** when you declare the object. **Pair <int> score;** makes a pair of ints; **Pair <char> seats;** makes a pair of chars. After that, the objects behave like ordinary objects: `score.setFirst(3);` and `ch = seats.getSecond();`.",
       code:
         "Pair <int> score;\nPair <char> seats;\n...\n...\nscore.setFirst(3);\nch = seats.getSecond();",
     },
     {
       heading: "Defining member functions outside the class",
       body:
-        "When you write a member function's body outside the class, two things change. Every definition must be preceded by its own **template <typename T>** line, and the **<T>** must be attached to the **class name** before the :: — you write **Pair <T>::setFirst**, not just Pair::setFirst. Forgetting the angle brackets is the classic compile error here.",
+        "When you write a member function's body outside the class, two things change. Every definition must be preceded by its own **template <typename T>** line, and the **<T>** must be attached to the **class name** before the `::`, so you write **Pair <T>::setFirst**, not just `Pair::setFirst`. Forgetting the angle brackets is the classic compile error here.",
       code:
         "template <typename T>\nvoid Pair <T>::setFirst(T value)\n{\n    first = value;\n}",
     },
     {
       heading: "More than one generic type",
       body:
-        "A template can declare **several** generic types, separated by **commas**: **template <typename T1, typename T2>**. That lets one class hold two independent types — var1 is a T1 and var2 is a T2 — so the same class could pair an int with a string, or a char with a double.",
+        "A template can declare **several** generic types, separated by **commas**: **template <typename T1, typename T2>**. That lets one class hold two independent types (`var1` is a `T1` and `var2` is a `T2`), so the same class could pair an int with a string, or a char with a double.",
       code:
         "template <typename T1, typename T2>\nclass ClassName\n{\npublic:\n    void setvars (T1 v1, T2 v2);\n    T2 getvar2 ();\n    ...\nprivate:\n    T1 var1;\n    T2 var2;\n};",
     },
     {
       heading: "Definitions with multiple types",
       body:
-        "The rule from before still applies, just with the full list. The template line repeats **both** parameters, and the class name carries **both** of them in its angle brackets: **ClassName<T1, T2>::**. The return type in front comes from whichever generic type the function actually returns — here getvar2 returns a **T2**.",
+        "The rule from before still applies, just with the full list. The template line repeats **both** parameters, and the class name carries **both** of them in its angle brackets: **ClassName<T1, T2>::**. The return type in front comes from whichever generic type the function actually returns, and here `getvar2` returns a **T2**.",
       code:
         "template <typename T1, typename T2>\nvoid ClassName<T1, T2>::setvars (T1 v1, T2 v2)\n{\n    var1 = v1;\n    var2 = v2;\n}\n\ntemplate <typename T1, typename T2>\nT2  ClassName <T1, T2>::getvar2 ()\n{\n    return var2;\n}",
     },
@@ -95,7 +95,7 @@ export default {
       choices: ["typename or class", "auto or const", "struct or union", "generic or template"],
       answer: 0,
       explanation:
-        "Both typename and class work identically here; this course uses typename because it's more readable.",
+        "Both `typename` and class work identically here; this course uses `typename` because it's more readable.",
     },
     {
       prompt: "What is missing above this function?",
@@ -108,7 +108,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "Without the template <typename T> line above it, the compiler has no idea what T is.",
+        "Without the `template <typename T>` line above it, the compiler has no idea what T is.",
     },
     {
       prompt: "In `template <typename T>`, what is T?",
@@ -131,7 +131,7 @@ export default {
         "The compiler deduces T from the arguments, so passing two chars makes T become char.",
     },
     {
-      prompt: "Why are the swap parameters declared as `T &first, T &second`?",
+      prompt: "Why are the `swap` parameters declared as `T &first, T &second`?",
       code: "template <typename T>\nvoid swap (T &first, T &second)",
       choices: [
         "References make the template compile faster",
@@ -141,7 +141,7 @@ export default {
       ],
       answer: 2,
       explanation:
-        "Passing by reference is what lets swap modify the original variables rather than local copies.",
+        "Passing by reference is what lets `swap` modify the original variables rather than local copies.",
     },
     {
       prompt: "How do you declare a Pair object that holds two ints?",
@@ -169,11 +169,11 @@ export default {
         "The class name needs <T>",
         "The template line should have been written as <class T> instead",
         "The return type should be T, not void",
-        "Nothing — this compiles fine",
+        "Nothing; this compiles fine",
       ],
       answer: 0,
       explanation:
-        "<T> must be specified with the class name, so the correct form is Pair <T>::setFirst.",
+        "<T> must be specified with the class name, so the correct form is `Pair <T>::setFirst`.",
     },
     {
       prompt: "How many template lines does a class with three out-of-class member function definitions need?",
@@ -197,7 +197,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "Each parameter gets its own typename keyword, separated by a comma inside one pair of angle brackets.",
+        "Each parameter gets its own `typename` keyword, separated by a comma inside one pair of angle brackets.",
     },
     {
       prompt: "What does this function return?",
@@ -205,12 +205,12 @@ export default {
       choices: [
         "var1, whose type is T1",
         "A pointer to the object the call was made on",
-        "Nothing — it is void",
+        "Nothing; it is void",
         "var2, of type T2",
       ],
       answer: 3,
       explanation:
-        "The return type in front of the class name is T2, and the body returns the T2 member var2.",
+        "The return type in front of the class name is `T2`, and the body returns the `T2` member `var2`.",
     },
     {
       prompt: "In the Pair template class, what type are the private members `first` and `second`?",
@@ -234,7 +234,7 @@ export default {
       origin: ITEM_ORIGIN.GENERATED,
       prompt: "Why use a template function instead of overloaded functions like these?",
       expected:
-        "One way to implement an algorithm that works on different data types is through overloaded functions, e.g. void swap(int &first, int &second); void swap(double &first, double &second); void swap(string &first, string &second);. Another way is to use template functions and only write the function once — instead of writing a separate overload per type.",
+        "One way to implement an algorithm that works on different data types is through overloaded functions, e.g. void swap(int &first, int &second); void swap(double &first, double &second); void swap(string &first, string &second);. Another way is to use template functions and only write the function once, instead of writing a separate overload per type.",
       criteria: [
         "States overloaded functions require writing a separate version per type",
         "States a template function is written only once and works across types",
@@ -259,7 +259,7 @@ export default {
       topicId: "templates",
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "Write a template swap function that works for any type T.",
+      prompt: "Write a template `swap` function that works for any type T.",
       expected:
         "template <typename T>\nvoid swap (T &first, T &second)\n{\nT temp = first;\nfirst = second;\nsecond = temp;\n}",
       criteria: [
@@ -346,7 +346,7 @@ export default {
       prompt:
         "Given `template <typename T1, typename T2> class ClassName { public: void setvars (T1 v1, T2 v2); T2 getvar2 (); private: T1 var1; T2 var2; };`, what type does `getvar2()` return, and what does it return the value of?",
       expected:
-        "getvar2() returns T2 — template <typename T1, typename T2> T2 ClassName <T1, T2>::getvar2 () { return var2; } — it returns the value of var2, which is of type T2.",
+        "getvar2() returns T2. In template <typename T1, typename T2> T2 ClassName <T1, T2>::getvar2 () { return var2; }, it returns the value of var2, which is of type T2.",
       criteria: [
         "States the return type is T2",
         "States it returns var2's value",

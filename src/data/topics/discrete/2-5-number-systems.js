@@ -4,24 +4,24 @@
 export default {
   id: "discrete-2-5-number-systems",
   title: "2.5 Number Systems & Circuits for Addition",
-  subtitle: "CS3000 — §2.5",
+  subtitle: "CS3000 §2.5",
   course: "discrete",
   showChart: false,
   cards: [
     {
       heading: "Binary (base 2)",
       body:
-        "Any integer greater than 1 can be a **base** for a number system. **Binary** (**base 2**) matters in computing because electronic signals sit in one of **two** states (the root *bi-* means “two”). A binary number uses only the digits **0 and 1**, and each position is a **power of 2**: reading right to left, the places are 2⁰ = 1, 2¹ = 2, 2² = 4, 2³ = 8, …. Keeping a short table of powers of 2 handy makes conversions quick.",
+        "Any integer greater than 1 can be a **base** for a number system. **Binary** (**base 2**) matters in computing because electronic signals sit in one of **two** states (the root bi- means “two”). A binary number uses only the digits **0 and 1**, and each position is a **power of 2**: reading right to left, the places are 2⁰ = 1, 2¹ = 2, 2² = 4, 2³ = 8, …. Keeping a short table of powers of 2 handy makes conversions quick.",
       figure: {
         src: "/figures/discrete/powers-of-2.png",
         alt: "Table 2.5.1: powers of 2 from 2^0 = 1 up to 2^10 = 1024 with their decimal forms.",
-        caption: "Table 2.5.1 — powers of 2",
+        caption: "Table 2.5.1: powers of 2",
       },
     },
     {
       heading: "Converting between binary and decimal",
       body:
-        "**Binary → decimal:** add up the place-values wherever there's a 1. E.g. 1101₂ = 8 + 4 + 0 + 1 = **13**. **Decimal → binary:** subtract the **largest power of 2** that fits, then repeat on what's left. For 209: 128 fits (leaves 81), 64 fits (leaves 17), 16 fits (leaves 1), 1 fits — so 209 = 128 + 64 + 16 + 1 = **11010001₂**. Put a 1 in each place-value you used and a 0 in the rest.",
+        "**Binary → decimal:** add up the place-values wherever there's a 1. E.g. 1101₂ = 8 + 4 + 0 + 1 = **13**. **Decimal → binary:** subtract the **largest power of 2** that fits, then repeat on what's left. For 209: 128 fits (leaves 81), 64 fits (leaves 17), 16 fits (leaves 1), 1 fits, so 209 = 128 + 64 + 16 + 1 = **11010001₂**. Put a 1 in each place-value you used and a 0 in the rest.",
     },
     {
       heading: "Binary addition",
@@ -31,21 +31,21 @@ export default {
     {
       heading: "The half-adder",
       body:
-        "To add two single bits **P** and **Q**, a circuit needs **two outputs**: the **sum** bit and the **carry** bit. The **carry** is 1 only when both are 1 — that's **P ∧ Q** (an AND-gate). The **sum** is 1 when exactly one is 1 — that's **exclusive or**, P ⊕ Q. A circuit combining these to add two bits is a **half-adder**. It handles a single column but can't accept a carry coming *in* from the column before it.",
+        "To add two single bits **P** and **Q**, a circuit needs **two outputs**: the **sum** bit and the **carry** bit. The **carry** is 1 only when both are 1, which is **P ∧ Q** (an AND-gate). The **sum** is 1 when exactly one is 1, which is **exclusive or**, P ⊕ Q. A circuit combining these to add two bits is a **half-adder**. It handles a single column but can't accept a carry coming in from the column before it.",
       figure: {
         src: "/figures/discrete/half-adder.png",
         alt: "Half-adder circuit and its input/output table, producing a Carry (P AND Q) and a Sum (exclusive or) from inputs P and Q.",
-        caption: "Figure 2.5.1 — a half-adder adds two bits P and Q",
+        caption: "Figure 2.5.1: a half-adder adds two bits P and Q",
       },
     },
     {
       heading: "The full-adder",
       body:
-        "Adding multi-digit numbers means a column can receive a **carry-in** from the right, so you must add **three** bits: P, Q, and a carry R. A circuit that adds three bits — producing a **sum** S and a **carry** C — is a **full-adder**, and it's built from **two half-adders plus an OR-gate**. The full-adder is the workhorse: chain enough of them and you can add binary numbers of any length.",
+        "Adding multi-digit numbers means a column can receive a **carry-in** from the right, so you must add **three** bits: P, Q, and a carry R. A circuit that adds three bits, producing a **sum** S and a **carry** C, is a **full-adder**, and it's built from **two half-adders plus an OR-gate**. The full-adder is the workhorse: chain enough of them and you can add binary numbers of any length.",
       figure: {
         src: "/figures/discrete/full-adder.png",
         alt: "Full-adder circuit built from two half-adders and an OR gate, with its input/output table for inputs P, Q, R.",
-        caption: "Figure 2.5.2 — a full-adder adds three bits P, Q, R",
+        caption: "Figure 2.5.2: a full-adder adds three bits P, Q, R",
       },
     },
     {
@@ -55,7 +55,7 @@ export default {
       figure: {
         src: "/figures/discrete/parallel-adder.png",
         alt: "A parallel adder built from one half-adder and two full-adders, adding two three-digit binary numbers to produce a four-digit result.",
-        caption: "Figure 2.5.3 — a parallel adder chains half- and full-adders",
+        caption: "Figure 2.5.3: a parallel adder chains half- and full-adders",
       },
     },
     {
@@ -66,16 +66,16 @@ export default {
     {
       heading: "Subtraction via two's complement",
       body:
-        "The payoff: **a − b = a + (−b)**, so subtraction becomes **addition** of a two's complement — the same adder circuit does both. To compute 78 − 46, add the 8-bit forms of 78 (01001110) and −46 (11010010). The sum overflows into a 9th bit; **discard that carry** and the remaining 8 bits, 00100000, are **32** — the correct answer. No separate subtraction hardware needed.",
+        "The payoff: **a − b = a + (−b)**, so subtraction becomes **addition** of a two's complement, and the same adder circuit does both. To compute 78 − 46, add the 8-bit forms of 78 (01001110) and −46 (11010010). The sum overflows into a 9th bit; **discard that carry** and the remaining 8 bits, 00100000, are **32**, the correct answer. No separate subtraction hardware needed.",
     },
     {
       heading: "Hexadecimal (base 16)",
       body:
-        "**Hexadecimal** (**base 16**) is a compact shorthand for binary. Its 16 digits are **0–9** then **A, B, C, D, E, F** for 10–15. The magic: **each hex digit equals exactly 4 binary bits**, so converting is just **grouping bits by four**. E.g. binary 0100 1101 1010 1001 → **4DA9**. That's why memory dumps are shown in hex — far shorter than binary and trivial to convert back.",
+        "**Hexadecimal** (**base 16**) is a compact shorthand for binary. Its 16 digits are **0–9** then **A, B, C, D, E, F** for 10–15. The magic: **each hex digit equals exactly 4 binary bits**, so converting is just **grouping bits by four**. E.g. binary 0100 1101 1010 1001 → **4DA9**. That's why memory dumps are shown in hex: far shorter than binary and trivial to convert back.",
       figure: {
         src: "/figures/discrete/hex-table.png",
         alt: "Table 2.5.3: the 16 hexadecimal digits 0-F with their decimal values 0-15 and 4-bit binary equivalents.",
-        caption: "Table 2.5.3 — hex digits, decimal values, and 4-bit binary",
+        caption: "Table 2.5.3: hex digits, decimal values, and 4-bit binary",
       },
     },
   ],
@@ -111,7 +111,7 @@ export default {
       choices: ["P ∨ Q", "P ∧ Q", "~P", "P ⊕ Q (exclusive or)"],
       answer: 1,
       explanation:
-        "The carry is 1 only when both bits are 1, so it's P ∧ Q — an AND-gate. The sum is the exclusive or.",
+        "The carry is 1 only when both bits are 1, so it's P ∧ Q, an AND-gate. The sum is the exclusive or.",
     },
     {
       prompt: "Why can't a half-adder alone add the middle columns of a multi-digit binary sum?",
@@ -123,7 +123,7 @@ export default {
       ],
       answer: 1,
       explanation:
-        "A half-adder adds just two bits. Middle columns may also receive a carry-in, so they need to add three bits — a full-adder.",
+        "A half-adder adds just two bits. Middle columns may also receive a carry-in, so they need to add three bits, which is a full-adder.",
     },
     {
       prompt: "A full-adder adds three bits. It is typically built from…",
@@ -185,7 +185,7 @@ export default {
       choices: ["2", "3", "4", "8"],
       answer: 2,
       explanation:
-        "Base 16 = 2⁴, so each hex digit corresponds to exactly 4 binary bits — conversion is just grouping bits by four.",
+        "Base 16 = 2⁴, so each hex digit corresponds to exactly 4 binary bits, so conversion is just grouping bits by four.",
     },
     {
       prompt: "Convert binary 1010 1001 to hexadecimal.",

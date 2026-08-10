@@ -15,22 +15,22 @@ export default {
     {
       heading: "Inheritance",
       body:
-        "**Inheritance** is a relation between a general class and a more specialized class. The general class is called the **base class**, and the specialized class is called the **derived class**. The derived class **inherits** all the characteristics — data and functions — of the base class, and it adds more data and functions that aren't in the base class.",
+        "**Inheritance** is a relation between a general class and a more specialized class. The general class is called the **base class**, and the specialized class is called the **derived class**. The derived class **inherits** all the characteristics (data and functions) of the base class, and it adds more data and functions that aren't in the base class.",
     },
     {
       heading: "The is-a relationship",
       body:
-        "All basketball players are athletes, but not all athletes are basketball players — that asymmetry is described with the relation **is-a**: a basketball player is-an athlete. In this example, **Athlete** is the base class, and **BasketballPlayer** and **BaseballPlayer** are the derived classes.",
+        "All basketball players are athletes, but not all athletes are basketball players, and that asymmetry is described with the relation **is-a**: a basketball player is-an athlete. In this example, **Athlete** is the base class, and **BasketballPlayer** and **BaseballPlayer** are the derived classes.",
     },
     {
       heading: "Planning the classes",
       body:
-        "The Athlete class has a **name** and an **age**, a constructor to initialize them, getters and setters, and a function that **displays** the member data. BasketballPlayer includes all of Athlete's data and functions and adds **ppg** — points per game. BaseballPlayer does the same, adding **battingAverage** instead.",
+        "The Athlete class has a **name** and an **age**, a constructor to initialize them, getters and setters, and a function that **displays** the member data. BasketballPlayer includes all of Athlete's data and functions and adds **ppg**, points per game. BaseballPlayer does the same, adding **battingAverage** instead.",
     },
     {
       heading: "The Athlete base class",
       body:
-        "Athlete's constructor takes a name and an age; getName, getAge, setName, and setAge are simple one-liners; **display** is only declared here, defined separately. **name** and **age** stay **private**.",
+        "Athlete's constructor takes a name and an age; `getName`, `getAge`, `setName`, and `setAge` are simple one-liners; **display** is only declared here, defined separately. **name** and **age** stay **private**.",
       code:
         "class Athlete {\npublic:\nAthlete(string newName, size_t newAge);\nstring getName() {return name;}\nsize_t getAge() {return age;}\nvoid setName(string newName){name = newName;}\nvoid setAge(size_t newAge){age = newAge;}\nvoid display();\nprivate:\nstring name;\nsize_t age;\n};",
     },
@@ -49,47 +49,47 @@ export default {
         "class BasketballPlayer : public Athlete{\npublic:\nBasketballPlayer(string newName, size_t newAge, double newPpg);\ndouble getPpg() {return ppg;}\nvoid setPpg(double newPpg){ppg = newPpg;}\nvoid display();\nprivate:\ndouble ppg;\n};",
     },
     {
-      heading: "public vs. private inheritance",
+      heading: "`public` vs. `private` inheritance",
       body:
-        "Inheriting with the **private** keyword restricts things sharply: you can't call a base member function on a derived object from outside, and the derived class still can't touch the base's private members. Inheriting with **public** fixes both — it lets a derived class access the base's private data through its interface, and lets outside code call the base's public functions through a derived object. The rule of thumb: **always use public inheritance**.",
+        "Inheriting with the **private** keyword restricts things sharply: you can't call a base member function on a derived object from outside, and the derived class still can't touch the base's `private` members. Inheriting with **public** fixes both: it lets a derived class access the base's `private` data through its interface, and lets outside code call the base's `public` functions through a derived object. The rule of thumb: **always use public inheritance**.",
     },
     {
       heading: "Calling the base constructor",
       body:
-        "A derived class's constructor has to initialize the base part of the object too, so it calls the base constructor in its **initializer list**: BasketballPlayer::BasketballPlayer(...) **: Athlete(newName, newAge)** { ppg = newPpg; }. The base constructor runs **first**, then the derived body sets the new member.",
+        "A derived class's constructor has to initialize the base part of the object too, so it calls the base constructor in its **initializer list**: BasketballPlayer::BasketballPlayer(...) **: Athlete(newName, newAge)** { `ppg` = newPpg; }. The base constructor runs **first**, then the derived body sets the new member.",
       code:
         "BasketballPlayer::BasketballPlayer(string newName, size_t newAge, double newPpg)\n:Athlete(newName, newAge){\nppg = newPpg;\n}",
     },
     {
       heading: "Calling a base class function",
       body:
-        "To call a specific base class version of a function, use the notation **BaseClassName::function()** — for example, **Athlete::display()**. BasketballPlayer's own display calls Athlete::display() **first**, to print name and age, then prints **PPG** itself — so the base and derived logic each handle their own part instead of duplicating code.",
+        "To call a specific base class version of a function, use the notation **BaseClassName::function()**, for example `Athlete::display()`. BasketballPlayer's own display calls `Athlete::display()` **first**, to print name and age, then prints **PPG** itself, so the base and derived logic each handle their own part instead of duplicating code.",
       code:
         "void BasketballPlayer::display(){\nAthlete::display(); //call Athlete's display()\ncout << \"PPG: \" << ppg << endl;\n}",
     },
     {
       heading: "BaseballPlayer, symmetrically",
       body:
-        "BaseballPlayer follows the exact same pattern as BasketballPlayer: it adds **battingAverage**, its constructor calls Athlete(newName, newAge) in its initializer list, and its display calls **Athlete::display()** before printing its own **Batting average** line.",
+        "BaseballPlayer follows the exact same pattern as BasketballPlayer: it adds **battingAverage**, its constructor calls `Athlete(newName, newAge)` in its initializer list, and its display calls **Athlete::display()** before printing its own **Batting average** line.",
       code:
         "class BaseballPlayer : public Athlete{\npublic:\nBaseballPlayer(string newName, size_t newAge, double newBattingAverage);\ndouble getBattingAverage() {return battingAverage;}\nvoid setBattingAverage(double newBattingAverage){battingAverage = newBattingAverage;}\nvoid display();\nprivate:\ndouble battingAverage;\n};\n\nBaseballPlayer::BaseballPlayer(string newName, size_t newAge, double newBattingAverage)\n:Athlete(newName, newAge){\nbattingAverage = newBattingAverage;\n}\nvoid BaseballPlayer::display(){\nAthlete::display(); //call Athlete's display()\ncout << \"Batting average: \" << battingAverage << endl;\n}",
     },
     {
-      heading: "The problem with non-virtual display",
+      heading: "The problem with non-`virtual` display",
       body:
-        "A basketball player **is-an** athlete, so a single **Athlete* players[]** array can store a mix of Athlete, BasketballPlayer, and BaseballPlayer objects. But looping over it and calling **players[i]->display()** calls **Athlete's display** for every element regardless of what each pointer actually points to — the compiler picks which display to run based on the pointer's **declared type**, not the object's actual type.",
+        "A basketball player **is-an** athlete, so a single `Athlete* players[]` array can store a mix of Athlete, BasketballPlayer, and BaseballPlayer objects. But looping over it and calling `players[i]->display()` calls **Athlete's display** for every element regardless of what each pointer actually points to: the compiler picks which display to run based on the pointer's **declared type**, not the object's actual type.",
       code:
         "Athlete* players[5];\nplayers[0] = player1;\nplayers[1] = player2;\nplayers[2] = player3;\nfor (size_t i = 0; i < 3; i++){\nplayers[i]->display();\n}",
     },
     {
       heading: "Virtual functions fix it",
       body:
-        "Marking display **virtual** in the base class — **virtual void display();** — tells the compiler to look for a **native implementation** in the object's actual class first, falling back to the base's version only if the derived class doesn't override it. virtual is only needed on the **base class's declaration**; every overriding display in a derived class is virtual **by default**.",
+        "Marking display **virtual** in the base class, with `virtual void display();`, tells the compiler to look for a **native implementation** in the object's actual class first, falling back to the base's version only if the derived class doesn't override it. `virtual` is only needed on the **base class's declaration**; every overriding display in a derived class is `virtual` **by default**.",
     },
     {
       heading: "Polymorphism",
       body:
-        "**Polymorphism** is Greek for **having multiple forms**. Once display is virtual, the same players[i]->display() loop produces different output per object — Athlete's Name/Age, BasketballPlayer's added PPG line, BaseballPlayer's added Batting average line. A collection like this, where the same call resolves differently per object, is called **polymorphic**.",
+        "**Polymorphism** is Greek for **having multiple forms**. Once display is `virtual`, the same `players[i]->display()` loop produces different output per object: Athlete's Name/Age, BasketballPlayer's added PPG line, BaseballPlayer's added Batting average line. A collection like this, where the same call resolves differently per object, is called **polymorphic**.",
     },
   ],
   questions: [
@@ -115,7 +115,7 @@ export default {
     {
       prompt: "What does \"a basketball player is-an athlete\" mean here?",
       choices: [
-        "is-a denotes inheritance — BasketballPlayer is derived from Athlete",
+        "is-a denotes inheritance: BasketballPlayer is derived from Athlete",
         "BasketballPlayer and Athlete are unrelated classes",
         "Athlete is derived from BasketballPlayer",
         "Athlete and BasketballPlayer must be the same class, since is-a makes them interchangeable",
@@ -138,7 +138,7 @@ export default {
         "C++ denotes inheritance with a colon and the access specifier before the base class name at the class definition.",
     },
     {
-      prompt: "What is the difference between public and private inheritance?",
+      prompt: "What is the difference between `public` and `private` inheritance?",
       choices: [
         "private inheritance blocks outside code from calling the base's public functions through a derived object",
         "public inheritance is only for structs, private only for classes",
@@ -147,24 +147,24 @@ export default {
       ],
       answer: 0,
       explanation:
-        "Private inheritance hides the base's public interface from outside code accessing it through a derived object; public inheritance keeps it accessible, which is why public inheritance should always be used.",
+        "Private inheritance hides the base's `public` interface from outside code accessing it through a derived object; `public` inheritance keeps it accessible, which is why `public` inheritance should always be used.",
     },
     {
-      prompt: "Why does BasketballPlayer's constructor write \":Athlete(newName, newAge)\" before its body?",
+      prompt: "Why does BasketballPlayer's constructor write \":`Athlete(newName, newAge)`\" before its body?",
       code:
         "BasketballPlayer::BasketballPlayer(string newName, size_t newAge, double newPpg)\n:Athlete(newName, newAge){\nppg = newPpg;\n}",
       choices: [
         "It's a comment explaining the parameters",
         "It declares newName and newAge as local variables",
         "It calls the Athlete base constructor to initialize the inherited name and age",
-        "It's required syntax with no functional effect — the compiler ignores anything written after the colon",
+        "It's required syntax with no functional effect; the compiler ignores anything written after the colon",
       ],
       answer: 2,
       explanation:
         "The initializer list is how a derived class constructor runs the base class constructor first, so the inherited part of the object is properly set up before the derived body executes.",
     },
     {
-      prompt: "What does the call to Athlete::display() inside BasketballPlayer::display() do?",
+      prompt: "What does the call to `Athlete::display()` inside `BasketballPlayer::display()` do?",
       code:
         "void BasketballPlayer::display(){\nAthlete::display(); //call Athlete's display()\ncout << \"PPG: \" << ppg << endl;\n}",
       choices: [
@@ -175,11 +175,11 @@ export default {
       ],
       answer: 3,
       explanation:
-        "BaseClassName::function() explicitly invokes the base class's version, letting BasketballPlayer reuse Athlete's Name/Age printing instead of duplicating it.",
+        "`BaseClassName::function()` explicitly invokes the base class's version, letting BasketballPlayer reuse Athlete's Name/Age printing instead of duplicating it.",
     },
     {
       prompt:
-        "Before virtual is added, why does players[i]->display() call Athlete's display for every element, even when players[i] actually points to a BasketballPlayer?",
+        "Before `virtual` is added, why does `players[i]->display()` call Athlete's display for every element, even when players[i] actually points to a BasketballPlayer?",
       code:
         "Athlete* players[5];\nplayers[0] = player1;\nplayers[1] = player2;\nplayers[2] = player3;\nfor (size_t i = 0; i < 3; i++){\nplayers[i]->display();\n}",
       choices: [
@@ -190,10 +190,10 @@ export default {
       ],
       answer: 1,
       explanation:
-        "Without virtual, function calls through a pointer resolve at compile time based on the pointer's declared type, so an Athlete* always calls Athlete's version regardless of what it actually points to.",
+        "Without `virtual`, function calls through a pointer resolve at compile time based on the pointer's declared type, so an `Athlete*` always calls Athlete's version regardless of what it actually points to.",
     },
     {
-      prompt: "What does declaring \"virtual void display();\" in Athlete change?",
+      prompt: "What does declaring \"`virtual void display();`\" in Athlete change?",
       choices: [
         "It makes display() run faster by letting the compiler resolve every call at compile time instead of at run time",
         "It makes display() private",
@@ -202,19 +202,19 @@ export default {
       ],
       answer: 2,
       explanation:
-        "virtual switches display() to resolve based on the object's actual runtime type instead of the pointer's declared type.",
+        "`virtual` switches `display()` to resolve based on the object's actual runtime type instead of the pointer's declared type.",
     },
     {
-      prompt: "Do BasketballPlayer's and BaseballPlayer's own display() overrides need to be marked virtual too?",
+      prompt: "Do BasketballPlayer's and BaseballPlayer's own `display()` overrides need to be marked `virtual` too?",
       choices: [
         "Yes, every override must repeat the virtual keyword or it won't work",
         "Only BaseballPlayer's needs it, not BasketballPlayer's",
         "virtual can only be used in the base class, and every derived override needs the override keyword instead",
-        "No — an override is automatically virtual once the base declares it virtual",
+        "No, an override is automatically virtual once the base declares it virtual",
       ],
       answer: 3,
       explanation:
-        "The virtual keyword only needs to appear on the base class's declaration; every derived override of that function is virtual by default.",
+        "The `virtual` keyword only needs to appear on the base class's declaration; every derived override of that function is `virtual` by default.",
     },
     {
       prompt: "What does \"polymorphism\" mean here?",
@@ -230,16 +230,16 @@ export default {
     },
     {
       prompt:
-        "After adding virtual, what does the loop print for players[1], a BasketballPlayer named Jim with ppg 33.5?",
+        "After adding `virtual`, what does the loop print for players[1], a BasketballPlayer named Jim with `ppg` 33.5?",
       code:
         "Name: Bob\nAge: 22\nName: Jim\nAge: 23\nPPG: 33.5\nName: John\nAge: 28\nBatting average: 0.257",
       choices: ["Name: Jim / Age: 23", "PPG: 33.5", "Name: Jim / Age: 23 / PPG: 33.5", "Name: Jim / Age: 23 / Batting average: 33.5"],
       answer: 2,
       explanation:
-        "BasketballPlayer::display() calls Athlete::display() for Name/Age, then adds its own PPG line, so all three lines print together.",
+        "`BasketballPlayer::display()` calls `Athlete::display()` for Name/Age, then adds its own PPG line, so all three lines print together.",
     },
     {
-      prompt: "Why can an Athlete* array legally hold BasketballPlayer and BaseballPlayer pointers?",
+      prompt: "Why can an `Athlete*` array legally hold BasketballPlayer and BaseballPlayer pointers?",
       choices: [
         "Because C++ allows any pointer type to hold any object",
         "Because BasketballPlayer and BaseballPlayer each is-a Athlete, so an Athlete pointer can hold either",
@@ -260,7 +260,7 @@ export default {
       prompt:
         "What is inheritance, and what does the is-a relationship mean, using the Athlete/BasketballPlayer/BaseballPlayer example?",
       expected:
-        "Inheritance is a relation between a general class (the base class) and a more specialized class (the derived class) — the derived class inherits all the base class's data and functions and adds more of its own. is-a describes this relation: a basketball player is-an athlete, so Athlete is the base class and BasketballPlayer and BaseballPlayer are the derived classes.",
+        "Inheritance is a relation between a general class (the base class) and a more specialized class (the derived class); the derived class inherits all the base class's data and functions and adds more of its own. is-a describes this relation: a basketball player is-an athlete, so Athlete is the base class and BasketballPlayer and BaseballPlayer are the derived classes.",
       criteria: [
         "States the base/derived class relationship and that the derived class inherits from and adds to the base",
         "States is-a denotes inheritance, with Athlete as the base and BasketballPlayer/BaseballPlayer as derived classes",
@@ -285,9 +285,9 @@ export default {
       topicId: "derived-classes",
       format: FORMATS.RECALL,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "What is the difference between public and private inheritance?",
+      prompt: "What is the difference between `public` and `private` inheritance?",
       expected:
-        "With private inheritance, only the derived class itself can access the base's public functions — you can't call a base member function on a derived object from outside, and the derived class still can't access the base's private members. Public inheritance solves this: it lets a derived class access the base's private data through its interface, and lets outside code call the base's public functions through a derived object. You should always use public inheritance.",
+        "With private inheritance, only the derived class itself can access the base's public functions: you can't call a base member function on a derived object from outside, and the derived class still can't access the base's private members. Public inheritance solves this: it lets a derived class access the base's private data through its interface, and lets outside code call the base's public functions through a derived object. You should always use public inheritance.",
       criteria: [
         "States private inheritance blocks outside code from calling the base's public functions through a derived object",
         "States public inheritance is the one that should always be used",
@@ -313,7 +313,7 @@ export default {
       format: FORMATS.WRITE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Write the BasketballPlayer constructor, given the base constructor Athlete(newName, newAge) and a ppg data member.",
+        "Write the BasketballPlayer constructor, given the base constructor `Athlete(newName, newAge)` and a `ppg` data member.",
       expected:
         "BasketballPlayer::BasketballPlayer(string newName, size_t newAge, double newPpg)\n:Athlete(newName, newAge){\nppg = newPpg;\n}",
       criteria: [
@@ -342,9 +342,9 @@ export default {
       format: FORMATS.TRACE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Trace this loop, assuming Athlete::display() is NOT declared virtual, and players[1] actually points to a BasketballPlayer object:\n```\nAthlete* players[5];\nplayers[0] = player1;\nplayers[1] = player2;\nplayers[2] = player3;\nfor (size_t i = 0; i < 3; i++){\nplayers[i]->display();\n}\n```\nWhich display() runs for players[1], and why?",
+        "Trace this loop, assuming `Athlete::display()` is NOT declared `virtual`, and players[1] actually points to a BasketballPlayer object:\n```\nAthlete* players[5];\nplayers[0] = player1;\nplayers[1] = player2;\nplayers[2] = player3;\nfor (size_t i = 0; i < 3; i++){\nplayers[i]->display();\n}\n```\nWhich `display()` runs for players[1], and why?",
       expected:
-        "Athlete::display() runs for every element, including players[1], even though players[1] actually points to a BasketballPlayer. Without virtual, the compiler resolves display() based on the pointer's declared type (Athlete*), not the object's actual runtime type, so BasketballPlayer's own display() — and its PPG line — never runs.",
+        "Athlete::display() runs for every element, including players[1], even though players[1] actually points to a BasketballPlayer. Without virtual, the compiler resolves display() based on the pointer's declared type (Athlete*), not the object's actual runtime type, so BasketballPlayer's own display(), and its PPG line, never runs.",
       criteria: [
         "States Athlete's display runs for players[1], not BasketballPlayer's",
         "Explains this is because resolution is based on the declared pointer type (Athlete*), not the actual object type, without virtual",
@@ -370,9 +370,9 @@ export default {
       format: FORMATS.ERROR,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "This array-of-Athlete-pointers loop compiles and runs, but BasketballPlayer's PPG and BaseballPlayer's batting average never print — every element prints only Name and Age. What's the bug, and what's the fix?",
+        "This array-of-Athlete-pointers loop compiles and runs, but BasketballPlayer's PPG and BaseballPlayer's batting average never print; every element prints only Name and Age. What's the bug, and what's the fix?",
       expected:
-        "The bug is that Athlete::display() is declared as an ordinary (non-virtual) function, so the compiler picks which display() to call based on each pointer's declared type (Athlete*) rather than the object it actually points to. The fix is to declare display() virtual in Athlete (virtual void display();) — then the call resolves to each object's own override at runtime, and derived overrides are virtual automatically.",
+        "The bug is that Athlete::display() is declared as an ordinary (non-virtual) function, so the compiler picks which display() to call based on each pointer's declared type (Athlete*) rather than the object it actually points to. The fix is to declare display() virtual in Athlete (virtual void display();), and then the call resolves to each object's own override at runtime, and derived overrides are virtual automatically.",
       criteria: [
         "Names the bug as display() not being declared virtual, so calls resolve by declared pointer type",
         "States the fix is adding virtual to Athlete's display() declaration",
@@ -397,9 +397,9 @@ export default {
       topicId: "derived-classes",
       format: FORMATS.RECALL,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "What does declaring a function virtual do, and do derived class overrides need the virtual keyword too?",
+      prompt: "What does declaring a function `virtual` do, and do derived class overrides need the `virtual` keyword too?",
       expected:
-        "Declaring a function virtual (e.g. virtual void display();) tells the compiler to look for a native implementation of that function in the object's actual class first, and only fall back to the base class's version if the derived class doesn't override it. virtual is only needed in the base class's declaration — by default, all overriding display() functions in derived classes are also virtual.",
+        "Declaring a function virtual (e.g. virtual void display();) tells the compiler to look for a native implementation of that function in the object's actual class first, and only fall back to the base class's version if the derived class doesn't override it. virtual is only needed in the base class's declaration; by default, all overriding display() functions in derived classes are also virtual.",
       criteria: [
         "States virtual makes the compiler look for the actual object's own implementation, falling back to the base version otherwise",
         "States derived overrides are virtual by default and don't need to repeat the keyword",
@@ -425,12 +425,12 @@ export default {
       format: FORMATS.TRACE,
       origin: ITEM_ORIGIN.GENERATED,
       prompt:
-        "Trace the SAME loop as before, now that Athlete::display() is declared virtual. What does it print for players[0..2] — an Athlete named Bob, a BasketballPlayer named Jim with ppg 33.5, and a BaseballPlayer named John with battingAverage 0.257?",
+        "Trace the SAME loop as before, now that `Athlete::display()` is declared `virtual`. What does it print for players[0..2]: an Athlete named Bob, a BasketballPlayer named Jim with `ppg` 33.5, and a BaseballPlayer named John with `battingAverage` 0.257?",
       expected:
-        "Name: Bob / Age: 22 (Athlete's own display), then Name: Jim / Age: 23 / PPG: 33.5 (BasketballPlayer's display, which calls Athlete::display() for the first two lines then adds PPG), then Name: John / Age: 28 / Batting average: 0.257 (BaseballPlayer's display, same pattern). Each pointer now calls its own object's actual override — this is polymorphism.",
+        "Name: Bob / Age: 22 (Athlete's own display), then Name: Jim / Age: 23 / PPG: 33.5 (BasketballPlayer's display, which calls Athlete::display() for the first two lines then adds PPG), then Name: John / Age: 28 / Batting average: 0.257 (BaseballPlayer's display, same pattern). Each pointer now calls its own object's actual override, and this is polymorphism.",
       criteria: [
         "States each element now prints its own type's fields (base fields plus the derived-only field), not just Name/Age",
-        "Identifies this behavior as polymorphism — the call resolving differently per actual object type",
+        "Identifies this behavior as polymorphism: the call resolving differently per actual object type",
       ],
       provenance: {
         sourceId: "cpp-slides-05.3-derived-classes",
@@ -477,13 +477,13 @@ export default {
       origin: ITEM_ORIGIN.MANUAL,
       prompt: "What does \"a basketball player is-an athlete\" mean here?",
       choices: [
-        "is-a denotes inheritance — BasketballPlayer is derived from Athlete",
+        "is-a denotes inheritance: BasketballPlayer is derived from Athlete",
         "BasketballPlayer and Athlete are unrelated classes",
         "Athlete is derived from BasketballPlayer",
         "Athlete and BasketballPlayer must be the same class, since is-a makes them interchangeable",
       ],
       answerIndex: 0,
-      expected: "is-a denotes inheritance — BasketballPlayer is derived from Athlete",
+      expected: "is-a denotes inheritance: BasketballPlayer is derived from Athlete",
       criteria: [
         "is-a is the standard way to describe an inheritance relationship: the more specialized class is-a instance of the general one.",
       ],
@@ -523,7 +523,7 @@ export default {
       topicId: "derived-classes",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "Before virtual is added, why does players[i]->display() call Athlete's display for every element, even when players[i] actually points to a BasketballPlayer?\n```\nAthlete* players[5];\nplayers[0] = player1;\nplayers[1] = player2;\nplayers[2] = player3;\nfor (size_t i = 0; i < 3; i++){\nplayers[i]->display();\n}\n```",
+      prompt: "Before `virtual` is added, why does `players[i]->display()` call Athlete's display for every element, even when players[i] actually points to a BasketballPlayer?\n```\nAthlete* players[5];\nplayers[0] = player1;\nplayers[1] = player2;\nplayers[2] = player3;\nfor (size_t i = 0; i < 3; i++){\nplayers[i]->display();\n}\n```",
       choices: [
         "Because BasketballPlayer inherits display() from Athlete instead of defining a version of its own",
         "Because without virtual the compiler binds display() to the pointer's declared type, Athlete*",
@@ -547,7 +547,7 @@ export default {
       topicId: "derived-classes",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "What does declaring \"virtual void display();\" in Athlete change?",
+      prompt: "What does declaring \"`virtual void display();`\" in Athlete change?",
       choices: [
         "It makes display() run faster by letting the compiler resolve every call at compile time instead of at run time",
         "It makes display() private",
