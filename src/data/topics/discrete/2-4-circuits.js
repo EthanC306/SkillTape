@@ -56,6 +56,7 @@ export default {
   ],
   questions: [
     {
+      id: "discrete-2-4-circuits-q01",
       prompt: "Why do engineers model a circuit as a “black box”?",
       choices: [
         "To hide the answer from users",
@@ -68,6 +69,7 @@ export default {
         "The black-box view ignores implementation details and specifies the circuit purely by its input/output table.",
     },
     {
+      id: "discrete-2-4-circuits-q02",
       prompt: "A black box has 3 input signals. How many rows does its input/output table have?",
       choices: ["3", "6", "8", "9"],
       answer: 2,
@@ -75,6 +77,7 @@ export default {
         "Each input is 0 or 1, so n inputs give 2ⁿ combinations: 2³ = 8 rows.",
     },
     {
+      id: "discrete-2-4-circuits-q03",
       prompt: "An AND-gate outputs 1 when…",
       choices: [
         "at least one input is 1",
@@ -87,6 +90,7 @@ export default {
         "An AND-gate (like ∧) outputs 1 only when both inputs are 1; otherwise 0.",
     },
     {
+      id: "discrete-2-4-circuits-q04",
       prompt: "A NOT-gate receives input 0. What is its output?",
       choices: ["0", "1", "unchanged", "undefined"],
       answer: 1,
@@ -94,6 +98,7 @@ export default {
         "A NOT-gate (inverter) flips the signal: 0 becomes 1, and 1 becomes 0.",
     },
     {
+      id: "discrete-2-4-circuits-q05",
       prompt: "Which logical connectives correspond to the NOT, AND, and OR gates?",
       choices: ["→, ↔, ~", "~, ∧, ∨", "∧, ∨, →", "∨, ∧, ~"],
       answer: 1,
@@ -101,6 +106,7 @@ export default {
         "NOT ↔ ~, AND ↔ ∧, OR ↔ ∨. Gates are the hardware form of the logical connectives.",
     },
     {
+      id: "discrete-2-4-circuits-q06",
       prompt: "In a circuit diagram, a black dot where two wires meet indicates…",
       choices: [
         "the wires are connected",
@@ -113,6 +119,7 @@ export default {
         "A black dot means the wires are connected; wires crossing without a dot are not connected.",
     },
     {
+      id: "discrete-2-4-circuits-q07",
       prompt: "Two circuits are considered equivalent when they…",
       choices: [
         "look identical",
@@ -125,6 +132,7 @@ export default {
         "Equivalent circuits produce the same outputs for all inputs, with identical input/output tables, even if they use different gates.",
     },
     {
+      id: "discrete-2-4-circuits-q08",
       prompt: "Why is a simpler equivalent circuit preferable in an integrated circuit?",
       choices: [
         "It looks nicer",
@@ -137,6 +145,7 @@ export default {
         "Fewer logic gates means the circuit takes less chip space and requires less power.",
     },
     {
+      id: "discrete-2-4-circuits-q09",
       prompt: "To build a circuit from an input/output table, you write an AND term for each row where the output is ___ and OR them together.",
       choices: ["0", "1", "either", "the last"],
       answer: 1,
@@ -144,6 +153,7 @@ export default {
         "For each output-1 row you build an AND term true only for that pattern, then OR them, giving disjunctive normal form.",
     },
     {
+      id: "discrete-2-4-circuits-q10",
       prompt: "A disjunction of conjunctions (an OR of ANDs) built from a truth table is said to be in…",
       choices: [
         "conjunctive normal form (product-of-sums)",
@@ -156,6 +166,7 @@ export default {
         "An OR of AND-terms is disjunctive normal form, also called sum-of-products form.",
     },
     {
+      id: "discrete-2-4-circuits-q11",
       prompt: "A NAND-gate outputs 0…",
       choices: [
         "only when both inputs are 1",
@@ -168,6 +179,7 @@ export default {
         "A NAND is an AND followed by NOT: it outputs 0 only when both inputs are 1 (the negation of AND).",
     },
     {
+      id: "discrete-2-4-circuits-q12",
       prompt: "The symbols | and ↓ stand for which gates?",
       choices: [
         "| is NOR (Peirce arrow), ↓ is NAND (Sheffer stroke)",

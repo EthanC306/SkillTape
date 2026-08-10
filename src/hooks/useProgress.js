@@ -24,9 +24,11 @@ let importStarted = false;
  * that progress is backed by SQL. POSTs each historical run to
  * /api/attempts, then removes the legacy key so it never reimports.
  *
- * Old history entries only ever recorded booleans (no question ids), so every
- * imported result is sent with questionId: null — the schema's question_id
- * FK is `ON DELETE SET NULL` and nullable for exactly this case.
+ * Old history entries only ever recorded booleans (no question ids of any
+ * kind), so every imported result is sent with questionId: null and no
+ * questionStableId — those columns are nullable for exactly this case. That
+ * history genuinely cannot say which question was answered, and no later
+ * change can recover it (docs/STABLE_QUESTION_IDS.md).
  *
  * Deliberately simple, not robust: if a POST fails partway (API down, one bad
  * run), the whole import is left to retry from scratch next load rather than
@@ -84,10 +86,11 @@ export default function useProgress() {
   /**
    * recordRun(topicId, correct, total, results) — the exact call QuizView has
    * always made: `onFinish(topic.id, correctCount, questions.length, runResults)`.
-   * `results` is now an array of `{ questionId, correct }` (QuizView.jsx),
-   * not bare booleans — this is where they turn into the POST body and into
-   * the flattened boolean array `history[n].results` that HistoryModal.jsx
-   * and Home.jsx read (they only check truthiness per entry).
+   * `results` is now an array of
+   * `{ questionId, questionStableId, questionRevision, correct }`
+   * (QuizView.jsx), not bare booleans — this is where they turn into the POST
+   * body and into the flattened boolean array `history[n].results` that
+   * HistoryModal.jsx and Home.jsx read (they only check truthiness per entry).
    *
    * Updates local state optimistically so the results screen, Home, and
    * HistoryModal reflect the new run immediately, then reconciles against the
@@ -116,7 +119,12 @@ export default function useProgress() {
       await postAttempts({
         topicId,
         runId,
-        results: results.map((r) => ({ questionId: r.questionId ?? null, correct: r.correct })),
+        results: results.map((r) => ({
+          questionId: r.questionId ?? null,
+          questionStableId: r.questionStableId ?? null,
+          questionRevision: r.questionRevision ?? null,
+          correct: r.correct,
+        })),
       });
       // Refetch so server-side aggregation reconciles the optimistic guess
       // above (e.g. another tab having written a run in between).

@@ -81,6 +81,7 @@ export default {
   ],
   questions: [
     {
+      id: "discrete-2-5-number-systems-q01",
       prompt: "Why is binary (base 2) important in computing?",
       choices: [
         "It is easier for humans to read",
@@ -93,6 +94,7 @@ export default {
         "Modern electronics store signals in one of two states, which correspond naturally to the binary digits 0 and 1.",
     },
     {
+      id: "discrete-2-5-number-systems-q02",
       prompt: "What is the binary number 1101₂ in decimal?",
       choices: ["11", "13", "14", "26"],
       answer: 1,
@@ -100,6 +102,7 @@ export default {
         "1101₂ = 8 + 4 + 0 + 1 = 13 (place-values 2³, 2², 2¹, 2⁰).",
     },
     {
+      id: "discrete-2-5-number-systems-q03",
       prompt: "In binary addition, what is 1 + 1?",
       choices: ["1", "2", "10₂", "11₂ (1 carry 1)"],
       answer: 2,
@@ -107,6 +110,7 @@ export default {
         "1 + 1 = 2 = 10₂: you write 0 and carry 1, since binary carries at 2.",
     },
     {
+      id: "discrete-2-5-number-systems-q04",
       prompt: "In a half-adder, the CARRY output is produced by which Boolean expression?",
       choices: ["P ∨ Q", "P ∧ Q", "~P", "P ⊕ Q (exclusive or)"],
       answer: 1,
@@ -114,6 +118,7 @@ export default {
         "The carry is 1 only when both bits are 1, so it's P ∧ Q, an AND-gate. The sum is the exclusive or.",
     },
     {
+      id: "discrete-2-5-number-systems-q05",
       prompt: "Why can't a half-adder alone add the middle columns of a multi-digit binary sum?",
       choices: [
         "It only has one input",
@@ -126,6 +131,7 @@ export default {
         "A half-adder adds just two bits. Middle columns may also receive a carry-in, so they need to add three bits, which is a full-adder.",
     },
     {
+      id: "discrete-2-5-number-systems-q06",
       prompt: "A full-adder adds three bits. It is typically built from…",
       choices: [
         "one half-adder",
@@ -138,6 +144,7 @@ export default {
         "A full-adder combines two half-adders, one OR-gate to add P, Q, and a carry R.",
     },
     {
+      id: "discrete-2-5-number-systems-q07",
       prompt: "A circuit that adds two multi-digit binary numbers by chaining adders is called a…",
       choices: ["half-adder", "parallel adder", "inverter", "NAND-gate"],
       answer: 1,
@@ -145,6 +152,7 @@ export default {
         "A parallel adder chains a half-adder and full-adders, passing carries leftward, to add multi-bit numbers.",
     },
     {
+      id: "discrete-2-5-number-systems-q08",
       prompt: "To find the 8-bit two's complement of a negative number, you…",
       choices: [
         "write it in binary, flip the bits, add 1",
@@ -157,6 +165,7 @@ export default {
         "Two's complement of a negative: take the positive's binary, flip all bits, add 1. (E.g. −46 → 11010010.)",
     },
     {
+      id: "discrete-2-5-number-systems-q09",
       prompt: "What is the main advantage of two's complement representation?",
       choices: [
         "It uses fewer bits",
@@ -169,6 +178,7 @@ export default {
         "Two's complement gives a unique 0 and lets a − b be computed as a + (−b), so one adder handles both operations.",
     },
     {
+      id: "discrete-2-5-number-systems-q10",
       prompt: "In two's complement, what does the leading (left-most) bit indicate?",
       choices: [
         "The size of the number",
@@ -181,6 +191,7 @@ export default {
         "Because bits are flipped for negatives, the leading bit is 1 for negative integers and 0 for nonnegative ones.",
     },
     {
+      id: "discrete-2-5-number-systems-q11",
       prompt: "How many binary bits does a single hexadecimal digit represent?",
       choices: ["2", "3", "4", "8"],
       answer: 2,
@@ -188,6 +199,7 @@ export default {
         "Base 16 = 2⁴, so each hex digit corresponds to exactly 4 binary bits, so conversion is just grouping bits by four.",
     },
     {
+      id: "discrete-2-5-number-systems-q12",
       prompt: "Convert binary 1010 1001 to hexadecimal.",
       choices: ["A9", "9A", "AB", "129"],
       answer: 0,

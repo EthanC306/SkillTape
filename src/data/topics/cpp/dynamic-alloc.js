@@ -68,6 +68,7 @@ export default {
   ],
   questions: [
     {
+      id: "dynamic-alloc-q01",
       prompt: "What is a pointer?",
       choices: [
         "A function that allocates memory and hands back what it reserved",
@@ -80,6 +81,7 @@ export default {
         "A pointer is a variable whose value is a memory address: the address of some other variable.",
     },
     {
+      id: "dynamic-alloc-q02",
       prompt: "Which operator returns the memory address of a variable?",
       choices: [
         "::",
@@ -92,6 +94,7 @@ export default {
         "The address-of operator, `&`, returns a variable's memory address, as in `&x`.",
     },
     {
+      id: "dynamic-alloc-q03",
       prompt: "Given this declaration, which variable is a pointer?",
       code: "double *dblPtr, value;",
       choices: [
@@ -105,6 +108,7 @@ export default {
         "The `*` binds to the name it precedes, so only dblPtr is a pointer; value is an ordinary double.",
     },
     {
+      id: "dynamic-alloc-q04",
       prompt: "What does `*dblPtr` do in this code?",
       code: "value = 34.5;\ndblPtr = &value;\n*dblPtr = 12.3;",
       choices: [
@@ -118,6 +122,7 @@ export default {
         "`*dblPtr` dereferences the pointer, reaching into the memory it points to (the same memory as value).",
     },
     {
+      id: "dynamic-alloc-q05",
       prompt: "What does this statement do?",
       code: "intPtr = new int(99);",
       choices: [
@@ -131,6 +136,7 @@ export default {
         "`new int(99)` allocates space for one int on the heap and initializes it to 99 in one step.",
     },
     {
+      id: "dynamic-alloc-q06",
       prompt: "Where does memory from the `new` operator come from?",
       choices: [
         "The stack",
@@ -142,6 +148,7 @@ export default {
       explanation: "`new` allocates memory from the heap.",
     },
     {
+      id: "dynamic-alloc-q07",
       prompt: "After `intPtr = new int;` with no initializer, what does intPtr point to?",
       choices: [
         "Always 0",
@@ -154,6 +161,7 @@ export default {
         "Without an initializer, the newly allocated int holds whatever garbage was already in that memory.",
     },
     {
+      id: "dynamic-alloc-q08",
       prompt: "What does the `delete` operator do?",
       choices: [
         "Deletes the pointer variable itself, so the name can no longer be used",
@@ -165,6 +173,7 @@ export default {
       explanation: "`delete` frees memory that `new` allocated, returning it to the heap.",
     },
     {
+      id: "dynamic-alloc-q09",
       prompt: "In this code, what is intPtr2 after `delete intPtr1;`?",
       code: "int *intPtr1, *intPtr2;\nintPtr1 = new int(99);\nintPtr2 = intPtr1;\ndelete intPtr1;",
       choices: [
@@ -178,6 +187,7 @@ export default {
         "intPtr2 holds the same address intPtr1 had. Deleting through intPtr1 frees that memory, so intPtr2 is left dangling.",
     },
     {
+      id: "dynamic-alloc-q10",
       prompt: "What is nullptr?",
       choices: [
         "An integer equal to -1",
@@ -190,6 +200,7 @@ export default {
         "`nullptr` is a special constant used to initialize or reset pointers; it can be assigned to any pointer type.",
     },
     {
+      id: "dynamic-alloc-q11",
       prompt: "What happens if the `new` operator fails to find enough memory?",
       choices: [
         "It throws an exception",
@@ -202,6 +213,7 @@ export default {
         "A failed `new` throws an exception. Without an exception handler to catch it, the program terminates.",
     },
     {
+      id: "dynamic-alloc-q12",
       prompt: "Which of these still exists in memory after `run()` returns?",
       code: "static int a = 5;\n\nvoid run() {\n    int b = 5;\n    int *c = new int(5);\n}",
       choices: [
@@ -215,6 +227,7 @@ export default {
         "`a` is static, so it is global to the file and lives for the program's whole run. `b` is automatic and is destroyed when `run()` returns. The pointer `c` is automatic and disappears too, but the int it allocated with `new` is dynamic and stays on the heap until deleted. Here it is leaked, since nothing is left holding its address.",
     },
     {
+      id: "dynamic-alloc-q13",
       prompt: "Which line correctly uses `auto`?",
       choices: [
         "value = auto(2.3);",

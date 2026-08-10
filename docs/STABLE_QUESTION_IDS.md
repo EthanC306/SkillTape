@@ -1,6 +1,12 @@
 # Stable question ids make MCQ results identifiable across reseeds
 
-*Status: planned, not started. Written 2026-08-09.*
+*Status: **done**, 2026-08-10. Written 2026-08-09.*
+
+*Implemented as specified. Two deviations, both noted inline below: `questions.stable_id`
+gets its UNIQUE constraint from a separate index rather than the column declaration (SQLite's
+`ALTER TABLE` cannot add a UNIQUE column, so an existing database could not otherwise get it),
+and `--reset` prunes rather than wipes (§3). The one-off codemod ran and was deleted; the
+regression test in "Verification" below lives on as [test/seedStability.test.js](../test/seedStability.test.js).*
 
 ## Context
 
@@ -63,6 +69,12 @@ and `figure` are excluded — cosmetic edits shouldn't invalidate history.
 `questions`: add `stable_id TEXT UNIQUE`, `revision INTEGER NOT NULL DEFAULT 1`,
 `content_hash TEXT`.
 
+*As built:* the column is declared plain `stable_id TEXT` and the constraint arrives as a separate
+`CREATE UNIQUE INDEX` in [db.js](../server/db.js). SQLite's `ALTER TABLE` refuses to add a UNIQUE
+column, so an already-existing database could not get it any other way; declaring it inline in
+`schema.sql` would have left new and old installs structurally different. A unique index satisfies
+both things that need one — the FK from `attempts` and the `ON CONFLICT(stable_id)` upsert target.
+
 `attempts`: add `question_stable_id TEXT REFERENCES questions(stable_id) ON DELETE SET NULL` and
 `question_revision INTEGER`. Index on `(question_stable_id, created_at)`.
 
@@ -98,6 +110,14 @@ The load-bearing change. Follow `upsertItem` / `deleteMissingItems`
   documents the items case, so nobody reintroduces the delete.
 - **`--reset` must be updated too** — [seed.js:144](../server/seed.js#L144) wipes `questions`
   wholesale and would reintroduce the exact bug on any reset run.
+
+  *As built:* it turned out worse than the plan assumed. `--reset` also ran `DELETE FROM topics`,
+  and `attempts.topic_id` and `items.topic_id` are both `ON DELETE CASCADE` — so a reset already
+  destroyed the entire attempt log, every FSRS schedule and every suspension, not just the question
+  ids. It now **prunes**: rows whose ids are no longer in the curriculum are deleted (correctly —
+  that history describes content that no longer exists), everything still authored keeps its
+  identity. Net content state after a reset is byte-identical to a fresh seed, which is what
+  Verification §3 asks for. To truly start from nothing, delete `db/skilltape.db`.
 
 ### 4. API — [server/routes/topics.js](../server/routes/topics.js) and [server/routes/progress.js](../server/routes/progress.js)
 

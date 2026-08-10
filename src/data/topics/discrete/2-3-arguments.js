@@ -46,6 +46,7 @@ export default {
   ],
   questions: [
     {
+      id: "discrete-2-3-arguments-q01",
       prompt: "An argument form is valid when…",
       choices: [
         "its premises all happen to be actually true",
@@ -58,6 +59,7 @@ export default {
         "Validity means: whenever all the premises are true (the critical rows), the conclusion is forced to be true too. It's about form, not the actual truth of the parts.",
     },
     {
+      id: "discrete-2-3-arguments-q02",
       prompt: "When checking validity with a truth table, which rows matter?",
       choices: [
         "Every row",
@@ -70,6 +72,7 @@ export default {
         "You only inspect the critical rows, those in which all premises are true, because that's where an invalid argument would reveal a false conclusion.",
     },
     {
+      id: "discrete-2-3-arguments-q03",
       prompt: "Identify the form: “If p then q. p. ∴ q.”",
       choices: ["Modus tollens", "Modus ponens", "Converse error", "Elimination"],
       answer: 1,
@@ -77,6 +80,7 @@ export default {
         "Affirming the hypothesis to conclude the conclusion is modus ponens, a valid form.",
     },
     {
+      id: "discrete-2-3-arguments-q04",
       prompt: "“If 870,232 is divisible by 6, then it is divisible by 3. 870,232 is not divisible by 3. ∴ ?”",
       choices: [
         "870,232 is divisible by 6, by modus ponens",
@@ -89,6 +93,7 @@ export default {
         "Denying the conclusion (~q) lets you deny the hypothesis (~p) by modus tollens: it is not divisible by 6.",
     },
     {
+      id: "discrete-2-3-arguments-q05",
       prompt: "The argument “p → q; q; ∴ p” is an example of…",
       choices: [
         "modus ponens (valid)",
@@ -101,6 +106,7 @@ export default {
         "Affirming the conclusion q to infer p is the converse error, which is invalid. A true q can occur without p.",
     },
     {
+      id: "discrete-2-3-arguments-q06",
       prompt: "Which argument form is the inverse error (invalid)?",
       choices: [
         "p → q; ~p; ∴ ~q",
@@ -113,6 +119,7 @@ export default {
         "Denying the hypothesis (~p) to conclude ~q is the inverse error. (~q → ~p would be valid, but ~p → ~q is not.)",
     },
     {
+      id: "discrete-2-3-arguments-q07",
       prompt: "Name the valid form: “p → q; q → r; ∴ p → r.”",
       choices: ["Elimination", "Transitivity", "Generalization", "Specialization"],
       answer: 1,
@@ -120,6 +127,7 @@ export default {
         "Chaining implications, so that p implies q and q implies r gives p implies r, is transitivity.",
     },
     {
+      id: "discrete-2-3-arguments-q08",
       prompt: "“Ana knows numerical analysis AND Ana knows graph algorithms. ∴ Ana knows graph algorithms.” This uses…",
       choices: ["Generalization", "Specialization", "Elimination", "Conjunction"],
       answer: 1,
@@ -127,6 +135,7 @@ export default {
         "Pulling one conjunct out of p ∧ q (∴ q) is specialization.",
     },
     {
+      id: "discrete-2-3-arguments-q09",
       prompt: "“x − 3 = 0 or x + 2 = 0. x is not negative, so x + 2 ≠ 0. ∴ x − 3 = 0.” This uses…",
       choices: ["Elimination", "Transitivity", "Modus ponens", "Generalization"],
       answer: 0,
@@ -134,6 +143,7 @@ export default {
         "Given p ∨ q and ~q, concluding p is elimination: rule one alternative out and the other must hold.",
     },
     {
+      id: "discrete-2-3-arguments-q10",
       prompt: "A valid argument has a false premise and a false conclusion. Is the argument still valid?",
       choices: [
         "No, a false premise or conclusion makes it invalid",
@@ -146,6 +156,7 @@ export default {
         "Validity concerns the form. A valid form can carry false premises to a false conclusion; that doesn't affect validity.",
     },
     {
+      id: "discrete-2-3-arguments-q11",
       prompt: "How can you prove an argument form is INVALID?",
       choices: [
         "Show that every single row has a true conclusion in it",
@@ -158,6 +169,7 @@ export default {
         "A single critical row (all premises true) in which the conclusion is false proves invalidity.",
     },
     {
+      id: "discrete-2-3-arguments-q12",
       prompt: "The contradiction rule says: if ~p leads to a contradiction (~p → c), then…",
       choices: ["~p is true", "p is true", "the argument is invalid", "nothing follows"],
       answer: 1,

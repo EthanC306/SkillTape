@@ -62,6 +62,7 @@ export default {
   ],
   questions: [
     {
+      id: "discrete-2-2-conditional-q01",
       prompt: "In what single case is the conditional p → q false?",
       choices: [
         "When p is false and q is true",
@@ -74,6 +75,7 @@ export default {
         "p → q is false only when the hypothesis p is true but the conclusion q is false. Every other combination makes it true.",
     },
     {
+      id: "discrete-2-2-conditional-q02",
       prompt: "“If 0 = 1, then 1 = 2” is… ",
       choices: [
         "false, on the grounds that 1 ≠ 2",
@@ -86,6 +88,7 @@ export default {
         "A conditional with a false hypothesis is vacuously true (true by default), regardless of the conclusion.",
     },
     {
+      id: "discrete-2-2-conditional-q03",
       prompt: "Which is logically equivalent to p → q?",
       choices: ["p ∧ q", "~p ∨ q", "p ∨ ~q", "q → p"],
       answer: 1,
@@ -93,6 +96,7 @@ export default {
         "p → q ≡ ~p ∨ q, so “if p then q” means “not p, or q.”",
     },
     {
+      id: "discrete-2-2-conditional-q04",
       prompt: "What is the negation of “If my car is in the shop, then I can't get to class”?",
       choices: [
         "If my car is not in the shop, then I can get to class",
@@ -105,6 +109,7 @@ export default {
         "~(p → q) ≡ p ∧ ~q: assert the hypothesis and negate the conclusion, giving “car is in the shop AND I can get to class.”",
     },
     {
+      id: "discrete-2-2-conditional-q05",
       prompt: "The contrapositive of “If p then q” is…",
       choices: ["q → p", "~p → ~q", "~q → ~p", "p ∧ ~q"],
       answer: 2,
@@ -112,6 +117,7 @@ export default {
         "The contrapositive is ~q → ~p: swap and negate both parts. It is logically equivalent to the original.",
     },
     {
+      id: "discrete-2-2-conditional-q06",
       prompt: "Which statement is logically EQUIVALENT to “If today is Easter, then tomorrow is Monday”?",
       choices: [
         "If tomorrow is Monday, then today is Easter (converse)",
@@ -124,6 +130,7 @@ export default {
         "Only the contrapositive is equivalent to a conditional. The converse and inverse are not.",
     },
     {
+      id: "discrete-2-2-conditional-q07",
       prompt: "The converse of p → q is q → p, and the inverse is ~p → ~q. How are the converse and inverse related?",
       choices: [
         "They are each equivalent to the original conditional p → q",
@@ -136,6 +143,7 @@ export default {
         "The converse and inverse are contrapositives of one another, so they are logically equivalent to each other, but not to the original conditional.",
     },
     {
+      id: "discrete-2-2-conditional-q08",
       prompt: "“John breaks the record only if he runs under four minutes.” This means:",
       choices: [
         "If John runs under four minutes, then he breaks the record",
@@ -148,6 +156,7 @@ export default {
         "“p only if q” means p → q. So breaking the record implies he ran under four minutes (equivalently: if not under four minutes, then no record).",
     },
     {
+      id: "discrete-2-2-conditional-q09",
       prompt: "“q is a necessary condition for p” translates to…",
       choices: ["p → q", "q → p", "p ∧ q", "p ↔ q"],
       answer: 0,
@@ -155,6 +164,7 @@ export default {
         "If q is necessary for p, then p can't happen without q: p → q. (A sufficient condition q would be q → p.)",
     },
     {
+      id: "discrete-2-2-conditional-q10",
       prompt: "The biconditional p ↔ q is true exactly when…",
       choices: [
         "at least one of p and q is true",
@@ -167,6 +177,7 @@ export default {
         "p ↔ q is true when p and q are both true or both false, meaning they match.",
     },
     {
+      id: "discrete-2-2-conditional-q11",
       prompt: "“p if and only if q” is equivalent to which conjunction?",
       choices: [
         "(p → q) ∧ (q → p)",
@@ -179,6 +190,7 @@ export default {
         "p ↔ q ≡ (p → q) ∧ (q → p): the conditional and its converse together.",
     },
     {
+      id: "discrete-2-2-conditional-q12",
       prompt: "In the full order of operations, which connective is evaluated FIRST?",
       choices: ["→", "∧", "∨", "~"],
       answer: 3,

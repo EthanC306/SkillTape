@@ -87,6 +87,7 @@ export default {
   ],
   questions: [
     {
+      id: "stacks-q01",
       prompt: "Where can entries be inserted and removed in a stack?",
       choices: [
         "At either end, whichever is closer",
@@ -99,6 +100,7 @@ export default {
         "A stack restricts all access to a single end called the top, which is what makes it a stack rather than a general list.",
     },
     {
+      id: "stacks-q02",
       prompt: "You `push` 3, then 7, then 5 onto an empty stack. What does the next `pop` return?",
       choices: ["3", "7", "5", "The smallest value, 3"],
       answer: 2,
@@ -106,6 +108,7 @@ export default {
         "A stack is Last-In/First-Out, so the most recently pushed item, 5, is the first one back off.",
     },
     {
+      id: "stacks-q03",
       prompt: "What is stack underflow?",
       choices: [
         "Trying to push an item onto a full stack",
@@ -118,6 +121,7 @@ export default {
         "Underflow is the empty-stack error: there is no top item left to remove.",
     },
     {
+      id: "stacks-q04",
       prompt: "In the array implementation, what is top set to when the stack is empty?",
       choices: ["-1", "0", "CAPACITY", "nullptr"],
       answer: 0,
@@ -125,6 +129,7 @@ export default {
         "top holds the index of the top element, so an empty stack uses -1, one below the first valid index.",
     },
     {
+      id: "stacks-q05",
       prompt: "In the array implementation, what does pushing an element do?",
       choices: [
         "Shifts every element up one position and stores the item at index 0",
@@ -137,6 +142,7 @@ export default {
         "top is incremented first so it names a free slot, and the entry is then written at that new top position.",
     },
     {
+      id: "stacks-q06",
       prompt: "What is this `assert` protecting against?",
       code: "template <typename Item>\nvoid Stack<Item>::push(const Item& entry){\n    assert(top < CAPACITY - 1);\n    top++;\n    data[top] = entry;\n}",
       choices: [
@@ -150,6 +156,7 @@ export default {
         "If top has already reached the last index, incrementing it would run past the array, which is the overflow condition.",
     },
     {
+      id: "stacks-q07",
       prompt: "Why does size return `top + 1`?",
       code: "size_t size() const { return top + 1; }\nbool isEmpty() const { return top == -1; }",
       choices: [
@@ -163,6 +170,7 @@ export default {
         "Converting the zero-based index of the top element to a count means adding one, and that also makes the empty case come out as 0.",
     },
     {
+      id: "stacks-q08",
       prompt: "Why does this `pop` return `data[top + 1]` instead of `data[top]`?",
       code: "template <typename Item>\nItem Stack<Item>::pop() {\n    assert(!isEmpty());\n    top--;\n    return data[top + 1];\n}",
       choices: [
@@ -176,6 +184,7 @@ export default {
         "The decrement happens first, so `top + 1` is the slot that held the item being removed.",
     },
     {
+      id: "stacks-q09",
       prompt: "What is the difference between `peek` and `pop`?",
       choices: [
         "peek returns the bottom item; pop returns the top item",
@@ -188,6 +197,7 @@ export default {
         "`peek` is the read-only look at the top of the stack, which is why it is declared const and leaves top unchanged.",
     },
     {
+      id: "stacks-q10",
       prompt: "What does `assert` do when its condition is true?",
       choices: [
         "It prints a confirmation message",
@@ -200,6 +210,7 @@ export default {
         "`assert` is silent on success and only speaks up, with an error message at run time, when the condition fails.",
     },
     {
+      id: "stacks-q11",
       prompt: "In the linked list implementation, what marks an empty stack?",
       choices: [
         "topPtr is pointing to nullptr",
@@ -212,6 +223,7 @@ export default {
         "The top of the stack is the head node, so an empty stack is one whose head pointer points nowhere.",
     },
     {
+      id: "stacks-q12",
       prompt: "What list operation is this `push` performing?",
       code: "template <typename Item>\nvoid Stack<Item>::push(const Item &entry){\n    // insert at the begining\n    Node<Item> *temp =\n            new Node<Item>(entry, topPtr);\n    topPtr = temp;\n    numItems++;\n}",
       choices: [
@@ -225,6 +237,7 @@ export default {
         "The new node's next pointer is the old `topPtr` and `topPtr` is then moved to the new node, which is insertion at the head.",
     },
     {
+      id: "stacks-q13",
       prompt: "Why does `pop` save `topPtr` in `delPtr` before advancing it?",
       code: "Node<Item> *delPtr = topPtr;\nItem topItem = topPtr->getData();\ntopPtr = topPtr->getNext();\ndelete delPtr;\nnumItems--;\nreturn topItem;",
       choices: [
@@ -238,6 +251,7 @@ export default {
         "The removed node still has to be deleted, so its address must be kept somewhere before `topPtr` is reassigned.",
     },
     {
+      id: "stacks-q14",
       prompt: "Why should the linked list stack have a destructor, a copy constructor, and an overloaded assignment operator?",
       choices: [
         "Templates require all three to compile",

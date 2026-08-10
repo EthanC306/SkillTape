@@ -76,6 +76,7 @@ export default {
   ],
   questions: [
     {
+      id: "discrete-1-3-relations-functions-q01",
       prompt:
         "Define R from A = {1, 2} to B = {1, 2, 3} by: x R y means (x − y)/2 is an integer. Which pair is in R?",
       choices: ["(1, 2)", "(2, 3)", "(2, 2)", "(1, 2) and (2, 3)"],
@@ -84,6 +85,7 @@ export default {
         "(x − y)/2 must be an integer, i.e. x and y have the same parity. (2, 2): (2−2)/2 = 0, an integer → in R. (1,2) gives −1/2 and (2,3) gives −1/2, neither an integer.",
     },
     {
+      id: "discrete-1-3-relations-functions-q02",
       prompt:
         "A relation R is defined from A = {1, 2} to B = {1, 2, 3}. What are its domain and co-domain?",
       choices: [
@@ -97,6 +99,7 @@ export default {
         "For a relation from A to B, the domain is the starting set A = {1, 2} and the co-domain is the target set B = {1, 2, 3}, regardless of which pairs R actually contains.",
     },
     {
+      id: "discrete-1-3-relations-functions-q03",
       prompt: "Fundamentally, what IS a relation from A to B?",
       choices: [
         "A subset of the Cartesian product A × B",
@@ -109,6 +112,7 @@ export default {
         "A relation from A to B is any subset of A × B: a selection of ordered pairs. (A function is the special case obeying the two extra rules.)",
     },
     {
+      id: "discrete-1-3-relations-functions-q04",
       prompt: "What are the two properties a relation F must satisfy to be a function from A to B?",
       choices: [
         "Every element of A is used, and none maps twice",
@@ -121,6 +125,7 @@ export default {
         "(1) Totality: each element of A is the first coordinate of some pair. (2) Single-valued: no element of A is paired with two different second coordinates. Together: exactly one output per input.",
     },
     {
+      id: "discrete-1-3-relations-functions-q05",
       prompt:
         "In the arrow diagram, the element 4 has two arrows coming out of it, one to 1 and one to 3. Is R a function?",
       figure: {
@@ -139,6 +144,7 @@ export default {
         "R breaks the single-valued rule: the input 4 maps to both 1 and 3, so it would have two outputs. That alone disqualifies R from being a function.",
     },
     {
+      id: "discrete-1-3-relations-functions-q06",
       prompt:
         "S is defined from A = {2, 4, 6} to B = {1, 3, 5} by y = x + 1. Why is S NOT a function?",
       choices: [
@@ -152,6 +158,7 @@ export default {
         "Totality fails: 6 ∈ A but 6 + 1 = 7 ∉ B, so there is no pair with first coordinate 6. Not every element of the domain is used.",
     },
     {
+      id: "discrete-1-3-relations-functions-q07",
       prompt: "If a function T is given by T(2) = 5, T(4) = 1, T(6) = 1, is T a valid function?",
       choices: [
         "No, two inputs, 4 and 6, both share the single output 1",
@@ -164,6 +171,7 @@ export default {
         "The rules constrain inputs, not outputs. Each of 2, 4, 6 has exactly one output, so T is a function; different inputs mapping to the same output (4 and 6 → 1) is allowed.",
     },
     {
+      id: "discrete-1-3-relations-functions-q08",
       prompt:
         "Let S be all strings over {a, b} and L(s) = the length of s. What is L(abaaba)?",
       choices: ["3", "5", "6", "it is undefined"],
@@ -172,6 +180,7 @@ export default {
         "L returns the number of characters, and abaaba has 6 of them, so L(abaaba) = 6. (L is a function because every string has exactly one length.)",
     },
     {
+      id: "discrete-1-3-relations-functions-q09",
       prompt:
         "Define C on strings by C(s) = the string s with an 'a' appended on the LEFT. What is C(bbb)?",
       choices: ["bbba", "abbb", "bbb", "aaa"],
@@ -180,6 +189,7 @@ export default {
         "Concatenating a on the left of bbb gives abbb. (Appending on the right would give bbba, since order matters.)",
     },
     {
+      id: "discrete-1-3-relations-functions-q10",
       prompt:
         "On ℝ, let f(x) = |x| and g(x) = √(x²). Does f = g?",
       choices: [
@@ -193,6 +203,7 @@ export default {
         "Two functions are equal when they share a domain and co-domain and agree on every input. Since √(x²) = |x| for all real x, f and g produce identical outputs everywhere, so f = g.",
     },
     {
+      id: "discrete-1-3-relations-functions-q11",
       prompt: "“A function is a special kind of relation.” Is this accurate?",
       choices: [
         "Yes, every function is a relation",
@@ -205,6 +216,7 @@ export default {
         "A function is a relation (subset of A × B) that also satisfies totality and single-valuedness. So functions ⊆ relations, but many relations fail those rules and aren't functions.",
     },
     {
+      id: "discrete-1-3-relations-functions-q12",
       prompt:
         "On an arrow diagram, which situation is ALLOWED for a function from A to B?",
       choices: [

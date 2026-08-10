@@ -54,6 +54,7 @@ export default {
   ],
   questions: [
     {
+      id: "doubly-linked-lists-q01",
       prompt: "What does a doubly linked list add compared to a singly linked list?",
       choices: [
         "A guarantee that the list can never be empty once built",
@@ -66,6 +67,7 @@ export default {
         "Each `DNode` stores both `next` and `previous`, so the list can be walked backward without restarting from `head`.",
     },
     {
+      id: "doubly-linked-lists-q02",
       prompt: "In the `DNode` class, what are the three private members?",
       code: "class DNode {\nprivate:\n    int data;\n    DNode *next;\n    DNode *previous;\n};",
       choices: [
@@ -79,6 +81,7 @@ export default {
         "A doubly linked node stores its data plus pointers to both its `next` and `previous` neighbors.",
     },
     {
+      id: "doubly-linked-lists-q03",
       prompt:
         "In `insertAfter(head, cursor, value)`, what happens if `head` == `nullptr`?",
       code: "if (head == nullptr) {\n    head = temp;\n    temp->next = nullptr;\n    temp->prev = nullptr;\n    return;\n}",
@@ -93,6 +96,7 @@ export default {
         "An empty list is a special case handled before any `cursor`-relative linking: the new node simply becomes the sole node in the list.",
     },
     {
+      id: "doubly-linked-lists-q04",
       prompt: "Why does inserting after a `cursor` need four pointer updates instead of two?",
       code: "temp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr)\n    cursor->next->prev = temp;\ncursor->next = temp;",
       choices: [
@@ -106,6 +110,7 @@ export default {
         "A doubly linked insert must wire up temp's `next` and `prev`, plus fix up `cursor->next` and (if it exists) `cursor->next`'s old `prev` pointer.",
     },
     {
+      id: "doubly-linked-lists-q05",
       prompt: "Why is `if (cursor->next != nullptr)` needed before `cursor->next->prev = temp;`?",
       choices: [
         "It's optional, and skipping it only costs a little performance on long lists",
@@ -118,6 +123,7 @@ export default {
         "If `cursor` is the last node, `cursor->next` is `nullptr`, and dereferencing it (`cursor->next->prev`) would be undefined behavior.",
     },
     {
+      id: "doubly-linked-lists-q06",
       prompt: "When deleting the first node in a doubly linked list, what must happen to the new `head`?",
       code: "if (cursor == head) {\n    head = cursor->getNext();\n    if (head != nullptr) {\n        head->setPrevious(nullptr);\n    }\n}",
       choices: [
@@ -131,6 +137,7 @@ export default {
         "After removing the old first node, the new first node's `previous` must be `nullptr` since nothing precedes it anymore.",
     },
     {
+      id: "doubly-linked-lists-q07",
       prompt:
         "What is the key efficiency advantage of deleting a middle node in a doubly linked list versus a singly linked list?",
       code: "DNode *after = cursor->getNext();\nDNode *before = cursor->getPrevious();\nbefore->setNext(after);\nafter->setPrevious(before);",
@@ -145,6 +152,7 @@ export default {
         "A singly linked list must walk from `head` to find the predecessor before it can delete; a doubly linked node already stores that pointer.",
     },
     {
+      id: "doubly-linked-lists-q08",
       prompt: "Deleting a node in a doubly linked list has how many distinct cases?",
       choices: [
         "One: the same logic always applies",

@@ -44,4 +44,34 @@ function ensureColumn(table, column, ddl) {
 }
 ensureColumn("topics", "exam_weight", "exam_weight REAL NOT NULL DEFAULT 1.0");
 
+// docs/STABLE_QUESTION_IDS.md — the authored `questions.stable_id` and the
+// attempt columns that reference it. Same guarded-ALTER story as exam_weight,
+// with two SQLite restrictions shaping how it's written:
+//
+//  1. ALTER TABLE cannot add a UNIQUE column, so `stable_id` is added plain and
+//     the constraint arrives as a separate CREATE UNIQUE INDEX. A fresh
+//     database takes the identical path (schema.sql declares the column
+//     without UNIQUE), so both converge on the same structure rather than
+//     old and new installs differing.
+//  2. ALTER TABLE can only add a REFERENCES column whose default is NULL —
+//     which is exactly what `question_stable_id` needs anyway.
+//
+// The unique index must exist before anything references questions(stable_id):
+// SQLite requires a unique index on a foreign key's parent columns, and
+// seed.js's ON CONFLICT(stable_id) upsert needs it as its conflict target.
+ensureColumn("questions", "stable_id", "stable_id TEXT");
+ensureColumn("questions", "revision", "revision INTEGER NOT NULL DEFAULT 1");
+ensureColumn("questions", "content_hash", "content_hash TEXT");
+db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_questions_stable ON questions(stable_id)");
+
+ensureColumn(
+  "attempts",
+  "question_stable_id",
+  "question_stable_id TEXT REFERENCES questions(stable_id) ON DELETE SET NULL"
+);
+ensureColumn("attempts", "question_revision", "question_revision INTEGER");
+db.exec(
+  "CREATE INDEX IF NOT EXISTS idx_attempts_question_stable ON attempts(question_stable_id, created_at)"
+);
+
 export default db;

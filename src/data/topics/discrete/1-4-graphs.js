@@ -87,6 +87,7 @@ export default {
   ],
   questions: [
     {
+      id: "discrete-1-4-graphs-q01",
       prompt: "In a graph, what are the dots and the line segments called?",
       choices: [
         "Nodes and links",
@@ -99,6 +100,7 @@ export default {
         "A graph is a set of vertices (the dots) joined by edges (the segments). “Nodes/links” is informal; the textbook terms are vertices and edges.",
     },
     {
+      id: "discrete-1-4-graphs-q02",
       prompt: "What is a loop in a graph?",
       choices: [
         "An edge that connects a vertex to itself",
@@ -111,6 +113,7 @@ export default {
         "A loop is an edge whose two endpoints are the same vertex, joining that vertex to itself.",
     },
     {
+      id: "discrete-1-4-graphs-q03",
       prompt: "Two edges that connect the very same pair of vertices are called…",
       choices: ["adjacent", "incident", "parallel", "isolated"],
       answer: 2,
@@ -118,6 +121,7 @@ export default {
         "Edges connecting the same pair of vertices are parallel. (Adjacent edges merely share one endpoint; incident relates an edge to its endpoints.)",
     },
     {
+      id: "discrete-1-4-graphs-q04",
       prompt: "A vertex that has no edge connected to it is described as…",
       choices: ["parallel", "isolated", "a loop", "adjacent"],
       answer: 1,
@@ -125,6 +129,7 @@ export default {
         "A vertex touched by no edge is isolated. Its degree is 0.",
     },
     {
+      id: "discrete-1-4-graphs-q05",
       prompt:
         "Edge e₁ has endpoints {v₁, v₂}. Which statement uses the terminology correctly?",
       choices: [
@@ -138,6 +143,7 @@ export default {
         "An edge is incident on each of its endpoints, and two vertices joined by an edge are adjacent. So e₁ is incident on v₁ and v₂, which are adjacent.",
     },
     {
+      id: "discrete-1-4-graphs-q06",
       prompt: "What makes a directed graph (digraph) different from an ordinary graph?",
       choices: [
         "Its edges may be curved",
@@ -150,6 +156,7 @@ export default {
         "In a digraph each edge is associated with an ordered pair (v, w) and drawn as an arrow from v to w, so direction matters.",
     },
     {
+      id: "discrete-1-4-graphs-q07",
       prompt:
         "Vertex v₃ has two ordinary edges plus one loop attached to it. What is deg(v₃)?",
       figure: {
@@ -163,6 +170,7 @@ export default {
         "Each ordinary edge contributes 1 and the loop contributes 2 (both its ends attach here): 1 + 1 + 2 = 4.",
     },
     {
+      id: "discrete-1-4-graphs-q08",
       prompt: "What is the degree of an isolated vertex?",
       choices: ["0", "1", "2", "Undefined"],
       answer: 0,
@@ -170,6 +178,7 @@ export default {
         "An isolated vertex has no edges touching it, so its degree is 0.",
     },
     {
+      id: "discrete-1-4-graphs-q09",
       prompt:
         "In the periodicals knowledge base: “New York Times → big-city daily,” “big-city daily → newspaper,” and “newspaper → matte (paper-finish).” What paper finish does the New York Times use?",
       choices: ["Glossy", "Matte", "It cannot be determined", "Both"],
@@ -178,6 +187,7 @@ export default {
         "Following the arrows, the New York Times is a big-city daily, which is a newspaper, whose paper-finish is matte, so the finish is matte. This is inference along a directed graph.",
     },
     {
+      id: "discrete-1-4-graphs-q10",
       prompt:
         "You want to color a map so no two adjacent countries share a color. How do you model it as a graph?",
       choices: [
@@ -191,6 +201,7 @@ export default {
         "Make each country a vertex and join two vertices with an edge exactly when their countries are adjacent. Coloring the map becomes coloring the vertices so adjacent ones differ.",
     },
     {
+      id: "discrete-1-4-graphs-q11",
       prompt:
         "Two drawings look different but have the same vertex set, edge set, and edge-endpoint function. What can you conclude?",
       choices: [
@@ -204,6 +215,7 @@ export default {
         "A graph is determined by its vertices, edges, and endpoints, not by how it's drawn. Same three pieces ⇒ same graph, regardless of the picture.",
     },
     {
+      id: "discrete-1-4-graphs-q12",
       prompt:
         "When coloring a graph's vertices, a good strategy at each step is to color…",
       choices: [

@@ -58,6 +58,7 @@ export default {
   ],
   questions: [
     {
+      id: "containers-q01",
       prompt: "What is a container class?",
       choices: [
         "A special kind of loop",
@@ -70,6 +71,7 @@ export default {
         "A container class is a class whose objects store a collection of items; a `vector` is a familiar example.",
     },
     {
+      id: "containers-q02",
       prompt: "What makes a sequence class different from a plain container?",
       choices: [
         "It can only hold integers",
@@ -82,6 +84,7 @@ export default {
         "A sequence class keeps its elements in a defined order (for example, sorted).",
     },
     {
+      id: "containers-q03",
       prompt: "In the Bag class, what does `used` track?",
       code: "int data[CAPACITY];\nsize_t used;",
       choices: [
@@ -95,6 +98,7 @@ export default {
         "`used` counts how many slots are currently filled. `CAPACITY` is the fixed maximum.",
     },
     {
+      id: "containers-q04",
       prompt: "What is `CAPACITY` in the Bag class?",
       choices: [
         "A static constant capacity",
@@ -107,6 +111,7 @@ export default {
         "`CAPACITY` is a static `const` giving the largest number of items the fixed array can store.",
     },
     {
+      id: "containers-q05",
       prompt: "What kind of type is `size_t`?",
       choices: [
         "A container class",
@@ -119,6 +124,7 @@ export default {
         "`size_t` is an unsigned integer type (never negative), used for sizes and counts.",
     },
     {
+      id: "containers-q06",
       prompt: "What does this line do?",
       code: "typedef int Integer;",
       choices: [
@@ -132,6 +138,7 @@ export default {
         "`typedef` gives an existing type a second name. After this, Integer means int.",
     },
     {
+      id: "containers-q07",
       prompt: "Which line is the modern equivalent of `typedef int Integer;`?",
       choices: [
         "#define Integer int",
@@ -144,6 +151,7 @@ export default {
         "`using Integer = int;` creates the same alias as the `typedef`, in modern C++ style.",
     },
     {
+      id: "containers-q08",
       prompt: "Why is `size()` marked `const`?",
       code: "size_t size() const;",
       choices: [
@@ -157,6 +165,7 @@ export default {
         "`const` promises the function won't modify the object, and `size()` just reports how many items are stored.",
     },
     {
+      id: "containers-q09",
       prompt: "What's the difference between `erase` and `eraseAll`?",
       choices: [
         "eraseAll only works on sorted bags",
@@ -169,6 +178,7 @@ export default {
         "`erase` deletes a single copy of the target; `eraseAll` deletes every copy that matches.",
     },
     {
+      id: "containers-q10",
       prompt: "Why is `operator<<` declared a `friend` of the Bag class?",
       choices: [
         "Because it is a member function",
@@ -181,6 +191,7 @@ export default {
         "`operator<<` isn't a member, so it's made a `friend`, which lets it read the bag's private data while still being called as `out << bag`.",
     },
     {
+      id: "containers-q11",
       prompt: "Which STL container stores unique, sorted elements?",
       choices: [
         "multiset",
@@ -193,6 +204,7 @@ export default {
         "set holds unique, sorted elements. `multiset` is sorted too but allows duplicates; `vector` is an unordered dynamic array.",
     },
     {
+      id: "containers-q12",
       prompt: "What does `insert` return when the bag is already full?",
       choices: [
         "false",

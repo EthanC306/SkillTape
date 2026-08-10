@@ -46,6 +46,7 @@ export default {
   ],
   questions: [
     {
+      id: "cstrings-q01",
       prompt: "What marks the end of a C-style string?",
       choices: [
         "A semicolon",
@@ -58,6 +59,7 @@ export default {
         "A C-string is a char array terminated by the null character `'\\0'` (ASCII 0). Library functions rely on it to know where the string stops.",
     },
     {
+      id: "cstrings-q02",
       prompt: "What is the size of the array name3?",
       code: 'char name3[] = "Smith";',
       choices: [
@@ -71,6 +73,7 @@ export default {
         '"Smith" is 5 characters, plus the \'\\0\' that string-literal initialization adds automatically → size 6.',
     },
     {
+      id: "cstrings-q03",
       prompt: "Which of these does NOT add a null terminator?",
       choices: [
         'char a[100] = "Smith";',
@@ -83,6 +86,7 @@ export default {
         "Brace-initializing with individual chars stores exactly those 5 characters with no `'\\0'`. Only string-literal initialization adds the terminator for you.",
     },
     {
+      id: "cstrings-q04",
       prompt: 'With the input "  hello world", what ends up in st?',
       code: "char st[100];\ncin >> st;",
       choices: [
@@ -96,6 +100,7 @@ export default {
         "`operator>>` skips leading whitespace, then reads until the next whitespace, so it stops at the space and stores \"hello\".",
     },
     {
+      id: "cstrings-q05",
       prompt: "You need to read a full line, spaces included, into a char array. Which call do you use?",
       choices: [
         "strncpy(name, cin, length);",
@@ -108,6 +113,7 @@ export default {
         "`cin.getline(name, length)` reads characters including whitespace until the newline (or length-1 chars). `operator>>` would stop at the first space.",
     },
     {
+      id: "cstrings-q06",
       prompt: "What does the third argument do here?",
       code: "cin.getline(name, 10, '!');",
       choices: [
@@ -121,6 +127,7 @@ export default {
         "The optional third argument is a delimiter: `getline` reads until it hits that character instead of the newline.",
     },
     {
+      id: "cstrings-q07",
       prompt: "After reading a string one character at a time into an array, what must you do?",
       code: "for (i = 0; i < 10; i++) {\n    cin >> name[i];\n}",
       choices: [
@@ -134,6 +141,7 @@ export default {
         "Reading char-by-char never adds a terminator, so you must append `'\\0'` yourself or the array isn't a valid C-string.",
     },
     {
+      id: "cstrings-q08",
       prompt: "What does `strlen` return for the string \"Smith\"?",
       choices: [
         "6",
@@ -146,6 +154,7 @@ export default {
         "`strlen` counts characters up to but not including the `'\\0'` terminator → 5.",
     },
     {
+      id: "cstrings-q09",
       prompt: "`strncmp(str1, str2, limit)` returns 0 when…",
       choices: [
         "str1 is longer than str2",
@@ -158,6 +167,7 @@ export default {
         "`strncmp` returns 0 when the strings match, a negative value if str1 < str2, and a positive value if str1 > str2.",
     },
     {
+      id: "cstrings-q10",
       prompt: "Which function copies at most a limited number of characters from one C-string into another?",
       choices: [
         "strncmp",
@@ -170,6 +180,7 @@ export default {
         "`strncpy(target, src, limit)` copies at most limit characters. `strncat` appends, `strncmp` compares, `strlen` measures.",
     },
     {
+      id: "cstrings-q11",
       prompt: "In which header are `atoi`, `atol`, and `atof` defined?",
       choices: [
         "<string>",
@@ -182,6 +193,7 @@ export default {
         "The string-to-number converters `atoi`/`atol`/`atof` live in `<cstdlib>`, not `<cstring>`.",
     },
     {
+      id: "cstrings-q12",
       prompt: "How do you convert a `std::string` `name` into the C-string array `st`?",
       choices: [
         "strncpy(st, name.c_str(), 100);",

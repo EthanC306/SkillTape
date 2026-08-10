@@ -96,6 +96,7 @@ export default {
   ],
   questions: [
     {
+      id: "recursion-q01",
       prompt: "What makes a definition a recursive definition?",
       choices: [
         "It defines something in terms of itself, plus a non-recursive base case",
@@ -108,6 +109,7 @@ export default {
         "A recursive definition names itself in its own body, and it needs a non-recursive base case that can be determined or the definition never bottoms out.",
     },
     {
+      id: "recursion-q02",
       prompt: "In the definition \"an ancestor is a parent or one of their (parent's) ancestors,\" which part is the base case?",
       choices: [
         "\"one of their ancestors\"",
@@ -120,6 +122,7 @@ export default {
         "\"A parent\" is the part you can determine without applying the definition again, which is exactly what a base case is.",
     },
     {
+      id: "recursion-q03",
       prompt: "What happens on the run-time stack every time a function is called?",
       choices: [
         "The stack is cleared and rebuilt",
@@ -132,6 +135,7 @@ export default {
         "The run-time stack is LIFO, so each call pushes an Activation Record on top and that record is popped when the call finishes.",
     },
     {
+      id: "recursion-q04",
       prompt: "`main` calls `function1`, `function1` calls `function2`, and `function2` calls `function3`. How many activation records sit above `main`'s on the run-time stack?",
       choices: ["1", "4", "0", "3"],
       answer: 3,
@@ -139,6 +143,7 @@ export default {
         "Each of the three nested calls pushed its own AR, so `function1`'s, `function2`'s, and `function3`'s records are stacked above `main`'s.",
     },
     {
+      id: "recursion-q05",
       prompt: "Which pair is the base case and the recursive rule for factorial?",
       choices: [
         "Base case 1! = 1; recursive rule n! = (n-1)! * (n-2)!",
@@ -151,6 +156,7 @@ export default {
         "0! = 1 is the value you know outright, and n! = n * (n-1)! is the rule that reduces the problem toward it.",
     },
     {
+      id: "recursion-q06",
       prompt: "In this recursive factorial, what stops the recursion?",
       code:
         "double factorial(int n){\n    if (n == 0) //Base case\n    {\n        return 1;\n    }\n    return  n * factorial(n - 1);\n}",
@@ -165,6 +171,7 @@ export default {
         "The base case is the only path out of the function that does not make another call, so it is what ends the chain.",
     },
     {
+      id: "recursion-q07",
       prompt: "What are the two steps in the deck's recipe for designing a recursive function?",
       choices: [
         "Write the loop version first, then convert it mechanically into a recursive one",
@@ -177,6 +184,7 @@ export default {
         "Base cases are the cases whose answer is known without recursion; the rule is what repeatedly reduces the problem toward them.",
     },
     {
+      id: "recursion-q08",
       prompt: "What is the base case of this function, and how is it expressed?",
       code:
         "void revPrintRec(int numbers[], size_t numItems){\n    //base case do nothing when numItems is <= 0\n    if (numItems > 0)\n    {\n        cout << setw(4) << numbers[numItems-1];\n        revPrintRec(numbers, numItems - 1);\n    }\n}",
@@ -191,6 +199,7 @@ export default {
         "Guarding the whole body with if (`numItems > 0`) means the `numItems <= 0` case falls straight through and returns, which is the \"do nothing\" base case.",
     },
     {
+      id: "recursion-q09",
       prompt: "Given numbers = {10, 20, 30} and `numItems` = 3, what does `revPrintRec` print?",
       code:
         "void revPrintRec(int numbers[], size_t numItems){\n    if (numItems > 0)\n    {\n        cout << setw(4) << numbers[numItems-1];\n        revPrintRec(numbers, numItems - 1);\n    }\n}",
@@ -205,6 +214,7 @@ export default {
         "Each call prints the last remaining element before recursing on a shorter prefix, so the array comes out back to front.",
     },
     {
+      id: "recursion-q10",
       prompt: "These two functions differ only in the order of two statements. What does the second one print?",
       code:
         "void printListRec(Node* head){        // A\n    if (head != nullptr)\n    {\n        cout << setw(4) << head->num;\n        printListRec(head->next);\n    }\n}\n\nvoid printListRec(Node* head){        // B\n    if (head != nullptr)\n    {\n        printListRec(head->next);\n        cout << setw(4) << head->num;\n    }\n}",
@@ -219,6 +229,7 @@ export default {
         "Putting the recursive call first drives all the way to the end of the list before any printing happens, so values print as the calls unwind.",
     },
     {
+      id: "recursion-q11",
       prompt: "Why do recursive functions use more memory than their iterative equivalents?",
       choices: [
         "They copy the entire data structure again on every single call",
@@ -231,6 +242,7 @@ export default {
         "An iterative loop reuses one activation record, while each level of recursion pushes its own record that stays until that call returns.",
     },
     {
+      id: "recursion-q12",
       prompt: "What are the base cases of this recursive Fibonacci, and how many recursive calls does the non-base path make?",
       code:
         "double fibRec(int n){\n    if (n == 1 || n == 2) //base cases\n    {\n        return 1;\n    }\n    return fibRec(n - 1) + fibRec(n - 2);\n}",
@@ -245,6 +257,7 @@ export default {
         "The guard tests `n == 1 || n == 2`, so there are two base cases, and the return line calls `fibRec` twice, once with n - 1 and once with n - 2.",
     },
     {
+      id: "recursion-q13",
       prompt: "Looking at the call tree for `fib(6)`, what is the problem with the naive recursive Fibonacci?",
       choices: [
         "It recomputes the same values repeatedly, each call spawning two more",
@@ -257,6 +270,7 @@ export default {
         "The two recursive calls per level overlap heavily, so identical subproblems are recomputed instead of reused.",
     },
     {
+      id: "recursion-q14",
       prompt: "Which claim about recursion does the deck make?",
       choices: [
         "Recursion is always faster than iteration",

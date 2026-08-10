@@ -112,6 +112,7 @@ export default {
   ],
   questions: [
     {
+      id: "iterators-q01",
       prompt: "What does the keyword `this` refer to inside a member function?",
       choices: [
         "A copy of the object's data",
@@ -124,6 +125,7 @@ export default {
         "this is a pointer that always points to the current object: the one the member function was called on.",
     },
     {
+      id: "iterators-q02",
       prompt: "Why can't a linked list's elements be reached with an integer index the way an array's can?",
       choices: [
         "Linked lists are always sorted",
@@ -136,6 +138,7 @@ export default {
         "You'd have to walk the chain node by node, which is exactly the complexity iterators are designed to hide.",
     },
     {
+      id: "iterators-q03",
       prompt: "What is the one difference between set and multiset?",
       choices: [
         "multiset is sorted, set is not",
@@ -148,6 +151,7 @@ export default {
         "Both keep their elements ordered; only the duplicate rule differs.",
     },
     {
+      id: "iterators-q04",
       prompt: "What does this program print?",
       code: "multiset<string> names;\nnames.insert(\"Jack\");\nnames.insert(\"Janet\");\nnames.insert(\"Chrissy\");\nnames.insert(\"Jack\");\n\nfor (auto it = names.begin(); it != names.end(); it++) {\n    cout << *it << endl;\n}",
       choices: [
@@ -161,6 +165,7 @@ export default {
         "A multiset keeps elements sorted and allows duplicates, so both Jacks print, in alphabetical order.",
     },
     {
+      id: "iterators-q05",
       prompt: "In this loop, what is the real type of `it`?",
       code: "multiset<string> names;\nfor (auto it = names.begin(); it != names.end(); it++) { ... }",
       choices: [
@@ -174,6 +179,7 @@ export default {
         "`auto` just tells C++ to deduce the type from `begin()`; older compilers required spelling out `multiset<string>::iterator`.",
     },
     {
+      id: "iterators-q06",
       prompt: "Which iterator category allows access by index, as in `[i]`?",
       choices: ["Forward", "Bidirectional", "Input", "Random access"],
       answer: 3,
@@ -181,6 +187,7 @@ export default {
         "Random access is the most capable category and is the only one supporting subscript-style access.",
     },
     {
+      id: "iterators-q07",
       prompt: "In the iterator hierarchy, which is true?",
       choices: [
         "A forward iterator can do everything a bidirectional iterator can",
@@ -193,6 +200,7 @@ export default {
         "The categories nest outward from input/output to random access, so each outer level includes the ones inside it.",
     },
     {
+      id: "iterators-q08",
       prompt: "What is `difference_type` used for?",
       code: "using iterator_category = forward_iterator_tag;\nusing difference_type = ptrdiff_t;\nusing value_type = ItDataType;",
       choices: [
@@ -206,6 +214,7 @@ export default {
         "`difference_type` (e.g. `ptrdiff_t`) is signed precisely because the distance between two iterators can be negative.",
     },
     {
+      id: "iterators-q09",
       prompt: "What does `operator*` return, and why a reference?",
       code: "ItDataType &operator*() const {\n    return current->getData();\n}",
       choices: [
@@ -219,6 +228,7 @@ export default {
         "Returning a reference means `*it` refers to the stored element rather than a throwaway copy.",
     },
     {
+      id: "iterators-q10",
       prompt: "What distinguishes the postfix ++ overload from the prefix one?",
       code: "Iterator &operator++() { ... }\nIterator operator++(int) { ... }",
       choices: [
@@ -232,6 +242,7 @@ export default {
         "The unused int parameter exists only so the compiler can tell the two overloads apart.",
     },
     {
+      id: "iterators-q11",
       prompt: "What does this postfix ++ return?",
       code: "Iterator operator++(int) {\n    Iterator original = *this;\n    current = current->getNext();\n    return original;\n}",
       choices: [
@@ -245,6 +256,7 @@ export default {
         "It saves the original first and returns that copy, which is why `it++` is more expensive than `++it`.",
     },
     {
+      id: "iterators-q12",
       prompt: "How do two iterators decide whether they are equal?",
       code: "bool operator==(const Iterator other) const {\n    return current == other.current;\n}",
       choices: [
@@ -258,6 +270,7 @@ export default {
         "Equality is pointer identity: both iterators must be sitting on the same node.",
     },
     {
+      id: "iterators-q13",
       prompt: "What does `end()` return, and why does that stop the loop?",
       code: "Iterator<DataType> end() {\n    return Iterator<DataType>();\n}",
       choices: [
@@ -271,6 +284,7 @@ export default {
         "The constructor defaults to `nullptr`, so `end()` means one past the last element and `it != end()` fails exactly when the walk finishes.",
     },
     {
+      id: "iterators-q14",
       prompt: "In the ConstIterator, what changes compared with the ordinary Iterator?",
       code: "const ItDataType &operator*() const { ... }\nprivate:\n    const Node<ItDataType> *current;",
       choices: [

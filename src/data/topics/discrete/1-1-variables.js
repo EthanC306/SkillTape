@@ -42,6 +42,7 @@ export default {
   ],
   questions: [
     {
+      id: "discrete-1-1-variables-q01",
       prompt:
         "“For every real number x, if x is nonzero then x² is positive.” What kind of statement is this?",
       choices: [
@@ -55,6 +56,7 @@ export default {
         "It is universal (“for every real number x”) and conditional (“if x is nonzero then …”), so it is a universal conditional statement.",
     },
     {
+      id: "discrete-1-1-variables-q02",
       prompt: "“Every real number has an additive inverse.” This is an example of a…",
       choices: [
         "universal conditional statement",
@@ -67,6 +69,7 @@ export default {
         "It is universal in its first part (every real number) and existential in its second (there exists an additive inverse for each one) → universal existential.",
     },
     {
+      id: "discrete-1-1-variables-q03",
       prompt:
         "“There is a positive integer that is less than or equal to every positive integer.” What type is this, and why is it true?",
       choices: [
@@ -80,6 +83,7 @@ export default {
         "It asserts something exists (existential) that then holds for all positive integers (universal). It is true because 1 exists and 1 ≤ n for every positive integer n.",
     },
     {
+      id: "discrete-1-1-variables-q04",
       prompt:
         "Rewrite “For every real number x, if x is nonzero then x² is positive” as: “The square of any nonzero real number is ____.” Which word fills the blank?",
       choices: ["nonzero", "positive", "negative", "an integer"],
@@ -88,6 +92,7 @@ export default {
         "The conclusion of the original statement is that the square is positive, so the rewrite ends with “positive.” (Example 1.1.2.)",
     },
     {
+      id: "discrete-1-1-variables-q05",
       prompt:
         "Rewrite “Every pot has a lid” as: “For every pot P, there is ____.” Which completion is correct?",
       choices: [
@@ -101,6 +106,7 @@ export default {
         "The universal existential form names the pot P universally, then asserts the existence of a lid for that P. (Example 1.1.3.)",
     },
     {
+      id: "discrete-1-1-variables-q06",
       prompt:
         "Which trio of phrases is needed to state the definition of the limit of a sequence?",
       choices: [
@@ -114,6 +120,7 @@ export default {
         "The limit definition is universal, existential, and conditional at once, so it requires “for every,” “there is,” and “if-then.”",
     },
     {
+      id: "discrete-1-1-variables-q07",
       prompt:
         "What is the main advantage of introducing a variable to replace an ambiguous word like “it”?",
       choices: [
@@ -127,6 +134,7 @@ export default {
         "A variable is a placeholder that removes ambiguity and lets you perform concrete computations while keeping the statement general.",
     },
     {
+      id: "discrete-1-1-variables-q08",
       prompt:
         "In a universal existential statement, how does the object that “exists” relate to the universally chosen object?",
       choices: [

@@ -59,6 +59,7 @@ export default {
   ],
   questions: [
     {
+      id: "dynamic-arrays-q01",
       prompt: "Given `int *intPtr; int numbers[10]; intPtr = numbers;`, what does intPtr point to?",
       choices: [
         "Nothing until new is called",
@@ -71,6 +72,7 @@ export default {
         "Assigning an array name to a pointer makes the pointer refer to the array's first element.",
     },
     {
+      id: "dynamic-arrays-q02",
       prompt: "How do you allocate an array of 10 ints on the heap?",
       choices: [
         "intArray = new int(10);",
@@ -82,6 +84,7 @@ export default {
       explanation: "`new int[10]` allocates a dynamic array of 10 ints.",
     },
     {
+      id: "dynamic-arrays-q03",
       prompt: "Which statement correctly frees a dynamically allocated array?",
       code: "int *intArray = new int[10];",
       choices: [
@@ -95,6 +98,7 @@ export default {
         "Arrays allocated with `new [...]` must be freed with the array form, `delete []`. Plain `delete` is for single objects.",
     },
     {
+      id: "dynamic-arrays-q04",
       prompt: "What goes wrong here?",
       code: "char *chArray = new char[10];\nchArray += 5;\ndelete [] chArray;",
       choices: [
@@ -108,6 +112,7 @@ export default {
         "`delete[]` expects the pointer to still reference the start of the block `new` returned. A shifted pointer can corrupt memory or free memory used elsewhere.",
     },
     {
+      id: "dynamic-arrays-q05",
       prompt: "Why does `void someFunction(int *intPtr);` accept an array argument?",
       choices: [
         "An array name decays to a pointer to its first element",
@@ -120,6 +125,7 @@ export default {
         "An array name used as an argument decays to a pointer to its first element, matching an `int *` parameter.",
     },
     {
+      id: "dynamic-arrays-q06",
       prompt: "In this swap function, what does `*intPtr1 = *intPtr2;` do?",
       code: "void swap(int *intPtr1, int *intPtr2) {\n  int temp = *intPtr1;\n  *intPtr1 = *intPtr2;\n  *intPtr2 = temp;\n}",
       choices: [
@@ -133,6 +139,7 @@ export default {
         "Dereferencing both sides copies the value pointed to by `intPtr2` into the memory pointed to by `intPtr1`.",
     },
     {
+      id: "dynamic-arrays-q07",
       prompt: "To call `swap(int *intPtr1, int *intPtr2)` on ordinary ints x and y, you write:",
       choices: [
         "swap(&x, &y);",
@@ -145,6 +152,7 @@ export default {
         "`swap` expects addresses, so the caller passes `&x` and `&y` to give it pointers to x and y.",
     },
     {
+      id: "dynamic-arrays-q08",
       prompt: "What does `strndup(name, 100)` return?",
       choices: [
         "true, as long as name fits inside 100 characters",
@@ -157,6 +165,7 @@ export default {
         "`strndup` allocates new memory, copies up to the given number of characters, and returns a pointer to that new copy.",
     },
     {
+      id: "dynamic-arrays-q09",
       prompt: "What's the advantage of `strndup` over `new` plus `strncpy`?",
       choices: [
         "It never allocates on the heap",
@@ -169,6 +178,7 @@ export default {
         "`strndup` combines what would otherwise be a separate `new char[...]` allocation and a `strncpy` call into one step.",
     },
     {
+      id: "dynamic-arrays-q10",
       prompt: "In this loop, what does `*(intPtr + i)` do?",
       code: "for (i = 0; i < size; i++) {\n  cout << *(intPtr + i) << ' ';\n}",
       choices: [
@@ -182,6 +192,7 @@ export default {
         "Dereferencing `intPtr + i` reads the value at that offset, equivalent to indexing with `intPtr[i]`.",
     },
     {
+      id: "dynamic-arrays-q11",
       prompt: "When you write `intPtr + i`, how much is actually added to the address?",
       choices: [
         "i * sizeof(the pointed-to type)",
@@ -194,6 +205,7 @@ export default {
         "Pointer arithmetic scales by the size of the pointed-to type, so `intPtr + i` moves `i * sizeof(type)` bytes.",
     },
     {
+      id: "dynamic-arrays-q12",
       prompt:
         "What lets a dynamic array's size be decided while the program runs (unlike a plain declared array)?",
       code: "cin >> size;\nintArray = new int[size];",

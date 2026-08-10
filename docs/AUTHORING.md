@@ -119,6 +119,7 @@ Keys may be the raw bold text or its normalized form. **No topic file currently 
 
 ```js
 {
+  id: "dynamic-classes-q07",                              // authored, stable forever
   prompt: "What does this destructor do?",
   code: "MyString::~MyString() {\n  delete[] str;\n}",   // optional
   choices: ["…", "…", "…", "…"],
@@ -131,6 +132,13 @@ Keys may be the raw bold text or its normalized form. **No topic file currently 
 
 ### 4.1 Rules
 
+- **`id` is required, and stable forever** — same contract as `topics.id` in §2.1, for the same reason: it is what every quiz attempt is recorded against (`attempts.question_stable_id`), so changing it discards that question's history. Format is `<topic-id>-q<NN>`, zero-padded, e.g. `bigo-q03`, `discrete-1-4-graphs-q11`.
+
+  **It is not a position.** When you insert a question mid-deck, give it the next unused number rather than renumbering everything below it — gaps and out-of-order ids are fine and expected, renumbering is what silently reassigns other questions' history. When you delete a question, retire its number; don't reuse it. `npm run db:seed` refuses to run on a missing or duplicated id.
+
+  **Never** re-derive ids from position with a script. That was done exactly once, to author the original bank (see `docs/STABLE_QUESTION_IDS.md`); doing it again would reassign every id below any question ever inserted mid-deck.
+
+- **Rewriting a question keeps its id.** Editing the `prompt`, `code`, `choices` or `answer` bumps a `revision` counter that `db:seed` computes from a content hash — you never touch it, and the seed prints which questions it bumped. Past attempts stay attached to the id and keep the revision they were answered at, so "got this right, then I made it harder" stays legible. Edits to `explanation`, `tag` or `figure` are cosmetic and don't bump anything. If a question changes so much it's really a *different* question, give it a new id instead.
 - **Four choices**, always. Every question in the bank has exactly four.
 - **`answer` is a 0-based index** into `choices`.
 - **`explanation` is one sentence** that justifies the correct answer — not a restatement of it. Compare: *"Destructors run automatically as an object is destroyed, usually to free dynamically allocated memory."* It teaches the rule, not just the letter.
@@ -260,6 +268,7 @@ Structure checks pass ≠ content is correct. Only human review establishes accu
 - [ ] Cards follow the source's order, one idea each, prose not bullets
 - [ ] 3–6 `**bold**` blanks per card, all worth recalling cold
 - [ ] `accept` only for synonyms `fill.js` can't derive (check the §3.3 table first)
+- [ ] Every question has an `id` of `<topic-id>-q<NN>`, unused before and never renumbered (§4.1)
 - [ ] Every question has 4 choices, a correct 0-based `answer`, and a one-sentence `explanation`
 - [ ] **Answer indices varied** across 0–3, not all 0 (§4.2)
 - [ ] Code-based questions where the source has code, snippets verbatim

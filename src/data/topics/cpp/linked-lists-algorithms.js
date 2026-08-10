@@ -67,6 +67,7 @@ export default {
   ],
   questions: [
     {
+      id: "linked-lists-algorithms-q01",
       prompt: "What is the running time of the list-length algorithm?",
       code: "size_t count = 0;\nNode *cursor = head;\nwhile (cursor != nullptr) {\n    count++;\n    cursor = cursor->getNext();\n}",
       choices: [
@@ -80,6 +81,7 @@ export default {
         "The `cursor` visits every node exactly once before reaching `nullptr`, so the work scales linearly with the list's size.",
     },
     {
+      id: "linked-lists-algorithms-q02",
       prompt: "What does `search()` return if target is not found in the list?",
       code: "Node* search(int target) {\n    Node *cursor = head;\n    while (cursor != nullptr) {\n        if (cursor->getData() == target) return cursor;\n        cursor = cursor->getNext();\n    }\n    return nullptr;\n}",
       choices: [
@@ -93,6 +95,7 @@ export default {
         "If the loop runs out of nodes without a match, it falls through to `return nullptr;`.",
     },
     {
+      id: "linked-lists-algorithms-q03",
       prompt: "Why is `head` insert an O(1) operation?",
       code: "Node *temp = new Node(value);\ntemp->setNext(head);\nhead = temp;",
       choices: [
@@ -106,6 +109,7 @@ export default {
         "Allocating one node and reassigning two pointers takes the same amount of work regardless of the list's length.",
     },
     {
+      id: "linked-lists-algorithms-q04",
       prompt:
         "Why must `temp->setNext(previous->getNext())` happen BEFORE `previous->setNext(temp)` when inserting after a pointer?",
       code: "Node *temp = new Node(value);\nif (previous != nullptr) {\n    temp->setNext(previous->getNext());\n    previous->setNext(temp);\n}",
@@ -120,6 +124,7 @@ export default {
         "If `previous` were redirected to `temp` first, `previous->getNext()` would return `temp` instead of the original next node, orphaning the rest of the list.",
     },
     {
+      id: "linked-lists-algorithms-q05",
       prompt: "In the insert algorithm, what does `previous == nullptr` signal?",
       choices: [
         "The list is empty, so insert at the head",
@@ -132,6 +137,7 @@ export default {
         "A `nullptr` `previous` means there's no node to insert after, which corresponds to an empty list, handled by calling `headInsert`.",
     },
     {
+      id: "linked-lists-algorithms-q06",
       prompt: "When deleting a node, why does the `head` case need special handling?",
       code: "if (current == head) {\n    head = current->getNext();\n    delete current;\n}",
       choices: [
@@ -145,6 +151,7 @@ export default {
         "Every other node has a predecessor to re-link, but the `head` node doesn't, so `head` itself is advanced to the next node instead.",
     },
     {
+      id: "linked-lists-algorithms-q07",
       prompt: "In the general (middle-of-list) delete case, why is a `previous` pointer needed?",
       code: "Node *previous = head;\nwhile (previous->getNext() != current) {\n    previous = previous->getNext();\n}\nprevious->setNext(current->getNext());\ndelete current;",
       choices: [
@@ -158,6 +165,7 @@ export default {
         "Splicing `current` out of the list means the node before it must point past it, which is what `previous->setNext(current->getNext())` does.",
     },
     {
+      id: "linked-lists-algorithms-q08",
       prompt: "Why keep a separate `tail` pointer if a program frequently appends to the end of a list?",
       choices: [
         "It's required before the list destructor can free anything",
@@ -170,6 +178,7 @@ export default {
         "Without `tail`, reaching the last node requires traversing the whole list each time; `tail` gives direct O(1) access to it.",
     },
     {
+      id: "linked-lists-algorithms-q09",
       prompt: "What is the running time of `search()` in the worst case?",
       choices: [
         "O(1)",

@@ -71,6 +71,7 @@ export default {
   ],
   questions: [
     {
+      id: "bigo-q01",
       prompt: "What is the running time of this algorithm?",
       code: "for (int i = 0; i < n; i++) {\n    // some calculation\n}",
       choices: [
@@ -85,6 +86,7 @@ export default {
       tag: "O(n)",
     },
     {
+      id: "bigo-q02",
       prompt: "What is the running time of this algorithm?",
       code:
         "for (int i = 0; i < n; i++) {\n    for (int j = 0; j < n; j++) {\n        // some calculation\n    }\n}",
@@ -100,6 +102,7 @@ export default {
       tag: "O(n²)",
     },
     {
+      id: "bigo-q03",
       prompt:
         "An algorithm always finishes in the same fixed number of steps k, no matter how large n gets. What is its running time?",
       choices: [
@@ -114,6 +117,7 @@ export default {
       tag: "O(1)",
     },
     {
+      id: "bigo-q04",
       prompt: "Worst-case running time of this sequential search?",
       code:
         "int search(const int data[], int count, int target) {\n    for (size_t i = 0; i < count; i++) {\n        if (target == data[i])\n            return i;\n    }\n    return -1;\n}",
@@ -129,6 +133,7 @@ export default {
       tag: "O(n)",
     },
     {
+      id: "bigo-q05",
       prompt: "Running time of this binary search?",
       code:
         "int binSearch(const int data[], int count, int target) {\n    int first = 0, mid, last = count - 1;\n    while (first <= last) {\n        mid = (first + last) / 2;\n        if (target == data[mid]) return mid;\n        else if (target < data[mid]) last = mid - 1;\n        else first = mid + 1;\n    }\n    return -1;\n}",
@@ -144,6 +149,7 @@ export default {
       tag: "O(log n)",
     },
     {
+      id: "bigo-q06",
       prompt: "An algorithm's running time is n² + 2n. What is its Big-O?",
       choices: [
         "O(3n²)",
@@ -157,6 +163,7 @@ export default {
       tag: "O(n²)",
     },
     {
+      id: "bigo-q07",
       prompt:
         "When we state an algorithm's Big-O running time, which case are we describing?",
       choices: [
@@ -170,6 +177,7 @@ export default {
         "Big-O describes the worst case: the upper bound on how slow the algorithm can get.",
     },
     {
+      id: "bigo-q08",
       prompt:
         "Sequential search [O(n)] and binary search [O(log n)] both find a target. For a large sorted array, which should you choose, and why?",
       choices: [
@@ -184,6 +192,7 @@ export default {
       tag: "O(log n)",
     },
     {
+      id: "bigo-q09",
       prompt: "What is the common name for an O(n log n) running time?",
       choices: [
         "Log-linear",
@@ -197,6 +206,7 @@ export default {
       tag: "O(n log n)",
     },
     {
+      id: "bigo-q10",
       prompt: "What is the name for an O(2ⁿ) running time?",
       choices: [
         "Factorial",
@@ -210,6 +220,7 @@ export default {
       tag: "O(2ⁿ)",
     },
     {
+      id: "bigo-q11",
       prompt:
         "Which of these grows the SLOWEST as n increases (the most efficient)?",
       choices: [
@@ -224,6 +235,7 @@ export default {
       tag: "O(log n)",
     },
     {
+      id: "bigo-q12",
       prompt: "Match the running time to its name: O(n³)",
       choices: [
         "Factorial",

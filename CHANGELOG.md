@@ -8,6 +8,16 @@
 - 
 
 ## 
+## [1.0.15] - 2026-08-10
+### Type - Fixed
+### MCQ Quiz and Masterset
+- Every question now has a permanent id (stable_id) and a revision number. 
+  Attempts record both, so an attempt stays tied to its question even when you edit the question later.
+- Seeding no longer wipes questions and rebuilds them. 
+  It updates in place and only deletes questions you actually removed from the curriculum.
+
+
+## 
 ## [1.0.12] - 2026-08-09
 ### Type - Added
 ### Item bank

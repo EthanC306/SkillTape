@@ -77,6 +77,7 @@ export default {
   ],
   questions: [
     {
+      id: "discrete-2-1-logical-form-q01",
       prompt:
         "In an argument, what is the final claim it is trying to establish called?",
       choices: ["A premise", "The conclusion", "A statement form", "A tautology"],
@@ -85,6 +86,7 @@ export default {
         "The conclusion is the final assertion; the statements supporting it are the premises.",
     },
     {
+      id: "discrete-2-1-logical-form-q02",
       prompt: "Logic analyzes an argument's ____, not its ____.",
       choices: [
         "content; form",
@@ -97,6 +99,7 @@ export default {
         "Logic studies form, meaning whether the conclusion follows necessarily, not the intrinsic merit of the content.",
     },
     {
+      id: "discrete-2-1-logical-form-q03",
       prompt: "Which of the following is a statement?",
       choices: [
         "x + y > 0",
@@ -109,6 +112,7 @@ export default {
         "A statement is definitely true or false. “Two plus two equals five” is (false, but) a statement. The two inequalities depend on variable values, and a command is neither true nor false.",
     },
     {
+      id: "discrete-2-1-logical-form-q04",
       prompt: "Let h = “It is hot” and s = “It is sunny.” Write “It is not hot but it is sunny.”",
       choices: ["~h ∨ s", "~h ∧ s", "~(h ∧ s)", "h ∧ ~s"],
       answer: 1,
@@ -116,6 +120,7 @@ export default {
         "“But” means “and,” so the sentence is “not hot and sunny” → ~h ∧ s.",
     },
     {
+      id: "discrete-2-1-logical-form-q05",
       prompt: "“It is neither hot nor sunny” translates to…",
       choices: ["~h ∨ ~s", "~(h ∧ s)", "~h ∧ ~s", "h ∨ s"],
       answer: 2,
@@ -123,6 +128,7 @@ export default {
         "“Neither h nor s” means “not h and not s” → ~h ∧ ~s.",
     },
     {
+      id: "discrete-2-1-logical-form-q06",
       prompt: "In ~p ∧ q, which operation is performed first?",
       choices: [
         "the ∧, because it's leftmost",
@@ -135,6 +141,7 @@ export default {
         "~ is evaluated first, so ~p ∧ q means (~p) ∧ q, not ~(p ∧ q).",
     },
     {
+      id: "discrete-2-1-logical-form-q07",
       prompt: "Why is the expression p ∧ q ∨ r considered ambiguous?",
       choices: [
         "∧ and ∨ are coequal, so parentheses are needed",
@@ -147,6 +154,7 @@ export default {
         "∧ and ∨ have equal precedence, so the expression must be written (p ∧ q) ∨ r or p ∧ (q ∨ r) to have a definite meaning.",
     },
     {
+      id: "discrete-2-1-logical-form-q08",
       prompt: "For statement variables p and q, when is p ∧ q true?",
       choices: [
         "When at least one of p, q is true",
@@ -159,6 +167,7 @@ export default {
         "A conjunction p ∧ q is true only in the single row where both components are true.",
     },
     {
+      id: "discrete-2-1-logical-form-q09",
       prompt: "For statement variables p and q, when is p ∨ q false?",
       choices: [
         "Only when both p and q are false",
@@ -171,6 +180,7 @@ export default {
         "An inclusive disjunction p ∨ q is false only in the single row where both components are false.",
     },
     {
+      id: "discrete-2-1-logical-form-q10",
       prompt: "What does it mean for two statement forms to be logically equivalent (P ≡ Q)?",
       choices: [
         "They are built from exactly the same variables",
@@ -183,6 +193,7 @@ export default {
         "Logical equivalence means identical truth values for every combination of inputs, matching in all rows.",
     },
     {
+      id: "discrete-2-1-logical-form-q11",
       prompt: "To show that two statement forms are NOT logically equivalent, it is enough to…",
       choices: [
         "check that every row matches",
@@ -195,6 +206,7 @@ export default {
         "A single row where the two forms disagree is enough to prove non-equivalence.",
     },
     {
+      id: "discrete-2-1-logical-form-q12",
       prompt: "Using De Morgan's laws, the negation of “p ∧ q” is…",
       choices: ["~p ∧ ~q", "~p ∨ ~q", "p ∨ q", "~(p ∨ q)"],
       answer: 1,
@@ -202,6 +214,7 @@ export default {
         "~(p ∧ q) ≡ ~p ∨ ~q: negate each part and switch ∧ to ∨.",
     },
     {
+      id: "discrete-2-1-logical-form-q13",
       prompt: "Use De Morgan's laws to negate “−1 < x ≤ 4” (i.e. −1 < x and x ≤ 4).",
       choices: [
         "−1 < x or x ≤ 4",
@@ -214,6 +227,7 @@ export default {
         "The statement is “−1 < x and x ≤ 4.” Negating each part and flipping “and” to “or” gives “x ≤ −1 or x > 4.”",
     },
     {
+      id: "discrete-2-1-logical-form-q14",
       prompt: "Which statement form is a tautology (always true)?",
       choices: ["p ∧ ~p", "p ∨ ~p", "p ∧ q", "~(p ∨ p)"],
       answer: 1,

@@ -49,6 +49,7 @@ export default {
   ],
   questions: [
     {
+      id: "linked-lists-q01",
       prompt:
         "What is the running time for inserting an element at the beginning of an array/vector?",
       choices: [
@@ -62,6 +63,7 @@ export default {
         "Every existing element must shift over by one position to make room, so the cost scales with the array's size → O(n).",
     },
     {
+      id: "linked-lists-q02",
       prompt: "What does a linked list's last node's next pointer point to?",
       choices: [
         "The first node inserted",
@@ -74,6 +76,7 @@ export default {
         "The last node's next pointer is `nullptr`, which is how algorithms know they've reached the end of the list.",
     },
     {
+      id: "linked-lists-q03",
       prompt: "In a singly linked Node class, what does the next member store?",
       code: "class Node {\nprivate:\n    DataType data;\n    Node *next;\n};",
       choices: [
@@ -87,6 +90,7 @@ export default {
         "next holds the address of the next node, letting code walk the list one link at a time; it's `nullptr` on the last node.",
     },
     {
+      id: "linked-lists-q04",
       prompt: "What does this code produce?",
       code: "Node *head;\nhead = nullptr;",
       choices: [
@@ -100,6 +104,7 @@ export default {
         "Setting `head` to `nullptr` with no nodes allocated is exactly how an empty linked list is represented.",
     },
     {
+      id: "linked-lists-q05",
       prompt: "Why does Node provide two `getNext()` overloads?",
       code: "const Node* getNext() const { return next; }\nNode* getNext() { return next; }",
       choices: [
@@ -113,6 +118,7 @@ export default {
         "Overloading on const-ness lets the compiler pick the appropriate return type depending on whether the calling object is const.",
     },
     {
+      id: "linked-lists-q06",
       prompt: "After `head = new Node(); head->setData(50);`, what does `head->getNext()` return?",
       choices: [
         "nullptr",
@@ -125,6 +131,7 @@ export default {
         "The default constructor initializes next to `nullptr`, and `setData` only touches the data field, so `getNext()` still returns `nullptr`.",
     },
     {
+      id: "linked-lists-q07",
       prompt:
         "Why is inserting at the `head` of a linked list an O(1) operation, unlike inserting at the front of a vector?",
       choices: [
@@ -138,6 +145,7 @@ export default {
         "Adding at the `head` just points the new node at the old `head` and reassigns `head`, a constant number of pointer updates, regardless of list size.",
     },
     {
+  id: "linked-lists-q08",
   prompt: "What is the running time for inserting an element in a sorted array/vector?",
   choices: [
     "O(1)",
@@ -150,6 +158,7 @@ export default {
     "The run-time stack is LIFO, so each call pushes an Activation Record on top and that record is popped when the call finishes.",
 },
 {
+  id: "linked-lists-q09",
   prompt: "What is the running time for deleting an element in the middle of an array/vector?",
   choices: [
     "O(n)",
@@ -162,6 +171,7 @@ export default {
     "After removing the element, all elements to its right must shift one slot left to close the gap, which takes linear time in the worst case.",
 },
 {
+  id: "linked-lists-q10",
   prompt: "In a linked list, each object is called a ___.",
   choices: [
     "cursor",
@@ -174,6 +184,7 @@ export default {
     "A linked list is built from individual objects called nodes, where each node holds its data and a pointer to the next node in the chain.",
 },
 {
+  id: "linked-lists-q11",
   prompt: "Each node in a linked list is a(n) ___.",
   choices: [
     "primitive value",

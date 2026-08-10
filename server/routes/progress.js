@@ -50,30 +50,49 @@ function requireArray(body, key) {
 }
 
 const getTopic = db.prepare("SELECT id FROM topics WHERE id = ?");
+const getQuestionStableId = db.prepare("SELECT stable_id FROM questions WHERE stable_id = ?");
 
 /**
  * One client result → one bound-parameter object for insertAttempt.
  *
- * questionId is nullable: Master Set runs aren't persisted at all today (see
- * MasterQuizView, whose onFinish is a deliberate no-op), but the one-time
- * localStorage importer (useProgress.js) reconstructs old history that was
- * never stored with question ids — only booleans — so it has no id to send.
- * `attempts.question_id` is `ON DELETE SET NULL` for exactly this case.
+ * `questionStableId` is the identity that matters (docs/STABLE_QUESTION_IDS.md):
+ * the authored "bigo-q03" from the topic module, which survives every reseed.
+ * `questionId` is the legacy AUTOINCREMENT surrogate — still accepted so the
+ * client can keep sending it, but it stops meaning anything the next time
+ * content is edited.
+ *
+ * Both are nullable, and legitimately so: the one-time localStorage importer
+ * (useProgress.js) reconstructs old history that only ever recorded booleans,
+ * so it has no id of either kind to send. Both columns are `ON DELETE SET NULL`
+ * for exactly this case.
  */
 function resultRow(item, i) {
   const where = `results[${i}]`;
   if (!isPlainObject(item)) fail(`${where} must be an object`);
-  const { questionId, correct } = item;
+  const { questionId, questionStableId, questionRevision, correct } = item;
   if (questionId != null && !Number.isInteger(questionId)) {
     fail(`${where}.questionId must be an integer or null`);
   }
+  if (questionStableId != null) requiredString(questionStableId, `${where}.questionStableId`);
+  if (questionRevision != null && !Number.isInteger(questionRevision)) {
+    fail(`${where}.questionRevision must be an integer or null`);
+  }
   if (typeof correct !== "boolean") fail(`${where}.correct must be a boolean`);
-  return { position: i, question_id: questionId ?? null, correct: correct ? 1 : 0 };
+  return {
+    position: i,
+    question_id: questionId ?? null,
+    question_stable_id: questionStableId ?? null,
+    // A revision without an id describes nothing, so don't store one.
+    question_revision: questionStableId != null ? questionRevision ?? null : null,
+    correct: correct ? 1 : 0,
+  };
 }
 
 const insertAttempt = db.prepare(`
-  INSERT INTO attempts (user_id, run_id, topic_id, question_id, position, correct, created_at)
-  VALUES (@user_id, @run_id, @topic_id, @question_id, @position, @correct, @created_at)
+  INSERT INTO attempts (user_id, run_id, topic_id, question_id, question_stable_id,
+                        question_revision, position, correct, created_at)
+  VALUES (@user_id, @run_id, @topic_id, @question_id, @question_stable_id,
+          @question_revision, @position, @correct, @created_at)
 `);
 
 // One transaction per run: every row of a sitting commits together, so a
@@ -86,6 +105,8 @@ const insertRun = db.transaction((topicId, runId, userId, rows) => {
       run_id: runId,
       topic_id: topicId,
       question_id: row.question_id,
+      question_stable_id: row.question_stable_id,
+      question_revision: row.question_revision,
       position: row.position,
       correct: row.correct,
       created_at: createdAt,
@@ -94,7 +115,8 @@ const insertRun = db.transaction((topicId, runId, userId, rows) => {
 });
 
 // POST /api/attempts — record one finished quiz run.
-// Body: { topicId, runId, results: [{ questionId, correct }, ...] }
+// Body: { topicId, runId,
+//         results: [{ questionStableId, questionRevision, questionId, correct }, ...] }
 //
 // Deliberately NOT behind requireAuth — quiz-taking stays anonymous-friendly
 // (this is a single-user app; gating results on login would just add friction
@@ -118,6 +140,21 @@ router.post("/attempts", (req, res) => {
   // SQLite constraint violation surfacing as a 500.
   if (!getTopic.get(topicId)) {
     return res.status(400).json({ error: `topicId "${topicId}" does not exist` });
+  }
+
+  // question_stable_id is a FK too, but unlike topicId an unknown value is
+  // DEMOTED TO NULL rather than rejected. A 400 here would throw away a whole
+  // finished quiz run — useProgress.js only logs the failure — and the most
+  // likely cause is benign: content gets reseeded while the app is open, so a
+  // question the browser loaded minutes ago may have just been deleted from
+  // its topic module. Recording the run with one unattributed row loses far
+  // less than losing the run. Shape is still validated in resultRow, so
+  // nothing malformed reaches SQL either way.
+  for (const row of rows) {
+    if (row.question_stable_id != null && !getQuestionStableId.get(row.question_stable_id)) {
+      row.question_stable_id = null;
+      row.question_revision = null;
+    }
   }
 
   insertRun(topicId, runId, user?.id ?? null, rows);
@@ -182,6 +219,49 @@ router.get("/progress", (req, res) => {
   }
 
   res.json(progress);
+});
+
+// GET /api/questions/stats — per-question correct/incorrect, the thing stable
+// ids exist to make possible.
+//
+// Answers "which specific MCQs have I actually been getting right?", so that
+// those can be rewritten harder in the topic modules while the ones still
+// being missed are left intact for another attempt. /api/progress can't answer
+// it: it aggregates by run, and before stable ids there was no per-question
+// identity to aggregate by at all.
+//
+// Aggregated in SQL rather than by looping in JS, same as /api/progress above.
+// LEFT JOIN from questions, not from attempts, so a question that has never
+// been answered still appears with attempts: 0 — "never seen" and "seen and
+// always missed" are opposite signals and must not look alike.
+//
+// `revision` is the question's CURRENT revision; `attemptsAtCurrentRevision`
+// and `correctAtCurrentRevision` count only attempts recorded against it. A
+// question rewritten after being answered correctly therefore reads as
+// correct: 1 overall but 0 at the current revision, which is exactly the
+// distinction the rewrite workflow needs — the old success no longer speaks
+// for the new wording.
+const questionStats = db.prepare(`
+  SELECT q.stable_id AS stableId,
+         q.topic_id  AS topicId,
+         q.revision  AS revision,
+         q.prompt    AS prompt,
+         COUNT(a.id) AS attempts,
+         COALESCE(SUM(a.correct), 0) AS correct,
+         COALESCE(SUM(CASE WHEN a.question_revision = q.revision THEN 1 ELSE 0 END), 0)
+           AS attemptsAtCurrentRevision,
+         COALESCE(SUM(CASE WHEN a.question_revision = q.revision THEN a.correct ELSE 0 END), 0)
+           AS correctAtCurrentRevision,
+         MAX(a.created_at) AS lastAnsweredAt
+  FROM questions q
+  LEFT JOIN attempts a ON a.question_stable_id = q.stable_id
+  WHERE q.stable_id IS NOT NULL
+  GROUP BY q.stable_id
+  ORDER BY q.topic_id, q.position
+`);
+
+router.get("/questions/stats", (req, res) => {
+  res.json(questionStats.all());
 });
 
 export default router;

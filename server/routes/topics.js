@@ -43,7 +43,7 @@ const getCards = db.prepare(`
 `);
 
 const getQuestions = db.prepare(`
-  SELECT id, prompt, code, answer, explanation, tag,
+  SELECT id, stable_id, revision, prompt, code, answer, explanation, tag,
          figure_src, figure_alt, figure_caption
   FROM questions WHERE topic_id = ? ORDER BY position
 `);
@@ -82,10 +82,16 @@ export function buildTopic(row) {
 
   const questions = getQuestions.all(row.id).map((q) =>
     compact({
-      // Real database id, exposed so the frontend can send it back in a quiz
-      // attempt (server/routes/progress.js). Never existed in the old bundled
-      // topic modules — purely additive, nothing downstream keyed off its absence.
+      // Real database id. LEGACY: it is an AUTOINCREMENT surrogate that gets
+      // reassigned by every reseed, so it identifies nothing over time —
+      // stableId below is what an attempt should be recorded against
+      // (docs/STABLE_QUESTION_IDS.md). Still served because QuizView sends it
+      // and progress.js still accepts it.
       id: q.id,
+      // The authored id from the topic module ("bigo-q03") and the revision of
+      // its graded content. These are what make a past attempt identifiable.
+      stableId: q.stable_id,
+      revision: q.revision,
       prompt: q.prompt,
       code: q.code,
       // pluck() would return scalars, but .all() keeps this readable.

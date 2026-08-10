@@ -58,6 +58,7 @@ export default {
   ],
   questions: [
     {
+      id: "multidim-arrays-q01",
       prompt: "What does `char page[30][100];` declare?",
       choices: [
         "A single array of 30 characters",
@@ -70,6 +71,7 @@ export default {
         "Each bracket pair is its own index value, so `page` has two: rows 0–29 and columns 0–99.",
     },
     {
+      id: "multidim-arrays-q02",
       prompt: "What is `page`'s base type, given `char page[30][100];`?",
       choices: [
         "A single char",
@@ -82,6 +84,7 @@ export default {
         "`page` is actually an array of size 30 whose base type, meaning what each of those 30 elements is, is an array of 100 characters.",
     },
     {
+      id: "multidim-arrays-q03",
       prompt: "In a multi-dimensional array parameter, which dimension's size can be left out?",
       code: "void displayPage(const char page[][100], int sizeDimension1);",
       choices: [
@@ -95,6 +98,7 @@ export default {
         "Only the first dimension is omitted from the parameter type; `page[][100]` still states the second dimension explicitly.",
     },
     {
+      id: "multidim-arrays-q04",
       prompt: "In `int a[4][5];`, what do 4 and 5 represent?",
       code: "int a[4][5];\n//4 is the number of rows\n//5 is the number of columns",
       choices: [
@@ -108,6 +112,7 @@ export default {
         "The deck's own comment states it directly: the first bracket is rows, the second is columns.",
     },
     {
+      id: "multidim-arrays-q05",
       prompt: "How do you access a single element of a[4][5] at row i, column j?",
       choices: ["a[i, j]", "a[i+j]", "a[i][j]", "a.at(i, j)"],
       answer: 2,
@@ -115,6 +120,7 @@ export default {
         "Each index gets its own bracket pair, so a two-dimensional access is `a[i][j]`, not a comma-separated index.",
     },
     {
+      id: "multidim-arrays-q06",
       prompt:
         "In the loop that prints a 2D array row by row, why does `cout << endl;` sit after the inner loop finishes, not inside it?",
       code: "for (i = 0; i < 4; i++){\nfor (j = 0; j < 5; j++){\ncout << a[i][j];\n}\ncout << endl;\n}",
@@ -129,6 +135,7 @@ export default {
         "`endl` outside the inner loop but inside the outer loop fires exactly once per completed row, which is what produces one line per row of output.",
     },
     {
+      id: "multidim-arrays-q07",
       prompt:
         "Given `int a[10][10];` int `numRows`=5, `numCols`=8; and the loop for (i=0;i<`numRows`;i++) `sort(a[i], numCols)`;, what is `a[i]`?",
       code:
@@ -144,6 +151,7 @@ export default {
         "Indexing a two-dimensional array once peels off one dimension, leaving `a[i]` as a plain one-dimensional array, a valid argument for a `sort` function expecting an array and a size.",
     },
     {
+      id: "multidim-arrays-q08",
       prompt: "For `int a[3][4][5];`, what is the type of `a[i]`?",
       code:
         "int a[3][4][5];\nfor(i = 0; i < 3; i++){\nfor(j = 0; j < 4; j++){\nfor(k = 0; k < 5; k++){\ncin >> a[i][j][k];\n}\n}\n}",
@@ -153,6 +161,7 @@ export default {
         "One index applied to a three-dimensional array leaves two dimensions remaining, so `a[i]` is itself a two-dimensional array.",
     },
     {
+      id: "multidim-arrays-q09",
       prompt: "For `int a[3][4][5];`, what is the type of `a[i][j][k]`?",
       choices: [
         "A two-dimensional array",
@@ -165,6 +174,7 @@ export default {
         "Applying all three indices peels off all three dimensions, leaving exactly one int element.",
     },
     {
+      id: "multidim-arrays-q10",
       prompt: "How many nested loops are needed to fill `int a[3][4][5];` element by element with `cin`?",
       choices: ["One", "Two", "Three", "Four, one per dimension plus one"],
       answer: 2,
@@ -172,6 +182,7 @@ export default {
         "Each dimension needs its own loop variable to reach every combination of indices, so a 3D array needs 3 nested loops.",
     },
     {
+      id: "multidim-arrays-q11",
       prompt:
         "Why does declaring a formal parameter as `const char page[][100]` still require the 100, when a plain 1D array parameter like `const char a[]` needs no size at all?",
       choices: [

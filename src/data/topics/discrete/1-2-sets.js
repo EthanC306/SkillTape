@@ -71,6 +71,7 @@ export default {
   ],
   questions: [
     {
+      id: "discrete-1-2-sets-q01",
       prompt:
         "Let A = {1, 2, 3}, B = {3, 1, 2}, and C = {1, 1, 2, 3, 3}. How are A, B, and C related?",
       choices: [
@@ -84,6 +85,7 @@ export default {
         "By the axiom of extension a set is determined only by its elements, not their order or repetition. All three name exactly the elements 1, 2, 3, so A = B = C.",
     },
     {
+      id: "discrete-1-2-sets-q02",
       prompt: "Is {0} = 0?",
       choices: [
         "Yes, they both represent zero",
@@ -96,6 +98,7 @@ export default {
         "{0} is a set with one element (the number 0); 0 is that number itself. A set and its lone element are not the same object, so {0} ≠ 0.",
     },
     {
+      id: "discrete-1-2-sets-q03",
       prompt: "How many elements are in the set {1, {1}}?",
       choices: ["1", "2", "3", "Infinitely many"],
       answer: 1,
@@ -103,6 +106,7 @@ export default {
         "The two elements are the number 1 and the set {1}. They are different objects, so the set has exactly 2 elements.",
     },
     {
+      id: "discrete-1-2-sets-q04",
       prompt: "Which statement is TRUE?",
       choices: [
         "2 ⊆ {1, 2, 3}",
@@ -115,6 +119,7 @@ export default {
         "{2} ⊆ {1, 2, 3} because the only element of {2}, namely 2, is in {1, 2, 3}. “2 ⊆ …” is ill-formed (2 isn't a set), and neither {2} nor {1,2} is itself an element of {1, 2, 3}.",
     },
     {
+      id: "discrete-1-2-sets-q05",
       prompt: "What is the difference between ∈ and ⊆?",
       choices: [
         "∈ relates an element to a set; ⊆ relates a set to a set",
@@ -127,6 +132,7 @@ export default {
         "∈ says an object is a member of a set. ⊆ says every element of one set is also in another. Mixing them up is the most common set-notation error.",
     },
     {
+      id: "discrete-1-2-sets-q06",
       prompt:
         "Let B = ℤ⁺ (positive integers) and C = {100, 200, 300}. Is C a proper subset of B?",
       choices: [
@@ -140,6 +146,7 @@ export default {
         "Each element of C is a positive integer, so C ⊆ B. Since B also contains values not in C (e.g. 1), C ≠ B, making C a proper subset.",
     },
     {
+      id: "discrete-1-2-sets-q07",
       prompt: "Is (1, 2) = (2, 1)?",
       choices: [
         "Yes, the two pairs contain exactly the same numbers",
@@ -152,6 +159,7 @@ export default {
         "Ordered pairs respect position: (a, b) = (c, d) iff a = c and b = d. Here 1 ≠ 2, so (1, 2) ≠ (2, 1), unlike the sets {1, 2} and {2, 1}, which are equal.",
     },
     {
+      id: "discrete-1-2-sets-q08",
       prompt: "If A = {x, y} and B = {1, 2, 3}, how many elements are in A × B?",
       choices: ["5", "6", "2", "9"],
       answer: 1,
@@ -159,6 +167,7 @@ export default {
         "|A × B| = |A| · |B| = 2 · 3 = 6. The pairs are (x,1), (x,2), (x,3), (y,1), (y,2), (y,3).",
     },
     {
+      id: "discrete-1-2-sets-q09",
       prompt: "In general, is A × B the same set as B × A?",
       choices: [
         "Yes, Cartesian product is symmetric",
@@ -171,6 +180,7 @@ export default {
         "A × B holds pairs (a, b) with a ∈ A; B × A holds pairs (b, a). Since (a, b) ≠ (b, a) in general, the two products differ (they match only in special cases such as A = B).",
     },
     {
+      id: "discrete-1-2-sets-q10",
       prompt: "Which set does the builder notation { x ∈ ℤ | −2 < x < 3 } describe?",
       choices: [
         "{−2, −1, 0, 1, 2, 3}",
@@ -183,6 +193,7 @@ export default {
         "It reads “all integers x such that −2 < x < 3.” The strictly-between integers are −1, 0, 1, 2.",
     },
     {
+      id: "discrete-1-2-sets-q11",
       prompt: "Which reserved symbol denotes the set of all integers?",
       choices: ["ℝ", "ℚ", "ℤ", "ℕ"],
       answer: 2,
@@ -190,6 +201,7 @@ export default {
         "ℤ is the integers. ℝ is the reals, ℚ the rationals, and ℕ the natural numbers.",
     },
     {
+      id: "discrete-1-2-sets-q12",
       prompt: "Is the statement C ⊆ C true for every set C?",
       choices: [
         "No, a set can't be a subset of itself",

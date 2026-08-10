@@ -11,8 +11,23 @@ Commit:   <hash or "uncommitted">
 Files:    <files changed>
 Summary:
   - <what changed and why>
+--------------------------------------------------------------------------------
+                      STABLE MCQ IDS 
+--------------------------------------------------------------------------------
+Newest entries at the top. Copy the entry template below to add a new update.
 
-
+--------------------------------------------------------------------------------
+ENTRY TEMPLATE (copy/paste for new entries)
+--------------------------------------------------------------------------------
+Date:     YYYY-MM-DD
+Commit:   <hash or "uncommitted">
+Files:    <files changed>
+Summary:
+  - Every question now has a permanent id (stable_id) and a revision number. 
+  Attempts record both, so an attempt stays tied to its question even when you edit the question later.
+  - Seeding no longer wipes questions and rebuilds them. 
+  It updates in place and only deletes questions you actually removed from the curriculum.
+  - 
 --------------------------------------------------------------------------------
 WRITE coverage across the cpp bank, and a 3-per-session cap on WRITE items
 --------------------------------------------------------------------------------

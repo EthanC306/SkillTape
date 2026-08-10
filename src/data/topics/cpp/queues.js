@@ -75,6 +75,7 @@ export default {
   ],
   questions: [
     {
+      id: "queues-q01",
       prompt: "Where can entries be inserted and removed in a queue?",
       choices: [
         "At the rear for insertion, at the front for removal",
@@ -87,6 +88,7 @@ export default {
         "A queue restricts insertion to the `rear` and removal to the `front`, which is what makes it FIFO rather than a stack.",
     },
     {
+      id: "queues-q02",
       prompt: "You enqueue 3, then 7, then 5 onto an empty queue. What does the next dequeue return?",
       choices: ["The largest value, 7", "5", "7", "3"],
       answer: 3,
@@ -94,6 +96,7 @@ export default {
         "A queue is First-In/First-Out, so the earliest item pushed, 3, is the first one back off.",
     },
     {
+      id: "queues-q03",
       prompt: "What is queue overflow?",
       choices: [
         "Adding an entry to a queue that is already full",
@@ -106,6 +109,7 @@ export default {
         "Overflow is the full-queue error: there is no room left to insert another entry.",
     },
     {
+      id: "queues-q04",
       prompt: "What is queue underflow?",
       choices: [
         "Adding an entry to a queue that is already full",
@@ -118,6 +122,7 @@ export default {
         "Underflow is the empty-queue error: there is no `front` item left to remove.",
     },
     {
+      id: "queues-q05",
       prompt: "Why can't a plain array implementation just treat the last array index as a fixed `rear` boundary?",
       choices: [
         "Because rear must always be lower than front",
@@ -130,6 +135,7 @@ export default {
         "As items are pushed and popped, the occupied range can wrap around, so treating the array's last index as a hard boundary wastes freed slots at the low end.",
     },
     {
+      id: "queues-q06",
       prompt: "What does `nextIndex` do?",
       code:
         "size_t nextIndex(size_t index) const{\n    return (index + 1) % CAPACITY;\n}",
@@ -144,6 +150,7 @@ export default {
         "The modulo by `CAPACITY` is what turns a plain array into a circular one, sending index `CAPACITY - 1` back to 0.",
     },
     {
+      id: "queues-q07",
       prompt: "For an empty queue, what is true of `front` and `rear`?",
       choices: [
         "front equals nextIndex(rear)",
@@ -156,6 +163,7 @@ export default {
         "The empty-queue invariant is that `front` sits exactly one slot ahead of `rear`, i.e. `front` == `nextIndex(rear)`, whatever valid index `rear` happens to hold.",
     },
     {
+      id: "queues-q08",
       prompt: "Why does the constructor set `rear` to `CAPACITY - 1` instead of 0?",
       code:
         "template <class Item>\nQueue<Item>::Queue( )\n{\n    numItems = 0;\n    front = 0;\n    rear = CAPACITY - 1;\n}",
@@ -170,6 +178,7 @@ export default {
         "`push` always advances `rear` with `nextIndex` before writing, so starting `rear` one slot behind index 0 is what makes the first `push` actually land at index 0.",
     },
     {
+      id: "queues-q09",
       prompt: "What is this `assert` protecting against?",
       code:
         "template <class Item>\nvoid Queue<Item>::push(const Item& entry)\n{\n    assert(numItems < CAPACITY);\n    rear = nextIndex(rear);\n    data[rear] = entry;\n    numItems++;\n}",
@@ -184,6 +193,7 @@ export default {
         "If `numItems` has already reached `CAPACITY`, there is no free slot left, which is the overflow condition the `assert` catches.",
     },
     {
+      id: "queues-q10",
       prompt: "Why does `push` advance `rear` before writing the entry?",
       code:
         "rear = nextIndex(rear);\ndata[rear] = entry;\nnumItems++;",
@@ -198,6 +208,7 @@ export default {
         "Because the constructor leaves `rear` at `CAPACITY - 1`, advancing it first is what produces index 0 on the first call, matching `front`'s starting value of 0.",
     },
     {
+      id: "queues-q11",
       prompt: "What does this `pop` return?",
       code:
         "Item removedItem = data[front];\nfront = nextIndex(front);\nnumItems--;\nreturn removedItem;",
@@ -212,6 +223,7 @@ export default {
         "`removedItem` is read from `data[front]` first, before `front` is advanced, so it holds the item that was actually at the `front`.",
     },
     {
+      id: "queues-q12",
       prompt: "What is the difference between `peek` and `pop` on this queue?",
       choices: [
         "peek reads the front item; pop removes it",
@@ -224,6 +236,7 @@ export default {
         "`peek` reads `data[front]` and changes nothing, while `pop` also advances `front` and decrements `numItems`.",
     },
     {
+      id: "queues-q13",
       prompt: "In the linked list implementation, which node is the `rear` of the queue?",
       choices: [
         "The head node",
@@ -236,6 +249,7 @@ export default {
         "The `rear` of the queue is stored at the final node of the linked list, mirroring how the `front` is stored at the head node.",
     },
     {
+      id: "queues-q14",
       prompt: "What do `frontPtr` and `rearPtr` point to in the linked-list queue?",
       choices: [
         "frontPtr is an index, not a pointer",

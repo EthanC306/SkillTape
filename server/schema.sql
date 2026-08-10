@@ -50,9 +50,25 @@ CREATE TABLE IF NOT EXISTS cards (
 CREATE INDEX IF NOT EXISTS idx_cards_topic ON cards(topic_id, position);
 
 CREATE TABLE IF NOT EXISTS questions (
+  -- Surrogate PK, kept because choices.question_id points at it. It is NOT an
+  -- identity: AUTOINCREMENT reassigns it on every reseed, which is why
+  -- stable_id below exists.
   id             INTEGER PRIMARY KEY AUTOINCREMENT,
   topic_id       TEXT NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
   position       INTEGER NOT NULL,
+  -- Authored id from the topic module ("bigo-q03"), stable forever for the
+  -- same reason topics.id and items.id are (AUTHORING.md §2.1/§4.1) — it is
+  -- what keys the attempt log across reseeds. See seed.js's upsertQuestion.
+  -- The UNIQUE index lives in db.js, not here: SQLite's ALTER TABLE cannot add
+  -- a UNIQUE column, so a database created before this column existed can only
+  -- get the constraint as a separate CREATE UNIQUE INDEX.
+  stable_id      TEXT,
+  -- Bumped by seed.js when content_hash changes, never by hand. content_hash
+  -- covers only the GRADED fields (prompt, code, choices, answer) — fixing a
+  -- typo in an explanation must not invalidate the history of a question
+  -- nobody's answer would have differed on.
+  revision       INTEGER NOT NULL DEFAULT 1,
+  content_hash   TEXT,
   prompt         TEXT NOT NULL,
   code           TEXT,
   answer         INTEGER NOT NULL,   -- 0-based index into this question's choices.position
@@ -115,7 +131,19 @@ CREATE TABLE IF NOT EXISTS attempts (
   user_id     INTEGER REFERENCES users(id) ON DELETE CASCADE,  -- NULL until auth lands
   run_id      TEXT NOT NULL,
   topic_id    TEXT NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
+  -- LEGACY. questions.id is AUTOINCREMENT and was reassigned by every reseed,
+  -- so this column recorded an id that stopped meaning anything the next time
+  -- content was edited — every historical row here is already NULL. Kept only
+  -- because dropping a column in SQLite means a full table rebuild for zero
+  -- benefit. New writes populate question_stable_id instead.
   question_id INTEGER REFERENCES questions(id) ON DELETE SET NULL,
+  -- The real identity of the question answered. NULL is legal and expected on
+  -- rows from the one-time localStorage importer (useProgress.js), which
+  -- reconstructs history that never recorded which question was which.
+  question_stable_id TEXT REFERENCES questions(stable_id) ON DELETE SET NULL,
+  -- questions.revision as it stood when this was answered, so a correct answer
+  -- from before a rewrite stays distinguishable from one after it.
+  question_revision  INTEGER,
   position    INTEGER NOT NULL,     -- order answered within the run
   correct     INTEGER NOT NULL,     -- 0/1
   created_at  INTEGER NOT NULL      -- epoch ms
@@ -123,6 +151,8 @@ CREATE TABLE IF NOT EXISTS attempts (
 CREATE INDEX IF NOT EXISTS idx_attempts_run ON attempts(run_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_topic ON attempts(user_id, topic_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_attempts_question ON attempts(question_id, created_at);
+-- idx_attempts_question_stable is created in db.js alongside the guarded
+-- ALTER TABLEs, for the same reason as questions' unique index above.
 
 -- ── Drill mode (ROADMAP.md A4) ──────────────────────────────────────────────
 -- Three tables, deliberately separate from the legacy MCQ-only `questions` /

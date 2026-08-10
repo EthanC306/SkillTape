@@ -79,6 +79,7 @@ export default {
   ],
   questions: [
     {
+      id: "templates-q01",
       prompt: "What problem do templates solve?",
       choices: [
         "Making programs run in constant time regardless of the data they are given",
@@ -91,6 +92,7 @@ export default {
         "Templates let one definition serve every data type, replacing a pile of near-identical overloaded functions.",
     },
     {
+      id: "templates-q02",
       prompt: "Which two keywords can introduce a generic type parameter?",
       choices: ["typename or class", "auto or const", "struct or union", "generic or template"],
       answer: 0,
@@ -98,6 +100,7 @@ export default {
         "Both `typename` and class work identically here; this course uses `typename` because it's more readable.",
     },
     {
+      id: "templates-q03",
       prompt: "What is missing above this function?",
       code: "void swap (T &first, T &second)\n{\n    T temp = first;\n    first = second;\n    second = temp;\n}",
       choices: [
@@ -111,6 +114,7 @@ export default {
         "Without the `template <typename T>` line above it, the compiler has no idea what T is.",
     },
     {
+      id: "templates-q04",
       prompt: "In `template <typename T>`, what is T?",
       choices: [
         "A required keyword that cannot be renamed to anything else",
@@ -123,6 +127,7 @@ export default {
         "T is just a valid identifier you chose; it will match whatever type the code is used with.",
     },
     {
+      id: "templates-q05",
       prompt: "After this call, what type does the compiler use for T?",
       code: "char symbol1 = 'A', symbol2 = 'B';\nswap(symbol1, symbol2);",
       choices: ["char", "int", "string", "void"],
@@ -131,6 +136,7 @@ export default {
         "The compiler deduces T from the arguments, so passing two chars makes T become char.",
     },
     {
+      id: "templates-q06",
       prompt: "Why are the `swap` parameters declared as `T &first, T &second`?",
       code: "template <typename T>\nvoid swap (T &first, T &second)",
       choices: [
@@ -144,6 +150,7 @@ export default {
         "Passing by reference is what lets `swap` modify the original variables rather than local copies.",
     },
     {
+      id: "templates-q07",
       prompt: "How do you declare a Pair object that holds two ints?",
       choices: ["Pair score<int>;", "Pair <int> score;", "Pair score;", "int Pair score;"],
       answer: 1,
@@ -151,6 +158,7 @@ export default {
         "A template class needs its type argument in angle brackets right after the class name.",
     },
     {
+      id: "templates-q08",
       prompt: "Why must you write `Pair <int>` but you can just write `swap(a, b)`?",
       choices: [
         "Classes are always slower than functions",
@@ -163,6 +171,7 @@ export default {
         "There's nothing for the compiler to inspect when you declare an object, so the type must be stated explicitly.",
     },
     {
+      id: "templates-q09",
       prompt: "What is wrong with this out-of-class definition?",
       code: "template <typename T>\nvoid Pair::setFirst(T value)\n{\n    first = value;\n}",
       choices: [
@@ -176,6 +185,7 @@ export default {
         "<T> must be specified with the class name, so the correct form is `Pair <T>::setFirst`.",
     },
     {
+      id: "templates-q10",
       prompt: "How many template lines does a class with three out-of-class member function definitions need?",
       choices: [
         "One, above the class only",
@@ -188,6 +198,7 @@ export default {
         "Every out-of-class definition needs its own template line, in addition to the one above the class itself.",
     },
     {
+      id: "templates-q11",
       prompt: "How do you declare a class template with two independent generic types?",
       choices: [
         "template <typename T1><typename T2>",
@@ -200,6 +211,7 @@ export default {
         "Each parameter gets its own `typename` keyword, separated by a comma inside one pair of angle brackets.",
     },
     {
+      id: "templates-q12",
       prompt: "What does this function return?",
       code: "template <typename T1, typename T2>\nT2  ClassName <T1, T2>::getvar2 ()\n{\n    return var2;\n}",
       choices: [
@@ -213,6 +225,7 @@ export default {
         "The return type in front of the class name is `T2`, and the body returns the `T2` member `var2`.",
     },
     {
+      id: "templates-q13",
       prompt: "In the Pair template class, what type are the private members `first` and `second`?",
       code: "private:\n    T first;\n    T second;",
       choices: [
