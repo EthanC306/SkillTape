@@ -599,7 +599,7 @@ export default {
       topicId: "recursion",
       format: FORMATS.ERROR,
       origin: ITEM_ORIGIN.GENERATED,
-      prompt: "This is meant to be the deck's recursive factorial. What is wrong with it, and which requirement of a recursive definition does it violate?\n```\ndouble factorial(int n){\n    return  n * factorial(n - 1);\n}\n```",
+      prompt: "This is meant to be a recursive factorial. What is wrong with it, and which requirement of a recursive definition does it violate?\n```\ndouble factorial(int n){\n    return  n * factorial(n - 1);\n}\n```",
       expected:
         "The base case is missing. A recursive definition requires a base case, the part of the definition that is not recursive and can be determined, and here nothing ever stops the reduction, so factorial keeps calling itself with smaller and smaller n. Since every call places an activation record on the run-time stack and none of them ever finish, the stack keeps growing instead of unwinding. The fix is the deck's guard: if (n == 0) return 1; before the recursive return.",
       criteria: [

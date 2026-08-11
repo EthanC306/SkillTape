@@ -97,12 +97,12 @@ export default {
     {
       heading: "Depth, and the two heights",
       body:
-        "The **depth of a node** is how far it is from the root, counted as the number of steps it takes to reach that node. The root has a depth of **0**, the root's children have a depth of 1, and so on. Slide 7 then gives two definitions of a tree's height that do not agree. First, height is the **maximum depth** of any leaf, which is **3** for the tree above. Then, height is the **number of levels** in the tree, which is **4**. They differ by exactly one and both are on the same slide. Max depth of a leaf is the one that follows from the depth rule, so prefer it, and ask which he wants before the exam.",
+        "The **depth of a node** is how far it is from the root, counted as the number of steps it takes to reach that node. The root has a depth of **0**, the root's children have a depth of 1, and so on. Height has **two competing conventions**. One defines it as the **maximum depth** of any leaf, which is **3** for the tree above. The other defines it as the **number of levels**, which is **4**. They differ by exactly one. Max depth of a leaf is the one that follows from the depth rule, so prefer it, and confirm which convention an exam expects.",
     },
     {
       heading: "Full binary trees",
       body:
-        "A tree is a **Full Binary Tree** when every leaf has the **same depth** and every non-leaf has **two children**. Both halves have to hold. Neither example tree in this deck qualifies: their leaves sit at **different depths**, and several nodes have only one child.",
+        "A tree is a **Full Binary Tree** when every leaf has the **same depth** and every non-leaf has **two children**. Both halves have to hold. Neither example tree above qualifies: their leaves sit at **different depths**, and several nodes have only one child.",
     },
     {
       heading: "The node structure",
@@ -119,9 +119,9 @@ export default {
         "public:\n    BSTree() { root = nullptr; }\n    BNode<DataType>* search(DataType target)\n        { return treeSearch(root, target);}\n    void insert(DataType newData)\n        {treeInsert(root, newData);}\n    void print()\n        {printInorder(root);}\n    size_t size(){return treeSize(root);}",
     },
     {
-      heading: "The remove that does not compile",
+      heading: "Half-commenting a member function",
       body:
-        "Slide 12 ends with a `remove` that was meant to be commented out, and only its **signature line** actually is. The body survives as a **stray block** sitting loose inside the class body, which is **illegal**, and it calls **treeRemove**, which is never declared anywhere in this deck. Copy slide 12 verbatim into a project and it **will not compile**. Comment out both lines, or delete them.",
+        "Commenting out only the **signature line** of a member function leaves its body behind as a **stray block** sitting loose in the class body, which is **illegal**. The block below also calls **treeRemove**, which is never declared. Comment out both lines, or delete them: half of each is the one thing that will not compile.",
       code: "    //void remove(DataType target)\n        {treeRemove(root, target);};",
     },
     {
@@ -130,9 +130,9 @@ export default {
         "There are three traversals, and the names say **when the root is processed** relative to its subtrees. **Preorder** processes the root first, **inorder** processes it in the middle, and **postorder** processes it last. In all three the **left** subtree is always visited before the **right** one, so the only thing that ever moves is the root.",
     },
     {
-      heading: "Preorder traversal, and slide 15's bug",
+      heading: "Preorder traversal, and a bug worth knowing",
       body:
-        "Each node is processed **before** its children. Process the **root**, then the nodes in the **left subtree** with a recursive call, then the nodes in the **right subtree** with a recursive call. The code below is slide 15's own, and it does not do that: both recursive calls go to `printInorder` instead of `printPreorder`. Only the top node gets preorder treatment and everything under it is walked inorder. It compiles and runs, which is what makes it dangerous. On the deck's example tree it actually prints **50 10 35 40 45 55 60 70 80**, close enough to sorted that it looks like it worked.",
+        "Each node is processed **before** its children. Process the **root**, then the nodes in the **left subtree** with a recursive call, then the nodes in the **right subtree** with a recursive call. The version below does not do that: both recursive calls go to `printInorder` instead of `printPreorder`. Only the top node gets preorder treatment and everything under it is walked inorder. It compiles and runs, which is what makes it dangerous. On the example tree it prints **50 10 35 40 45 55 60 70 80**, close enough to sorted that it looks like it worked.",
       code:
         "template <typename DataType>\nvoid BSTree<DataType>::printPreorder(\n                            BNode<DataType>* root){\n    if (root != nullptr){\n        cout << root->data << endl;\n        printInorder(root->left);   // BUG: should be printPreorder\n        printInorder(root->right);  // BUG: should be printPreorder\n    }\n}",
     },
@@ -186,7 +186,7 @@ export default {
     {
       heading: "Why treeInsert takes its root by reference",
       body:
-        "The `&` in `BNode<DataType>* &root` is the most load-bearing character in the deck, and it is easy to read straight past. Drop it and the code still compiles, but the parameter becomes a **local copy** of the pointer: the assignment points that copy at the new node, the function returns, the copy dies, the node is **orphaned and leaked**, and the tree is **unchanged**. With the reference the parameter **is** the parent's own `left` or `right` member, so the assignment attaches the node in place. That is why insert never has to look back at the parent.",
+        "The `&` in `BNode<DataType>* &root` is the most load-bearing character here, and it is easy to read straight past. Drop it and the code still compiles, but the parameter becomes a **local copy** of the pointer: the assignment points that copy at the new node, the function returns, the copy dies, the node is **orphaned and leaked**, and the tree is **unchanged**. With the reference the parameter **is** the parent's own `left` or `right` member, so the assignment attaches the node in place. That is why insert never has to look back at the parent.",
       code:
         "void BSTree<DataType>::treeInsert(\n        BNode<DataType>* &root, DataType newData){\n    if (root == nullptr) {\n        root = new BNode<DataType>(newData, nullptr, nullptr);\n        return;\n    }",
     },
@@ -206,7 +206,7 @@ export default {
     {
       heading: "What the tree buys you",
       body:
-        "Back to the table this deck opened with. A binary search tree does insert, remove, and search all in **O(log2n)**, and like a linked list it needs **no resizing and no copying**. That beats the array on insert and remove and beats the linked list everywhere, **as long as the tree stays balanced**. The one caveat the deck itself lists is that a tree may **not be efficient** on a **small dataset**, where the overhead is not repaid.",
+        "Back to the table this topic opened with. A binary search tree does insert, remove, and search all in **O(log2n)**, and like a linked list it needs **no resizing and no copying**. That beats the array on insert and remove and beats the linked list everywhere, **as long as the tree stays balanced**. One caveat worth noting is that a tree may **not be efficient** on a **small dataset**, where the overhead is not repaid.",
     },
   ],
 
@@ -461,7 +461,7 @@ export default {
       format: FORMATS.RECALL,
       prompt: "State the deck's definition of a Full Binary Tree. Is the example tree on slide 20 full?",
       expected:
-        "A Full Binary Tree is one where every leaf has the same depth and every non-leaf has two children. The slide 20 tree is not full: 35 has only a left child, 70 has only a right child, and the leaves sit at different depths.",
+        "A Full Binary Tree is one where every leaf has the same depth and every non-leaf has two children. The example tree is not full: 35 has only a left child, 70 has only a right child, and the leaves sit at different depths.",
       criteria: [
         "Every leaf has the same depth",
         "Every non-leaf has two children",
@@ -477,9 +477,9 @@ export default {
       id: "trees-04",
       format: FORMATS.RECALL,
       prompt:
-        "Slide 7 gives two definitions of a tree's height that do not agree. State both, and give each one's value for the slide 20 tree.",
+        "Slide 7 gives two definitions of a tree's height that do not agree. State both, and give each one's value for the example tree.",
       expected:
-        "Definition 1: height is the maximum depth of any leaf, which is 3 for the slide 20 tree (50 to 40 to 35 to 10). Definition 2: height is the number of levels in the tree, which is 4 (levels 0, 1, 2, 3). They differ by exactly one, and both are on slide 7. Max-depth-of-a-leaf is the one that follows from the depth definition on slide 6.",
+        "Definition 1: height is the maximum depth of any leaf, which is 3 for the example tree (50 to 40 to 35 to 10). Definition 2: height is the number of levels in the tree, which is 4 (levels 0, 1, 2, 3). They differ by exactly one, and both are on slide 7. Max-depth-of-a-leaf is the one that follows from the depth definition on slide 6.",
       criteria: [
         "Height as the maximum depth of any leaf, giving 3",
         "Height as the number of levels, giving 4",
@@ -673,9 +673,9 @@ export default {
       id: "trees-15",
       format: FORMATS.ERROR,
       prompt:
-        "Slide 15's `printPreorder` has a bug that still compiles and still runs. Find it, and say what the function actually prints for the slide 20 tree.",
+        "Slide 15's `printPreorder` has a bug that still compiles and still runs. Find it, and say what the function actually prints for the example tree.",
       expected:
-        "It prints the root correctly, then calls printInorder on both children instead of printPreorder. Only the top node gets preorder treatment; everything below it is walked inorder. On the slide 20 tree it prints 50 10 35 40 45 55 60 70 80, which is close enough to sorted order to look like it worked.",
+        "It prints the root correctly, then calls printInorder on both children instead of printPreorder. Only the top node gets preorder treatment; everything below it is walked inorder. On the example tree it prints 50 10 35 40 45 55 60 70 80, which is close enough to sorted order to look like it worked.",
       criteria: [
         "Identifies that the recursive calls go to printInorder instead of printPreorder",
         "Notes it compiles and runs, so the bug is silent",
@@ -800,7 +800,7 @@ export default {
       prompt:
         "Given only the preorder output of a BST, can you rebuild the exact tree? Given only the inorder output? Explain the difference.",
       expected:
-        "Preorder: yes. The first value is the root, and every value after it is either smaller (left subtree) or larger (right subtree), which is enough to place all of them. Inorder: no. Inorder of any BST over the same values is the same sorted list, so it cannot tell the slide 20 tree apart from a degenerate stick. Inorder discards all the shape information.",
+        "Preorder: yes. The first value is the root, and every value after it is either smaller (left subtree) or larger (right subtree), which is enough to place all of them. Inorder: no. Inorder of any BST over the same values is the same sorted list, so it cannot tell the example tree apart from a degenerate stick. Inorder discards all the shape information.",
       criteria: [
         "Preorder yes, because the first value is the root and comparisons place the rest",
         "Inorder no",
@@ -974,7 +974,7 @@ export default {
       prompt:
         "Slide 26 has an `if` and an `else if` and no final `else`. What happens when you insert a value already in the tree, and is that deliberate?",
       expected:
-        "Nothing. The value is neither less than nor greater than the current node, so it falls past both branches and the function returns silently. It is deliberate: the comment on slide 26 says so, and it is how the every node has a unique value rule from slide 22 is enforced. It is also the only reason the second test is written as > rather than a bare else.",
+        "Nothing. The value is neither less than nor greater than the current node, so it falls past both branches and the function returns silently. It is deliberate, and it is how the every node has a unique value rule is enforced. It is also the only reason the second test is written as > rather than a bare else.",
       criteria: [
         "The duplicate is ignored, nothing is inserted",
         "Deliberate, and enforces the unique-value rule",
@@ -1060,7 +1060,7 @@ export default {
       prompt:
         "Slide 28 gives BST search as O(log2n). Under what condition is that claim false, and does the deck ever mention that condition?",
       expected:
-        "It holds only for a reasonably balanced tree. Sorted input produces a degenerate one-sided tree in which insert, remove and search all degrade to O(n), which is worse than the array row on the same slide. The deck never mentions balance anywhere: no AVL, no red-black, no rotations. Slide 28 states O(log2n) as if it were unconditional.",
+        "It holds only for a reasonably balanced tree. Sorted input produces a degenerate one-sided tree in which insert, remove and search all degrade to O(n), which is worse than a plain array. Balancing schemes (AVL, red-black, rotations) are what keep the guarantee, and O(log2n) is often quoted as if it were unconditional.",
       criteria: [
         "The claim assumes a reasonably balanced tree",
         "Sorted input degenerates the tree and all operations become O(n)",
