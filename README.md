@@ -70,7 +70,7 @@ Shipped:
 - **Progress tracking** — per topic: best score, run count, and the last 50 runs, persisted server-side (one row per question answered) and readable across browsers once logged in. See `docs/BACKEND.md`.
 - **Edit Mode** — an Edit toggle on any topic makes Learn cards and flashcards editable in place (add/delete/reorder, a bold-toggle button that doubles as the Fill Mode blank marker). Requires an account. Quiz questions aren't editable this way; see `docs/AUTHORING.md`.
 - **Drill mode** — closed-book, timed, navigation hidden, self-graded against an explicit criteria checklist. This is the mode that targets exam conditions; see `docs/CORRECTIONS.md` §4.2. The `body[data-drill-active]` CSS hook in `index.html` is groundwork for it; nothing sets that attribute today.
-- **Mixed-format items** — the polymorphic item shape in `src/data/itemSchema.js` (recall / write / trace / error / cloze / compare / complexity, with MCQ capped). The module is written and exercised by `npm run audit:bank`, but no topic file uses it yet; every question in the bank is still a legacy MCQ.
+- **Mixed-format items** — the polymorphic item shape in `src/data/itemSchema.js` (recall / write / trace / error / cloze / compare / complexity / mcq / diagram). The module is written and exercised by `npm run audit:bank`.
 - **Provenance on every item** — `sourceId` + anchor + verbatim excerpt, gated by `verifiedByHuman`. Enforced by the audit script, not yet present in the content.
 - **Per-item attempt log** — grade, elapsed seconds, open vs. closed book. Requires reworking `useProgress.js`, which currently records per-quiz-run, not per-item.
 - **Spaced repetition** — a Leitner 5-box scheduler: correct advances a box, wrong drops to box 1 and increments `lapses`, with intervals of 1/2/4/8/16 days. An item at `lapses >= 3` is flagged a **leech** and pulled from rotation for triage, since a leech usually means the item or its explanation is broken and should be rewritten. Chosen over SM-2 for being simpler and debuggable; see `docs/CS_DRILL_BUILD_SPEC.md` §Phase 5. Scheduling state (`box`, `dueOn`, `lapses`, `leech`) has no home in `src/data/itemSchema.js` yet.
@@ -332,24 +332,24 @@ Course material lives in `src/data/topics/<course>/<topic>.js`, imported by `src
 - **Key terms** — wrap in `**double asterisks**` to bold them in Learn mode and turn them into blanks in Fill Mode.
 - **Accepted answers** — Fill Mode already handles case, spacing, hyphens, exponents, plurals, and number words. For synonyms no rule can derive, add `accept: { "O(n)": ["linear", "linear time"] }` to the card.
 - **Figures** — attach `{ src, alt, caption }` to a card or question, with the image under `public/figures/`.
-### Item formats (planned)
+### Item formats
  
-The schema below is defined in `src/data/itemSchema.js` and enforced by `npm run audit:bank`, but no topic file uses it yet; the bank is still 100% MCQ. Migrating it is the next content task. Once migrated, every item also needs a `provenance` block naming the source, a stable anchor, and a verbatim excerpt; never renumber or delete a source anchor once items reference it.
+The schema below is defined in `src/data/itemSchema.js` and enforced by `npm run audit:bank`. The cpp topics are migrated; the discrete topics are not yet. Every item also needs a `provenance` block naming the source, a stable anchor, and a verbatim excerpt; never renumber or delete a source anchor once items reference it.
  
 Target distribution per topic:
  
 | Format | Share | Drills |
 | --- | --- | --- |
-| `recall` | 25% | Cold definition or rule, blank page |
+| `recall` | 20% | Cold definition or rule, blank page |
 | `write` | 20% | Produce a function or proof from a spec |
 | `trace` | 15% | Given code, produce output or final state |
-| `error` | 10% | Locate a bug and name the violated rule |
-| `cloze` | 10% | One load-bearing token blanked in a skeleton |
-| `compare` | 10% | Discriminate between two adjacent concepts |
+| `error` | 5% | Locate a bug and name the violated rule |
+| `cloze` | 5% | One load-bearing token blanked in a skeleton |
+| `compare` | 5% | Discriminate between two adjacent concepts |
 | `complexity` | 5% | Big-O plus justification |
-| `mcq` | ≤5% | Selection — capped deliberately |
+| `mcq` | 25% | Selection from four options, auto-graded |
  
-The MCQ cap is deliberate. Recognizing a correct answer among four options is a different skill from producing it under exam conditions, and it inflates confidence without improving recall.
+MCQ carries a real share of the bank rather than a token one. Recognizing a correct answer among four options is an easier skill than producing it under exam conditions, so most new MCQs are written as a **pair** — the selection version and an open-ended version of the same question — and the production formats above still hold the bulk of the bank. Two practical reasons MCQ earns its 25%: it is the one format Practice grades instantly client-side, so a deck stays usable when the grading model is offline, and it makes the hand-written course questions reachable from spaced repetition instead of only Quiz mode. `auditBank()` warns per topic once MCQ passes `QUOTAS[mcq]` (0.4).
  
 ## Notes
  

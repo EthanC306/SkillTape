@@ -1078,5 +1078,46 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+
+    // ── Practice bank ──────────────────────────────────────────────────────
+    makeItem({
+      id: "iterators-practice-a8",
+      topicId: "iterators",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Given the forward Iterator from the iterators slide, what does `*it++` evaluate to?",
+      choices: [
+        "The element after advancing",
+        "The element before advancing",
+        "A compile error, postfix isn't defined",
+        "The iterator itself, not the element",
+      ],
+      answerIndex: 1,
+      expected: "The element before advancing",
+      criteria: [
+        "Postfix ++ binds tighter than unary *, so this parses as *(it++). The postfix overload saves a copy, advances current, and returns the copy — dereferencing that copy gives the pre-advance element.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "iterators-practice-a8-written",
+      topicId: "iterators",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Given the forward Iterator from the iterators slide, what does `*it++` evaluate to, and why?",
+      expected:
+        "The element the iterator pointed at before advancing. Postfix ++ binds tighter than unary *, so the expression parses as *(it++). The postfix overload takes a copy of the iterator, advances current to the next node, and returns the copy — so the dereference applies to the pre-advance position.",
+      criteria: [
+        "Answers the element before advancing",
+        "Explains the precedence (*(it++)) and that the postfix overload returns a saved copy",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
   ],
 };

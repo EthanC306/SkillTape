@@ -839,5 +839,49 @@ export default {
       difficulty: 2,
       verifiedByHuman: false,
     }),
+
+    // ── Practice bank ──────────────────────────────────────────────────────
+    // Asks about the destructor as the deck writes it (#list-destructor). The
+    // use-after-free is really there; the question is whether you spot it in
+    // code that looks authoritative.
+    makeItem({
+      id: "linked-lists-algorithms-practice-a3",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "What is wrong with the list destructor from the linked-list-algorithms slide, precisely?\n```\nNode *cursor = head;\nwhile(cursor != nullptr){\n    deleteNode(cursor);\n    cursor = cursor->getNext();\n}\n```",
+      choices: [
+        "It leaks the head node",
+        "It reads memory that was already freed",
+        "It never terminates",
+        "Nothing, it's correct",
+      ],
+      answerIndex: 1,
+      expected: "It reads memory that was already freed",
+      criteria: [
+        "deleteNode(cursor) frees the node, and then cursor->getNext() dereferences that freed pointer — a use-after-free. The fix is to save the next pointer before deleting.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "linked-lists-algorithms-practice-a3-written",
+      topicId: "linked-lists-algorithms",
+      format: FORMATS.ERROR,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Name the bug in the list destructor from the linked-list-algorithms slide, and give the fix.\n```\nNode *cursor = head;\nwhile(cursor != nullptr){\n    deleteNode(cursor);\n    cursor = cursor->getNext();\n}\n```",
+      expected:
+        "Use-after-free. deleteNode(cursor) releases the node, and the very next statement dereferences that same freed pointer with cursor->getNext() to find the next node. The fix is to save the successor before deleting: Node* next = cursor->getNext(); deleteNode(cursor); cursor = next;",
+      criteria: [
+        "Names the use-after-free: the next pointer is read out of an already-deleted node",
+        "Gives the fix — capture getNext() into a temporary before deleting",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
   ],
 };

@@ -791,5 +791,507 @@ export default {
       difficulty: 1,
       verifiedByHuman: true,
     }),
+
+    // ── Course quiz: "Arrays & Recursion" ──────────────────────────────────
+    // Transcribed verbatim from the graded quiz's answer key — prompt text,
+    // choice wording, and choice order are the quiz's own and must not be
+    // rewritten. The arrays half of the same quiz lives in multidim-arrays.js.
+    // provenance is null for the same reason as the -mcq- items above: a quiz
+    // paper is not one of the sources/ files an anchor can resolve into.
+    makeItem({
+      id: "recursion-quiz-01",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "In a recursive function the base case has the job of",
+      choices: [
+        "stopping the recursion",
+        "making the function repeat itself",
+        "formulating the variant expression",
+        "providing a path for the return value",
+      ],
+      answerIndex: 0,
+      expected: "stopping the recursion",
+      criteria: [
+        "The base case is the non-recursive branch that can be answered outright, which is what finally halts the chain of calls.",
+      ],
+      provenance: null,
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-quiz-02",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "With each recursive call, what is pushed onto the runtime stack?",
+      choices: [
+        "the activation record",
+        "the variant expression",
+        "the stopping case",
+        "the source code for the function",
+      ],
+      answerIndex: 0,
+      expected: "the activation record",
+      criteria: [
+        "Every call places an activation record on top of the LIFO run-time stack; it is popped when that call finishes.",
+      ],
+      provenance: null,
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-quiz-03",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "The C++ reserved word that controls recursion is",
+      choices: [
+        "the word `if`",
+        "the word `while`",
+        "the word `for`",
+        "the word `function`",
+      ],
+      answerIndex: 0,
+      expected: "the word `if`",
+      criteria: [
+        "Recursion is controlled by a conditional, not a loop construct: the if that selects between the base case and the recursive rule.",
+      ],
+      provenance: null,
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-quiz-04",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "If the base case of a recursive function returns a value",
+      choices: [
+        "then every recursive case must also return a value",
+        "then the function is done with its work",
+        "the value returned will always be 0",
+        "it would be unusual since recursive functions usually don't return anything",
+      ],
+      answerIndex: 0,
+      expected: "then every recursive case must also return a value",
+      criteria: [
+        "A function has one return type, so every path — base case and recursive rule alike — has to return a value of it.",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-quiz-05",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Which statements are true about a recursive function?\nI. It makes a recursive call with simpler inputs.\nII. It creates a solution by reducing the problem into simpler parts.\nIII. It finds solutions directly for the simplest cases.",
+      choices: ["I, II", "I, III", "II, III", "I, II, III"],
+      answerIndex: 3,
+      expected: "I, II, III",
+      criteria: [
+        "All three describe the standard recipe: shrink the input, reduce the problem, and answer the simplest cases directly in the base case.",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-quiz-06",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "How many calls when `myfunction(10)` runs?\n```\nint myfunction(int n) {\n    if (n <= 2) {\n        return 1;\n    }\n    return n * myfunction(n - 1);\n}\n```",
+      choices: ["120", "9", "8", "10"],
+      answerIndex: 1,
+      expected: "9",
+      criteria: [
+        "Calls happen at n = 10, 9, 8, 7, 6, 5, 4, 3, 2 — nine in total, the last one hitting the base case.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+
+    // Typed counterparts of the six quiz MCQs above. Same prompts, no choices,
+    // so Drill and Practice hand over a textarea instead of a choice list —
+    // producing the answer cold is the skill the MCQ can't test. Both versions
+    // ship on purpose; they schedule independently.
+    makeItem({
+      id: "recursion-quiz-written-01",
+      topicId: "recursion",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "In a recursive function, what is the job of the base case?",
+      expected:
+        "Stopping the recursion. It is the branch that can be answered outright without a recursive call, so it is what ends the chain of calls.",
+      criteria: [
+        "States that the base case stops / ends the recursion",
+        "States that it is the non-recursive case, answered directly",
+      ],
+      provenance: null,
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-quiz-written-02",
+      topicId: "recursion",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "With each recursive call, what is pushed onto the runtime stack?",
+      expected:
+        "The activation record for that call. The run-time stack is LIFO, and the record is popped once that call has fully executed.",
+      criteria: [
+        "Names the activation record",
+        "States it is pushed per call and popped when that call finishes",
+      ],
+      provenance: null,
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-quiz-written-03",
+      topicId: "recursion",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Which C++ reserved word controls recursion, and why that one?",
+      expected:
+        "The word if. Recursion is controlled by a conditional rather than a loop keyword: the if chooses between the base case and the recursive rule on every call.",
+      criteria: [
+        "Names if",
+        "Explains that the conditional selects between base case and recursive rule",
+      ],
+      provenance: null,
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-quiz-written-04",
+      topicId: "recursion",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "If the base case of a recursive function returns a value, what does that require of the rest of the function?",
+      expected:
+        "Every recursive case must also return a value. A function has a single return type, so every path through it has to return a value of that type.",
+      criteria: [
+        "States that every recursive case must also return a value",
+        "Ties it to the function having one return type / every path returning",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-quiz-written-05",
+      topicId: "recursion",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Which of these are true about a recursive function, and why?\nI. It makes a recursive call with simpler inputs.\nII. It creates a solution by reducing the problem into simpler parts.\nIII. It finds solutions directly for the simplest cases.",
+      expected:
+        "All three: I, II, and III. Each call shrinks the input, the rule reduces the problem into simpler parts, and the base case answers the simplest cases directly without recursing.",
+      criteria: [
+        "Answers all three (I, II, III)",
+        "Justifies at least the base case handling the simplest cases directly",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-quiz-written-06",
+      topicId: "recursion",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "How many calls happen when `myfunction(10)` runs?\n```\nint myfunction(int n) {\n    if (n <= 2) {\n        return 1;\n    }\n    return n * myfunction(n - 1);\n}\n```",
+      expected:
+        "9 calls, at n = 10, 9, 8, 7, 6, 5, 4, 3, 2. The call at n = 2 hits the base case (n <= 2) and returns 1 without recursing further.",
+      criteria: [
+        "Answers 9",
+        "Lists or describes the chain n = 10 down to n = 2, stopping at the base case",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+
+    // ── Practice bank: recursion ───────────────────────────────────────────
+    // Same style as the graded quiz, different numbers, plus the print-before
+    // vs print-after distinction the deck's own examples turn on. Each ships as
+    // an MCQ and a typed counterpart. A1 is a genuine bug in the deck's code
+    // (sources/cpp/recursion.md, iterative fib) — the question is asking about
+    // the slide as written, not about a corrected version.
+    makeItem({
+      id: "recursion-practice-a1",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Using the iterative Fibonacci from the recursion deck, what does `fib(2)` return?\n```\ndouble fib(int n){\n    double first = 1, second = 1, third;\n    while(n > 2){ third = first + second; first = second; second = third; n--; }\n    return third;\n}\n```",
+      choices: ["1", "2", "0", "Undefined behavior"],
+      answerIndex: 3,
+      expected: "Undefined behavior",
+      criteria: [
+        "third is declared but never initialized, and with n = 2 the loop body never runs, so return third; hands back an indeterminate value.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-a1-written",
+      topicId: "recursion",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "What does `fib(2)` return, given the iterative Fibonacci exactly as the deck writes it?\n```\ndouble fib(int n){\n    double first = 1, second = 1, third;\n    while(n > 2){ third = first + second; first = second; second = third; n--; }\n    return third;\n}\n```",
+      expected:
+        "Nothing well-defined — this is undefined behavior. `third` is declared without an initializer, and with n = 2 the condition n > 2 is false immediately, so the loop body never executes and `return third;` reads an uninitialized variable.",
+      criteria: [
+        "Says the result is undefined / garbage rather than naming a number",
+        "Identifies that third is uninitialized and the loop body never runs when n = 2",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b4",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Output of `mystery(4)`?\n```\nvoid mystery(int n) {\n    if (n > 0) {\n        mystery(n - 1);\n        cout << n << \" \";\n    }\n}\n```",
+      choices: ["4 3 2 1", "1 2 3 4", "0 1 2 3 4", "4 3 2 1 0"],
+      answerIndex: 1,
+      expected: "1 2 3 4",
+      criteria: [
+        "The recursive call comes before the cout, so every call stacks down to n = 0 and printing happens on the way back up, in increasing order.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b4-written",
+      topicId: "recursion",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "What is the output of `mystery(4)`?\n```\nvoid mystery(int n) {\n    if (n > 0) {\n        mystery(n - 1);\n        cout << n << \" \";\n    }\n}\n```",
+      expected:
+        "1 2 3 4. The recursive call sits above the cout, so the calls stack all the way down to n = 0 before anything prints, and each frame prints its own n as the stack unwinds — smallest first.",
+      criteria: [
+        "Answers 1 2 3 4",
+        "Explains that the call precedes the print, so output happens on the way back up",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b5",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "In the recursive `factorial` from the deck, what makes 0! = 1 the base case rather than 1! = 1?",
+      choices: [
+        "0 is the smallest value the parameter can reach",
+        "the recursive rule n * (n-1)! reduces toward 0, not 1",
+        "both work identically in every case",
+        "factorial is undefined for 1",
+      ],
+      answerIndex: 1,
+      expected: "the recursive rule n * (n-1)! reduces toward 0, not 1",
+      criteria: [
+        "Each call subtracts one and the rule bottoms out by multiplying by 0!, so the base must sit at 0; a base at 1 lets factorial(0) recurse to -1 and run away.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b5-written",
+      topicId: "recursion",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "In the recursive `factorial` from the deck, why is 0! = 1 the base case rather than 1! = 1?",
+      expected:
+        "Because the recursive rule n * (n-1)! reduces toward 0, not 1. Each call subtracts one, so the chain bottoms out at 0! — and if the base case were placed at 1 instead, factorial(0) would recurse to -1 and never terminate.",
+      criteria: [
+        "States the recursive rule reduces toward 0, so the base case has to sit there",
+        "Notes that a base case at 1 leaves factorial(0) recursing past it / running away",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b6",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "How many total calls to `fibRec` occur when `fibRec(5)` runs, including the original call?\n```\ndouble fibRec(int n) {\n    if (n == 1 || n == 2) return 1;\n    return fibRec(n - 1) + fibRec(n - 2);\n}\n```",
+      choices: ["5", "7", "9", "15"],
+      answerIndex: 2,
+      expected: "9",
+      criteria: [
+        "Count nodes in the call tree, not levels: fibRec(3) is 3 calls, fibRec(4) is 1 + 3 + 1 = 5, so fibRec(5) is 1 + 5 + 3 = 9.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b6-written",
+      topicId: "recursion",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "How many total calls to `fibRec` occur when `fibRec(5)` runs, counting the original call?\n```\ndouble fibRec(int n) {\n    if (n == 1 || n == 2) return 1;\n    return fibRec(n - 1) + fibRec(n - 2);\n}\n```",
+      expected:
+        "9. Count nodes in the call tree rather than levels: fibRec(1) and fibRec(2) are 1 call each, fibRec(3) = 1 + 1 + 1 = 3, fibRec(4) = 1 + 3 + 1 = 5, and fibRec(5) = 1 + 5 + 3 = 9.",
+      criteria: [
+        "Answers 9",
+        "Builds the count from the call tree, e.g. fibRec(4) = 5 and fibRec(3) = 3",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b7",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "An activation record is popped off the runtime stack when",
+      choices: [
+        "the function makes its next recursive call",
+        "the function reaches its base case",
+        "the function finishes executing",
+        "the program terminates",
+      ],
+      answerIndex: 2,
+      expected: "the function finishes executing",
+      criteria: [
+        "Reaching the base case is not enough on its own — the record stays until that particular call actually returns.",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b7-written",
+      topicId: "recursion",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "When exactly is an activation record popped off the runtime stack?",
+      expected:
+        "When that call finishes executing and returns — not when it reaches the base case, and not when it makes its next recursive call. Every pending call keeps its record on the stack until it returns, which is why deep recursion holds many records at once.",
+      criteria: [
+        "States the record is popped when the call finishes / returns",
+        "Rules out the near-miss: reaching the base case is not by itself enough",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b8",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Given `int nums[] = {3, 6, 9, 12};` and the call `revPrintRec(nums, 3)`, what prints?\n```\nvoid revPrintRec(int numbers[], size_t numItems) {\n    if (numItems > 0) {\n        cout << numbers[numItems - 1] << \" \";\n        revPrintRec(numbers, numItems - 1);\n    }\n}\n```",
+      choices: ["12 9 6 3", "9 6 3", "3 6 9", "12 9 6"],
+      answerIndex: 1,
+      expected: "9 6 3",
+      criteria: [
+        "The call passes 3, not 4, so numbers[3] (12) is never touched; the print precedes the recursive call, so it prints on the way down: numbers[2], numbers[1], numbers[0].",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b8-written",
+      topicId: "recursion",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Given `int nums[] = {3, 6, 9, 12};` and the call `revPrintRec(nums, 3)`, what prints?\n```\nvoid revPrintRec(int numbers[], size_t numItems) {\n    if (numItems > 0) {\n        cout << numbers[numItems - 1] << \" \";\n        revPrintRec(numbers, numItems - 1);\n    }\n}\n```",
+      expected:
+        "9 6 3. numItems is 3, not 4, so the last element (12) is never reached. The cout comes before the recursive call, so printing happens on the way down: numbers[2] = 9, then numbers[1] = 6, then numbers[0] = 3.",
+      criteria: [
+        "Answers 9 6 3",
+        "Notes both that 12 is skipped because numItems is 3, and that printing happens before the recursive call",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b9",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "Compared to its iterative version, a recursive function generally",
+      choices: [
+        "uses less memory because it has fewer variables",
+        "uses more memory because each call needs its own activation record",
+        "uses the same memory since both do the same work",
+        "uses more memory only when it returns a value",
+      ],
+      answerIndex: 1,
+      expected: "uses more memory because each call needs its own activation record",
+      criteria: [
+        "Every pending call holds its own parameters and locals on the stack simultaneously, while a loop reuses one record.",
+      ],
+      provenance: null,
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b10",
+      topicId: "recursion",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "For a list 10 → 20 → 30 → nullptr, what prints?\n```\nvoid printListRec(Node* head) {\n    if (head != nullptr) {\n        printListRec(head->next);\n        cout << head->num << \" \";\n    }\n}\n```",
+      choices: ["10 20 30", "30 20 10", "10 10 10", "nothing"],
+      answerIndex: 1,
+      expected: "30 20 10",
+      criteria: [
+        "The recursive call comes first, so the whole list is traversed before anything prints and output happens as the stack unwinds; moving the cout above the call flips it to 10 20 30.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "recursion-practice-b10-written",
+      topicId: "recursion",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "For a list 10 → 20 → 30 → nullptr, what prints, and what would change if the `cout` moved above the recursive call?\n```\nvoid printListRec(Node* head) {\n    if (head != nullptr) {\n        printListRec(head->next);\n        cout << head->num << \" \";\n    }\n}\n```",
+      expected:
+        "30 20 10. The recursive call comes first, so the whole list is walked to nullptr before anything prints, and each frame prints as the stack unwinds — back to front. Moving the cout above the recursive call prints on the way down instead, giving 10 20 30.",
+      criteria: [
+        "Answers 30 20 10",
+        "States that moving the cout above the call reverses it to 10 20 30 (print on the way down)",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
   ],
 };

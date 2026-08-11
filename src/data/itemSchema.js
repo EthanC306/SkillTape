@@ -21,7 +21,7 @@ export const FORMATS = {
   CLOZE: "cloze", // one load-bearing token blanked in a skeleton
   COMPARE: "compare", // state the discriminating difference between two concepts
   COMPLEXITY: "complexity", // Big-O plus the justification
-  MCQ: "mcq", // selection — capped, see QUOTAS
+  MCQ: "mcq", // selection from four options — share bounded by QUOTAS
   // Box-and-arrow drawing, self-graded against an ASCII reference in
   // `expected` (ROADMAP.md D8). Deliberately absent from QUOTAS — this isn't
   // a format the bank aims for a fixed share of, it's seeded where a topic's
@@ -34,20 +34,20 @@ export const FORMATS = {
 /**
  * Target share of a topic's item bank, per format.
  *
- * MCQ was capped at 0.05, on the reasoning that recognizing the right answer
- * among four options is a different skill from producing it on a blank page,
- * and that it inflates confidence without moving exam performance. That
- * reasoning still stands and is why the other formats keep the bulk of the
- * bank.
+ * MCQ sits at 0.4, set on 2026-08-09 by an explicit call from the bank's
+ * owner: the 12 converted cpp topics run ~40% MCQ, promoted from their legacy
+ * questions[] (scripts/convertLegacyMcq.mjs). An earlier 0.05 figure is dead
+ * and should not be reintroduced — it moved rather than being left to warn on
+ * every topic, because a threshold nobody intends to honour teaches you to
+ * ignore the audit. Two things bought with the trade: MCQ is the one format
+ * Practice grades instantly client-side, so a deck stays usable when Ollama is
+ * down; and it made ~150 already-written course questions reachable from
+ * spaced repetition instead of only Quiz mode.
  *
- * **Raised to 0.4 on 2026-08-09** by an explicit call from the bank's owner:
- * the 12 converted cpp topics now run ~40% MCQ, promoted from their legacy
- * questions[] (scripts/convertLegacyMcq.mjs). The cap moved rather than being
- * left to warn on every topic, because a threshold nobody intends to honour
- * teaches you to ignore the audit. Two things bought with the trade: MCQ is
- * the one format Practice grades instantly client-side, so a deck stays
- * usable when Ollama is down; and it made ~150 already-written course
- * questions reachable from spaced repetition instead of only Quiz mode.
+ * Recognizing the right answer among four options is still an easier skill
+ * than producing it on a blank page, which is why the production formats keep
+ * the bulk of the bank and why new MCQs are written as a pair — the selection
+ * version plus an open-ended version of the same question.
  *
  * Enforced in exactly one place — auditBank() below — as a warning, per topic,
  * at share > cap + 0.02.
@@ -376,7 +376,7 @@ export function auditBank(items, opts = {}) {
     distribution[f] = { count: n, share, target: QUOTAS[f] };
     if (f === FORMATS.MCQ && share > QUOTAS[f] + 0.02) {
       warnings.push(
-        `bank: mcq is ${(share * 100).toFixed(0)}% of items, cap is ${
+        `bank: mcq is ${(share * 100).toFixed(0)}% of items, target is ${
           QUOTAS[f] * 100
         }%`
       );

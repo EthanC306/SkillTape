@@ -8,6 +8,23 @@
 - 
 
 ## 
+## [1.0.21] - 2026-08-11
+### Type - Added
+### Item bank
+- 55 new items across recursion and multidim arrays.
+- Every new question paired: multiple choice plus written.
+- Recursion gained 27 items; multidim arrays gained 16.
+- Trees, stacks, queues, iterators each gained a pair.
+### Type - Changed
+### Verification
+- 93 questions now marked verified by a human.
+- Format mix rebalanced; MCQ share raised to 25%.
+- Dead 5% MCQ cap scrubbed from docs and comments.
+### Exam
+- Exam length and timer moved into named constants.
+
+
+## 
 ## [1.0.20] - 2026-08-10
 ### Type - Added
 ### Question verification

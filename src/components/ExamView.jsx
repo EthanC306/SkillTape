@@ -39,6 +39,15 @@ import Inline from "./Inline";
  *   course   — which course's item bank to sample.
  *   onExit() — return to the course topic list.
  */
+
+// How long an exam is. `count` is a request, not a guarantee: the server's
+// per-topic quotas can hand back a little more or less (see GET /api/drill/exam),
+// and it is capped at 100 server-side. Asking for more items than the eligible
+// pool holds is safe — every topic's quota is clamped to what it actually has —
+// so a high number here means "the whole pool" rather than an error.
+const EXAM_COUNT = 20;
+const EXAM_MINUTES = 50;
+
 export default function ExamView({ course, onExit }) {
   const [phase, setPhase] = useState("loading"); // loading | setup | answering | grading | report | error
   const [error, setError] = useState(null);
@@ -85,7 +94,7 @@ export default function ExamView({ course, onExit }) {
 
   useEffect(() => {
     let cancelled = false;
-    getExamSet(course, { count: 20, minutes: 50 })
+    getExamSet(course, { count: EXAM_COUNT, minutes: EXAM_MINUTES })
       .then((data) => {
         if (cancelled) return;
         setExam(data);

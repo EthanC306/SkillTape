@@ -54,7 +54,7 @@ What is actually true in the repo today, against what the docs assume.
 | Name standardized on **SkillTape** | CORR §2.4 | `package.json`, `index.html`, README |
 | `package.json`: `preview`, `engines`, `description`, `audit:bank`, Vite `^5.4.19` | CORR §2.7 | verified |
 | Focus outline narrowed to `:focus:not(:focus-visible)` | CORR §2.6 | `index.html` |
-| `itemSchema.js` — 8 formats, quotas, MCQ cap, `criteria`, `migrateLegacyQuestion` | CORR §3.2 | 327 lines, all exports present |
+| `itemSchema.js` — 8 formats, quotas, MCQ share warning, `criteria`, `migrateLegacyQuestion` | CORR §3.2 | 327 lines, all exports present |
 | `scripts/auditBank.js` + `npm run audit:bank` | CORR §5.4 | runs, per-course allowlists |
 | README rewritten | CORR §4.4 | current |
 | `docs/AUTHORING.md` — authoring contract | (new) | 2026-07-29 |
@@ -80,12 +80,14 @@ What is actually true in the repo today, against what the docs assume.
 
 **D1, D2, D5, and D6 were decided on 2026-07-29; D10 was decided on 2026-08-01. All are recorded below. D3, D4, D7, D8, and D9 remain open and block the phases that cite them.**
 
-### D1 — MCQ cap: 5% or 15? — ✅ **RESOLVED: 5%**
-`CS_DRILL_BUILD_SPEC.md` contradicts itself. §0 says "Multiple choice is capped at **15%** of the bank." §6's quota table says `mcq` **≤5%**. README and `itemSchema.js` (`QUOTAS`) both implement **5%**.
+### D1 — MCQ share — ✅ **RESOLVED: 40% (`QUOTAS[mcq]` = 0.4)**
+Originally decided as 5% on 2026-07-29, reconciling a contradiction in `CS_DRILL_BUILD_SPEC.md` (§0 said 15%, §6's quota table said ≤5%). **That 5% figure is dead — it is not in the code, the README, or the authoring commands, and nothing in the repo should be read as enforcing it.**
 
-**Decision: 5%.** §0's 15% is a superseded early figure. No code change needed — `QUOTAS` is already correct.
+**Current decision: 0.4**, moved there on 2026-08-09 by an explicit call from the bank's owner (see A3's supersession note) and unchanged since. A threshold nobody intends to honour teaches you to ignore the audit, so the number moved instead of warning forever.
 
-*Consequence:* the current bank of 238 hand-written MCQs is 100% MCQ and over cap by definition. In practice the cap applies **per migrated topic** — as each topic moves to `itemSchema.js` shape it must carry a mixed-format spread, and legacy MCQs beyond the cap either get rewritten into other formats or retired. The bank-level warning stays lit until migration is well underway; that is expected, not a regression.
+*Rationale for a real MCQ share rather than a token one:* MCQ is the only format Practice grades instantly client-side, so a deck stays usable when the grading model is offline, and promoting the hand-written legacy questions into `items[]` made ~150 of them reachable from spaced repetition instead of only Quiz mode. The production-over-recognition principle (§7 rule 3) is preserved by **pairing** — new MCQs are written alongside an open-ended version of the same question, so the app can ask it the easy way and the exam way.
+
+*Enforcement:* one place only — `auditBank()` in `itemSchema.js`, as a per-topic warning at `share > QUOTAS[mcq] + 0.02`.
 
 ### D2 — Is model-generated content allowed? — ✅ **RESOLVED: yes, with verification**
 Four positions exist, and the newest is in code, not prose:
@@ -193,7 +195,7 @@ Weights go **on the topic objects** in `src/data/topics/<course>/<topic>.js`, or
 `itemSchema.js` and `auditBank.js` already exist. Run `npm run audit:bank`; the 1230 errors (re-checked 2026-08-01) are the backlog, not a bug. Sort them by topic and cross-reference A0's ranking to decide what gets migrated first.
 
 **Done when:** you have a ranked migration list.
-**Note (D1):** the bank-level MCQ warning will stay lit until migration is well underway — the 5% cap bites per topic, not retroactively across 238 legacy questions. Judge a topic clean by its own error list, not by the bank summary.
+**Note (D1):** the MCQ share is judged per topic against `QUOTAS[mcq]` (0.4), not retroactively across the legacy questions. Judge a topic clean by its own error list, not by the bank summary.
 
 ### A3 — Pilot: migrate one topic by hand
 Both `CORRECTIONS` §5.5 and `SKILLTAPE_INTEGRATION` §6.4 insist on **one** topic first, and `CS_DRILL` Phase 2 explains why: *"This phase exists to prove the schema before scaling it."* Pick a topic you lost midterm points on.
@@ -414,7 +416,7 @@ Cross-cutting, from `CS_DRILL` §1 and §0. These constrain every phase.
 
 1. **Verifiability over authorship** *(settled by D2)*. Every fact and expected answer must be entailed by a stored verbatim excerpt, carry a resolvable pointer back to it, and pass human sign-off before entering rotation. This — not "no AI" — is the rule. Model-generated items are legal; unverified items are not.
 2. **Automated validation catches structure; humans catch semantics. Both are required.** *Treat any claim that the pipeline alone guarantees accuracy as false.* A clean `audit:bank` proves shape, never correctness. Under D2 this rule carries the full weight of content accuracy — the verification pass is not optional bookkeeping.
-3. **Production over recognition.** MCQ is capped at **5%** (D1) because recognizing an answer among four options is a different skill from producing it on a blank page, *and it inflates confidence without moving exam performance.*
+3. **Production over recognition.** Recognizing an answer among four options is a different skill from producing it on a blank page, *and it inflates confidence without moving exam performance.* This is upheld by **pairing** rather than by starving the bank of MCQ (D1): a selection question is written together with an open-ended version of the same question, and the production formats keep the bulk of every topic.
 4. **Closed-book by default.** Only closed-book first-try accuracy counts toward mastery. Open-book attempts are tagged and excluded.
 5. **Timed pressure is a first-class feature**, not an add-on.
 6. **Atomicity.** One fact per item. If a claim joins two independently testable assertions with "and," split it — three narrow facts give three angles of attack instead of one bloated question.
@@ -433,7 +435,7 @@ Every substantive idea in the four documents, and its destination. **Nothing is 
 | Idea | Destination |
 | --- | --- |
 | §0 problem framing; production over recognition; closed-book default; timed pressure | §7 rules 3–5; A4 |
-| §0 MCQ cap "15%" | **D1 — rejected.** 5% stands; §0's figure is superseded |
+| §0 MCQ cap "15%" | **D1 — superseded.** Both §0's 15% and §6's 5% are dead; the live figure is `QUOTAS[mcq]` = 0.4 |
 | §1 extraction-not-invention; the 3 enforceable rules; honest scoping | §7 rules 1–2. **D2 narrows this**: "no claim may originate outside the source materials" is replaced by "no claim may go unverified against source materials" |
 | §1 source handling / gitignore | **Done** (A1) |
 | §2 stack: Node, SQLite, commander, inquirer, zod, node:test | **SUPERSEDED** — CORR §0 withdraws CLI-first; app is React |
@@ -491,7 +493,7 @@ Every substantive idea in the four documents, and its destination. **Nothing is 
 | §2.1 gitignore · §2.2 dead code · §2.3 vite config · §2.4 naming · §2.6 focus · §2.7 package.json | **Done** |
 | §2.5 accent token coupling | **A1 — not yet applied** |
 | §3.1 per-course content policy | **D2 — superseded.** The `EXTRACTED_ONLY` / `ALLOW_GENERATED` split collapses into one policy: provenance + verification, all courses. The *seam* survives as `CONTENT_POLICY.OPEN` for platform users with no citable source |
-| §3.2 polymorphic item shape, MCQ cap, `migrateLegacyQuestion` | **Done** — `itemSchema.js` |
+| §3.2 polymorphic item shape, MCQ share bound, `migrateLegacyQuestion` | **Done** — `itemSchema.js` |
 | §4.1 provenance shape on cards and items | A3 |
 | §4.2 `DrillView`, chrome hiding, timer, modes, visibility API, self-grade | A4 |
 | §4.3 append-only attempts, derived best-score, batched writes, JSON export | A4 |

@@ -649,5 +649,46 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+
+    // ── Practice bank ──────────────────────────────────────────────────────
+    makeItem({
+      id: "queues-practice-a5",
+      topicId: "queues",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "`CAPACITY = 30`. Construct a fresh Queue, then call `push('A')` once. What are `front` and `rear`?",
+      choices: [
+        "front = 0, rear = 1",
+        "front = 0, rear = 0",
+        "front = 1, rear = 0",
+        "front = 0, rear = 29",
+      ],
+      answerIndex: 1,
+      expected: "front = 0, rear = 0",
+      criteria: [
+        "The constructor sets front = 0 and rear = CAPACITY - 1 = 29, then push advances rear first: nextIndex(29) = (29 + 1) % 30 = 0. Parking rear one slot behind front is what makes the first push land at index 0.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "queues-practice-a5-written",
+      topicId: "queues",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "`CAPACITY = 30`. Construct a fresh Queue, then call `push('A')` once. What are `front` and `rear`, and why does the constructor start them where it does?",
+      expected:
+        "front = 0 and rear = 0. The constructor sets front = 0, rear = CAPACITY - 1 = 29, so the empty-queue invariant front == nextIndex(rear) holds. push advances rear before storing: nextIndex(29) = (29 + 1) % 30 = 0, so 'A' lands at index 0 and both indices sit there.",
+      criteria: [
+        "Answers front = 0, rear = 0",
+        "Explains that rear starts at 29 and push wraps it to 0 via nextIndex before writing",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
   ],
 };

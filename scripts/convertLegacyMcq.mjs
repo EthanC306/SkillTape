@@ -6,9 +6,9 @@
 //
 // Why this exists: the `items` bank had zero MCQ items and never had any, while
 // 285 hand-written MCQs sat in the legacy `questions` tables that only QuizView
-// reads. itemSchema.js caps MCQ at 5% of a bank on the grounds that recognition
-// is a weaker skill than production — a good default that the owner of this
-// bank has explicitly overridden for these 12 topics.
+// reads. Recognition is a weaker skill than production, so itemSchema.js bounds
+// MCQ's share of a bank — a bound the owner of this bank explicitly raised to
+// `QUOTAS[mcq]` = 0.4 for these 12 topics as part of this conversion.
 //
 // Usage:  node scripts/convertLegacyMcq.mjs [--dry-run]
 

@@ -1104,5 +1104,50 @@ export default {
       excerpt: "| Binary Search Trees | O(log2n) | O(log2n) | O(log2n) |",
       difficulty: 3,
     }),
+
+    // ── Practice bank ──────────────────────────────────────────────────────
+    // Deliberately asks about the deck's printPreorder AS WRITTEN, which
+    // recurses into printInorder rather than itself (see the transcription note
+    // at sources/cpp/trees.md#preorder-traversal). The answer is the buggy
+    // output, not the textbook preorder — that is the point of the question.
+    makeItem({
+      id: "trees-practice-a2",
+      topicId: "trees",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Insert 50, 40, 60, 35, 45, 55, 70 into a BST in that order, then run `printPreorder(root)` exactly as written on the trees slide. What prints?",
+      choices: [
+        "50 40 35 45 60 55 70",
+        "35 40 45 50 55 60 70",
+        "50 35 40 45 55 60 70",
+        "35 45 40 55 70 60 50",
+      ],
+      answerIndex: 2,
+      expected: "50 35 40 45 55 60 70",
+      criteria: [
+        "The deck's printPreorder calls printInorder on both children instead of itself, so it prints the root, then a full inorder traversal of each subtree: 50, then 35 40 45, then 55 60 70. A correct preorder would give 50 40 35 45 60 55 70.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "trees-practice-a2-written",
+      topicId: "trees",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Insert 50, 40, 60, 35, 45, 55, 70 into a BST in that order, then run `printPreorder(root)` exactly as written on the trees slide. What prints, and why is it not the textbook preorder?",
+      expected:
+        "50 35 40 45 55 60 70. The deck's printPreorder recurses into printInorder on both children rather than into itself, so it prints the root preorder-style and then does a full inorder traversal of each subtree: 50, then inorder of {35,40,45} = 35 40 45, then inorder of {55,60,70} = 55 60 70. A correct preorder would print 50 40 35 45 60 55 70.",
+      criteria: [
+        "Answers 50 35 40 45 55 60 70",
+        "Identifies that printPreorder calls printInorder on the children instead of itself",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
   ],
 };

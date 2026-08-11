@@ -37,7 +37,8 @@ rigor.
 **Shape:** import `FORMATS`, `ITEM_ORIGIN`, `makeItem` from `itemSchema.js`
 (already imported at the top of most topic files). Aim for a mixed spread of
 formats per `itemSchema.js`'s `QUOTAS` — mostly RECALL/WRITE/TRACE, some
-ERROR/CLOZE/COMPARE, MCQ capped near 5% (D1) — not one format repeated. Each
+ERROR/CLOZE/COMPARE, MCQ up to `QUOTAS[mcq]` (0.4) — not one format repeated.
+Each
 item needs `id` (`<topic-id>-NN`, continuing whatever numbering already
 exists in `$2`), `topicId`, `format`, `origin`, `prompt`, `expected`,
 `criteria` (>= 2 checklist points for self-graded formats), `provenance`,

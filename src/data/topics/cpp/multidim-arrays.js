@@ -468,5 +468,298 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+
+    // ── Course quiz: "Arrays & Recursion" ──────────────────────────────────
+    // Transcribed verbatim from the graded quiz's answer key — prompt text,
+    // choice wording, and choice order are the quiz's own and must not be
+    // rewritten. The recursion half of the same quiz lives in recursion.js.
+    // provenance is null for the same reason as the -mcq- items above: a quiz
+    // paper is not one of the sources/ files an anchor can resolve into.
+    makeItem({
+      id: "multidim-arrays-quiz-01",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "What is the output?\n```\nint numarray[2][2] = {{8, 7}, {6, 5}};\ncout << numarray[0];\n```",
+      choices: ["8", "8,7", "87", "none of the above"],
+      answerIndex: 3,
+      expected: "none of the above",
+      criteria: [
+        "numarray[0] decays to int*, so this prints an address, not a value.",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-quiz-02",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "`int val = arr[0][2];` — which value is stored in `val`?",
+      choices: [
+        "first row, second column",
+        "first row, first column",
+        "first row, third column",
+        "third row, second column",
+      ],
+      answerIndex: 2,
+      expected: "first row, third column",
+      criteria: [
+        "Both subscripts are zero-based: [0] is the first row and [2] is the third column.",
+      ],
+      provenance: null,
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-quiz-03",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Value of `numarray[1][2]`?\n```\nint cnt = 0;\nint numarray[2][3];\nfor (int i = 0; i < 3; i++) {\n    for (int j = 0; j < 2; j++) {\n        numarray[j][i] = cnt;\n        cnt++;\n    }\n}\n```",
+      choices: ["2", "5", "3", "4"],
+      answerIndex: 1,
+      expected: "5",
+      criteria: [
+        "The subscripts are swapped, so the array fills column by column: i=2 writes [0][2]=4 then [1][2]=5.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-quiz-04",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Value of `myarray[1][2]`?\n```\nint cnt = 0;\nint myarray[4][5];\nfor (int i = 0; i < 5; i++) {\n    for (int j = 0; j < 4; j++) {\n        myarray[j][i] = cnt;\n        cnt++;\n    }\n}\n```",
+      choices: ["8", "19", "9", "30"],
+      answerIndex: 2,
+      expected: "9",
+      criteria: [
+        "Column-by-column fill: each i writes 4 values, so i=2 starts at cnt=8 and j=1 gets 9.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+
+    // Typed counterparts of the four quiz MCQs above. Same prompts, no choices,
+    // so Drill and Practice hand over a textarea instead of a choice list —
+    // producing the answer cold is the skill the MCQ can't test. Both versions
+    // ship on purpose; they schedule independently.
+    makeItem({
+      id: "multidim-arrays-quiz-written-01",
+      topicId: "multidim-arrays",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "What is the output?\n```\nint numarray[2][2] = {{8, 7}, {6, 5}};\ncout << numarray[0];\n```",
+      expected:
+        "An address. numarray[0] is the first row, which decays to an int* pointing at numarray[0][0], so operator<< prints a pointer value (something like 0x7ffd...), not 8, not 8,7, and not 87.",
+      criteria: [
+        "Says the output is an address / pointer value, not an element",
+        "Explains that numarray[0] decays to int* rather than naming a stored number",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-quiz-written-02",
+      topicId: "multidim-arrays",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "`int val = arr[0][2];` — which value is stored in `val`?",
+      expected: "The value in the first row, third column of arr.",
+      criteria: [
+        "Identifies the first row (subscript 0 is row 1)",
+        "Identifies the third column (subscript 2 is column 3)",
+      ],
+      provenance: null,
+      difficulty: 1,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-quiz-written-03",
+      topicId: "multidim-arrays",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "What is the value of `numarray[1][2]`?\n```\nint cnt = 0;\nint numarray[2][3];\nfor (int i = 0; i < 3; i++) {\n    for (int j = 0; j < 2; j++) {\n        numarray[j][i] = cnt;\n        cnt++;\n    }\n}\n```",
+      expected:
+        "5. The subscripts are swapped (numarray[j][i]), so the array fills column by column: i=0 writes [0][0]=0 and [1][0]=1, i=1 writes [0][1]=2 and [1][1]=3, i=2 writes [0][2]=4 and [1][2]=5.",
+      criteria: [
+        "Answers 5",
+        "Traces the column-by-column fill order caused by numarray[j][i]",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-quiz-written-04",
+      topicId: "multidim-arrays",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "What is the value of `myarray[1][2]`?\n```\nint cnt = 0;\nint myarray[4][5];\nfor (int i = 0; i < 5; i++) {\n    for (int j = 0; j < 4; j++) {\n        myarray[j][i] = cnt;\n        cnt++;\n    }\n}\n```",
+      expected:
+        "9. Each pass of i writes a whole column of 4 values, so i=0 uses cnt 0-3, i=1 uses 4-7, and i=2 starts at 8: [0][2]=8, then [1][2]=9.",
+      criteria: [
+        "Answers 9",
+        "Shows that each i writes 4 values, so column i=2 starts at cnt=8",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+
+    // ── Practice bank: array mechanics ─────────────────────────────────────
+    // Same style as the graded quiz, different numbers. Each question ships as
+    // an MCQ and a typed counterpart.
+    makeItem({
+      id: "multidim-arrays-practice-a6",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Given `int a[10][10];` with `numRows = 5, numCols = 8`, what is the type of `a[i]`?",
+      choices: ["`int`", "`int*` of length 8", "`int[10]`", "`int[8]`"],
+      answerIndex: 2,
+      expected: "`int[10]`",
+      criteria: [
+        "The type comes from the declaration, not from runtime variables — numRows and numCols are distractors.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-practice-a6-written",
+      topicId: "multidim-arrays",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Given `int a[10][10];` with `numRows = 5, numCols = 8`, what is the type of `a[i]`?",
+      expected:
+        "int[10] — a row of the declared array. The type is fixed by the declaration `int a[10][10]`, so numRows and numCols have no effect on it; they only control how much of the array a loop happens to visit.",
+      criteria: [
+        "Answers int[10] (an array of 10 ints)",
+        "States that the type comes from the declaration, not from numRows/numCols",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-practice-b1",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "With `int a[3][4][5];`, what is the type of `a[i][j]`?",
+      choices: ["`int`", "an array of 5 ints", "an array of 4 ints", "`int**`"],
+      answerIndex: 1,
+      expected: "an array of 5 ints",
+      criteria: [
+        "Each subscript peels one dimension: a[i] is int[4][5], a[i][j] is int[5], and only a[i][j][k] is an int.",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-practice-b1-written",
+      topicId: "multidim-arrays",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt: "With `int a[3][4][5];`, what is the type of `a[i][j]`, and why?",
+      expected:
+        "An array of 5 ints (int[5]). Each subscript peels off one dimension: a is int[3][4][5], a[i] is int[4][5], a[i][j] is int[5]. Only a[i][j][k] is an int.",
+      criteria: [
+        "Answers an array of 5 ints / int[5]",
+        "Explains that each subscript removes one dimension, so only the third gives an int",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-practice-b2",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "Value of `arr[2][1]`?\n```\nint cnt = 1;\nint arr[3][4];\nfor (int i = 0; i < 4; i++) {\n    for (int j = 0; j < 3; j++) {\n        arr[j][i] = cnt;\n        cnt += 2;\n    }\n}\n```",
+      choices: ["9", "11", "12", "13"],
+      answerIndex: 1,
+      expected: "11",
+      criteria: [
+        "Column-by-column fill with a step of 2 from 1: column 0 gets 1, 3, 5; column 1 gets 7, 9, 11, so [2][1] is 11.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-practice-b2-written",
+      topicId: "multidim-arrays",
+      format: FORMATS.TRACE,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "What is the value of `arr[2][1]`?\n```\nint cnt = 1;\nint arr[3][4];\nfor (int i = 0; i < 4; i++) {\n    for (int j = 0; j < 3; j++) {\n        arr[j][i] = cnt;\n        cnt += 2;\n    }\n}\n```",
+      expected:
+        "11. The subscripts are swapped, so it fills column by column, 3 cells per column, stepping by 2 from 1: column 0 gets [0][0]=1, [1][0]=3, [2][0]=5; column 1 gets [0][1]=7, [1][1]=9, [2][1]=11.",
+      criteria: [
+        "Answers 11",
+        "Traces the column-by-column order with the step of 2 starting from 1",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-practice-b3",
+      topicId: "multidim-arrays",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "In `void displayPage(const char page[][100], int size);` why must the 100 be written?",
+      choices: [
+        "so the compiler knows how many rows exist",
+        "so the compiler can compute the offset for each row",
+        "so the array is passed by value instead of by reference",
+        "it doesn't have to be; it's optional style",
+      ],
+      answerIndex: 1,
+      expected: "so the compiler can compute the offset for each row",
+      criteria: [
+        "page[i][j] is address arithmetic — base + i * 100 + j — so the row width is the stride; the first dimension is omittable because it never enters that formula.",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "multidim-arrays-practice-b3-written",
+      topicId: "multidim-arrays",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "In `void displayPage(const char page[][100], int size);` why must the 100 be written, while the first dimension can be left empty?",
+      expected:
+        "Because indexing is address arithmetic: page[i][j] is base + i * 100 + j, so the compiler needs the row width to know the stride from one row to the next. The first dimension never appears in that formula, which is exactly why it can be omitted.",
+      criteria: [
+        "States the row width is needed to compute the per-row offset / stride",
+        "States the first dimension is omittable because it doesn't enter the address calculation",
+      ],
+      provenance: null,
+      difficulty: 2,
+      verifiedByHuman: true,
+    }),
   ],
 };

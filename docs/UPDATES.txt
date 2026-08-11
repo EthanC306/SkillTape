@@ -12,7 +12,112 @@ Files:    <files changed>
 Summary:
   - <what changed and why>
 --------------------------------------------------------------------------------
-                      STABLE MCQ IDS 
+Human-verified question bank, paired question formats, and two rebuilt topics
+--------------------------------------------------------------------------------
+Date:     2026-08-11
+Commit:   uncommitted
+Files:    README.md, src/components/ExamView.jsx,
+          src/data/topics/cpp/{bigo,containers,cstrings,derived-classes,
+          iterators,linked-lists-algorithms,multidim-arrays,queues,recursion,
+          stacks,trees}.js
+
+Summary (plain-English version, written for a non-technical reader):
+
+  WHAT THE PROJECT IS
+  SkillTape is a study app I built for myself and other students. You pick a
+  course, pick a topic, and it drills you on that material — teaching cards to
+  read, flashcards to flip, quizzes to answer, and full timed practice exams.
+  Everything the app quizzes you on is written by hand from real course
+  material, not generated on the fly, so the content is something a person can
+  inspect, correct, and stand behind.
+
+  THE PROBLEM THIS ROUND OF WORK SOLVED
+  A study app is only as good as the answers it claims are correct. If one
+  question has the wrong answer marked, the app doesn't just fail to help — it
+  actively teaches the student something false, and the student has no way to
+  know which question was the bad one. As the question bank grew past a
+  thousand questions, "I'm fairly sure these are right" stopped being good
+  enough. I needed a way to say, question by question, "a human has personally
+  read this one and confirmed the answer is correct."
+
+  WHAT I ACTUALLY DID
+
+  1. Signed off on 93 questions, one at a time.
+     In the previous release I built a review screen that shows unchecked
+     questions one after another, like a stack of index cards, with a keyboard
+     shortcut to approve or reject each one. This round I sat down and used it.
+     93 questions across Big-O, container classes, C-style strings, inheritance,
+     multidimensional arrays and recursion have now been read start to finish by
+     a person and stamped as verified. The stamp lives on the question itself,
+     so anyone reading the project can tell at a glance which questions have
+     been through review and which are still waiting. This is the difference
+     between "the content is probably fine" and "here is the audit trail."
+
+  2. Added 55 new questions, in matched pairs.
+     Every new question was written twice, in two different shapes:
+       - a multiple-choice version, where you pick from four options; and
+       - an open-ended version of the same question, where you get a blank box
+         and have to produce the answer yourself, then compare it to a model
+         answer and a checklist of the points you needed to hit.
+     The reason is a well-established one in learning research: recognizing the
+     right answer in a lineup is a much easier task than producing it from
+     nothing, and it makes people feel more prepared than they are. Pairing the
+     two means the app can quiz you the easy way while you're still learning
+     the material, then quiz you the hard way — the way an actual exam will —
+     once you think you know it. The same underlying idea, two levels of
+     difficulty, no extra material to write later.
+
+  3. Rebuilt two of the weaker topics.
+     Recursion (27 new questions) and multidimensional arrays (16 new
+     questions) were the two thinnest topics in the course and, not
+     coincidentally, two of the ones students lose the most points on. Both
+     were expanded into full practice banks. The new questions deliberately
+     target the specific traps that show up on exams — for example, loops that
+     fill a grid in an unexpected order because two counters were swapped, or
+     code that prints a memory address when the student expects a number.
+     Trees, stacks, queues, iterators, linked lists and inheritance each gained
+     a pair of questions aimed at a known weak spot as well.
+
+  4. Rebalanced how a practice session is built.
+     The app assembles each session from a target recipe — so much recall, so
+     much writing code, so much tracing through code, and so on. That recipe
+     was written when the bank had very few multiple-choice questions in it.
+     Now that the paired questions above exist, multiple choice is a bigger and
+     more useful slice of a session, so the published recipe was updated to
+     match reality: multiple choice went from a hard cap of 5% up to 25%, and
+     the smaller specialist categories were trimmed to make room. The
+     documentation and the app now describe the same thing, which matters
+     because that recipe is the project's public claim about how it teaches.
+
+  5. Removed an outdated rule that was still written down in six places.
+     An early design rule said multiple choice could never be more than 5% of
+     the material. That rule was abandoned back in August, and the app itself
+     stopped following it then — but the sentence describing it was still
+     sitting in the project's README, its planning document, its authoring
+     instructions, and three code comments, quietly telling anyone who read
+     them something that wasn't true any more. All six were rewritten to
+     describe what the app actually does, with the one historical mention that
+     remains explicitly labelled as dead so nobody reinstates it by accident.
+     Stale documentation is worse than missing documentation: it looks
+     authoritative and it is wrong.
+
+  6. Small cleanup on the practice exam.
+     The practice exam is 20 questions in 50 minutes. Those two numbers used to
+     be typed directly into the middle of the code; they are now named settings
+     at the top of the file, with a written note explaining how the exam
+     behaves if you ask for more questions than the bank can supply. Nothing
+     changed for the user — this is the kind of tidying that makes the next
+     change to that screen cheap instead of risky.
+
+  WHY IT MATTERS
+  The theme across all five items is trust. A student using SkillTape is
+  handing over their study time and betting the app is right. Verification
+  stamps, hand-written and human-checked content, matched question formats that
+  don't let you fool yourself, and documentation that matches the code are all
+  ways of earning that bet rather than assuming it.
+
+--------------------------------------------------------------------------------
+                      STABLE MCQ IDS
 --------------------------------------------------------------------------------
 Newest entries at the top. Copy the entry template below to add a new update.
 

@@ -47,7 +47,7 @@ export default {
   questions: [
     {
       id: "cstrings-q01",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "What marks the end of a C-style string?",
       choices: [
         "A semicolon",
@@ -61,7 +61,7 @@ export default {
     },
     {
       id: "cstrings-q02",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "What is the size of the array name3?",
       code: 'char name3[] = "Smith";',
       choices: [
@@ -76,7 +76,7 @@ export default {
     },
     {
       id: "cstrings-q03",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "Which of these does NOT add a null terminator?",
       choices: [
         'char a[100] = "Smith";',
@@ -90,7 +90,7 @@ export default {
     },
     {
       id: "cstrings-q04",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: 'With the input "  hello world", what ends up in st?',
       code: "char st[100];\ncin >> st;",
       choices: [
@@ -105,7 +105,7 @@ export default {
     },
     {
       id: "cstrings-q05",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "You need to read a full line, spaces included, into a char array. Which call do you use?",
       choices: [
         "strncpy(name, cin, length);",
@@ -119,7 +119,7 @@ export default {
     },
     {
       id: "cstrings-q06",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "What does the third argument do here?",
       code: "cin.getline(name, 10, '!');",
       choices: [
@@ -134,7 +134,7 @@ export default {
     },
     {
       id: "cstrings-q07",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "After reading a string one character at a time into an array, what must you do?",
       code: "for (i = 0; i < 10; i++) {\n    cin >> name[i];\n}",
       choices: [
@@ -149,7 +149,7 @@ export default {
     },
     {
       id: "cstrings-q08",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "What does `strlen` return for the string \"Smith\"?",
       choices: [
         "6",
@@ -163,7 +163,7 @@ export default {
     },
     {
       id: "cstrings-q09",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "`strncmp(str1, str2, limit)` returns 0 when…",
       choices: [
         "str1 is longer than str2",
@@ -177,7 +177,7 @@ export default {
     },
     {
       id: "cstrings-q10",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "Which function copies at most a limited number of characters from one C-string into another?",
       choices: [
         "strncmp",
@@ -191,7 +191,7 @@ export default {
     },
     {
       id: "cstrings-q11",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "In which header are `atoi`, `atol`, and `atof` defined?",
       choices: [
         "<string>",
@@ -205,7 +205,7 @@ export default {
     },
     {
       id: "cstrings-q12",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "How do you convert a `std::string` `name` into the C-string array `st`?",
       choices: [
         "strncpy(st, name.c_str(), 100);",

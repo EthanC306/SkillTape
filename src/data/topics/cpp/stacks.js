@@ -754,5 +754,46 @@ export default {
       difficulty: 2,
       verifiedByHuman: true,
     }),
+
+    // ── Practice bank ──────────────────────────────────────────────────────
+    makeItem({
+      id: "stacks-practice-a4",
+      topicId: "stacks",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "In the array stack, `pop()` is `top--; return data[top + 1];`. Which of these is behaviorally identical?",
+      choices: [
+        "`return data[--top];`",
+        "`return data[top--];`",
+        "`return data[top]; top--;`",
+        "Both a and b",
+      ],
+      answerIndex: 1,
+      expected: "`return data[top--];`",
+      criteria: [
+        "Postfix uses the current value of top as the subscript and then decrements, which is exactly the original compressed. Prefix decrements first and returns the wrong element; the third option returns before top-- ever runs, making the decrement dead code.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "stacks-practice-a4-written",
+      topicId: "stacks",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "The array stack's `pop()` is `top--; return data[top + 1];`. Write the single-statement equivalent, and say why the obvious alternatives fail.",
+      expected:
+        "return data[top--]; — postfix uses the current value of top as the subscript and only then decrements, which is exactly what the two-line version does. return data[--top]; decrements first and so returns the element below the top. return data[top]; top--; returns before the decrement executes, leaving top-- as dead code.",
+      criteria: [
+        "Gives return data[top--];",
+        "Explains that postfix subscripts with the pre-decrement value, unlike --top",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
   ],
 };

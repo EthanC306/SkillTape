@@ -95,7 +95,7 @@ export default {
   questions: [
     {
       id: "derived-classes-q01",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "What is the relationship between a base class and a derived class?",
       choices: [
         "The derived class is a more general version of the base class, and the base class supplies the specifics",
@@ -109,7 +109,7 @@ export default {
     },
     {
       id: "derived-classes-q02",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "In the Athlete / BasketballPlayer / BaseballPlayer example, which is the base class?",
       choices: ["BasketballPlayer", "BaseballPlayer", "Athlete", "All three are base classes"],
       answer: 2,
@@ -118,7 +118,7 @@ export default {
     },
     {
       id: "derived-classes-q03",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "What does \"a basketball player is-an athlete\" mean here?",
       choices: [
         "is-a denotes inheritance: BasketballPlayer is derived from Athlete",
@@ -132,7 +132,7 @@ export default {
     },
     {
       id: "derived-classes-q04",
-      verifiedByHuman: false,
+      verifiedByHuman: true,
       prompt: "How do you declare that BasketballPlayer inherits from Athlete?",
       code: "class BasketballPlayer : public Athlete{\n....\n};",
       choices: [
@@ -590,6 +590,47 @@ export default {
       // null rather than being invented — see migrateLegacyQuestion.
       provenance: null,
       difficulty: 2,
+      verifiedByHuman: true,
+    }),
+
+    // ── Practice bank ──────────────────────────────────────────────────────
+    makeItem({
+      id: "derived-classes-practice-a7",
+      topicId: "derived-classes",
+      format: FORMATS.MCQ,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "`Athlete` has a **non-virtual** `display()`. You store a `BasketballPlayer*` into an `Athlete*` array and call `players[1]->display()`. What prints?",
+      choices: [
+        "Name and age only",
+        "Name, age, and PPG",
+        "PPG only",
+        "Compile error",
+      ],
+      answerIndex: 0,
+      expected: "Name and age only",
+      criteria: [
+        "Without virtual the call binds statically to the pointer's declared type, Athlete*, so Athlete::display() runs even though the object is a BasketballPlayer. This is the exact problem the deck uses to motivate virtual functions.",
+      ],
+      provenance: null,
+      difficulty: 3,
+      verifiedByHuman: true,
+    }),
+    makeItem({
+      id: "derived-classes-practice-a7-written",
+      topicId: "derived-classes",
+      format: FORMATS.RECALL,
+      origin: ITEM_ORIGIN.MANUAL,
+      prompt:
+        "`Athlete` has a **non-virtual** `display()`. You store a `BasketballPlayer*` into an `Athlete*` array and call `players[1]->display()`. What prints, and what would change it?",
+      expected:
+        "Name and age only — Athlete::display() runs. Without virtual, the call is bound statically to the pointer's declared type (Athlete*), not the object's actual type. Marking Athlete::display() virtual switches it to dynamic binding, and BasketballPlayer::display() would then run, printing the PPG too.",
+      criteria: [
+        "Answers name and age only / Athlete::display()",
+        "Explains static binding to the declared pointer type, and that virtual fixes it",
+      ],
+      provenance: null,
+      difficulty: 3,
       verifiedByHuman: true,
     }),
   ],
