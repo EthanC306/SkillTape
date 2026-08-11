@@ -470,7 +470,7 @@ export default {
         excerpt:
           "void insertAfter (DNode *&head, DNode *cursor, int value)\n{ DNode *temp;\ntemp = new DNode;\ntemp->data = value;\nif (head == nullptr)//list is empty\n{ head = temp;\ntemp->next = NULL;\ntemp->prev = NULL;\nreturn;\n}\ntemp->next = cursor->next;\ntemp->prev = cursor;\nif (cursor->next != nullptr) //check if at end of list\ncursor->next->prev = temp;\ncursor->next = temp;\n}",
         citation:
-          "Lecture Deck 03.3 — Doubly Linked Lists",
+          "Deck 03.3 — Doubly Linked Lists",
       },
       difficulty: 2,
       verifiedByHuman: true,

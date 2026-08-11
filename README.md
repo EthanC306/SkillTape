@@ -38,6 +38,14 @@ A course's topic list. The bar up top is the review queue (due / learning / new)
 </p>
 
 **How quizzes work** — you can select a deck and do a quiz ranging from 7-14 MCQ , there is also an option for master set where you can select multiple topics and take one large MCQ quiz.
+
+
+<p align="center">
+  <img src="docs/screenshots/review.png" width="80%" alt="Verify tool showing an unverified question with check and reject buttons">
+</p>
+
+**How verification works** — `npm run verify` serves every question still marked `verifiedByHuman: false`, one card at a time, with the answer and its source excerpt side by side. The check mark writes the flag straight into the seed file; the X logs the question for fixing later. See [Verifying questions](#verifying-questions).
+
 ## Courses
  
 The home screen has a bottom tab bar, one tab per class:

@@ -8,35 +8,76 @@
 - 
 
 ## 
+## [1.0.20] - 2026-08-10
+### Type - Added
+### Question verification
+- Verification UI across all questions in the entire codebase.
+- `npm run verify` serves unverified questions as reviewable cards.
+- Check mark writes `verifiedByHuman: true` into the seed file.
+- X flags a question to `data/needs-fixing.json` with a reason.
+- Filter by topic, course, or items versus legacy questions.
+- Keyboard review: J or right verifies, F or left flags.
+- Every legacy question now carries an explicit `verifiedByHuman: false`.
+- 18 new linked-list items: recall, write, trace, error, cloze.
+### Type - Fixed
+### Tests
+- Due-rule fixture no longer fails when run after 18:00.
+- Format tests compare against `NO_VALUE` instead of a hardcoded dash.
+
+
+## 
+## [1.0.19] - 2026-08-10
+### Type - Added
+### Learn and Flashcards
+- Card `art` field: monospace diagrams that don't widen the card.
+- Newsreader display serif for card titles and flashcard fronts.
+- Fonts self-hosted, so Electron and Docker render identically offline.
+- README screenshots of landing, topics, learn, quiz, sandbox.
+### Type - Fixed
+### Learn and Flashcards
+- Bold spans inherit their font instead of forcing sans.
+
+## 
+## [1.0.18] - 2026-08-10
+### Type - Fixed
+### Trees
+- Slide 7 gives two conflicting tree heights; both now documented.
+- Slide 12's `remove` does not compile; card explains why.
+- Slide 15's preorder traversal bug called out on the card.
+- Full binary tree corrected: neither deck example qualifies.
+- Degenerate-tree diagram shared by card and item, preventing drift.
+### Learn
+- Narrow windows no longer overflow when a card spans two.
+
+## 
+## [1.0.17] - 2026-08-10
+### Type - Added
+### Trees
+- New Trees topic: 21 cards, 15 questions, 15 flashcards.
+- 40 Trees items generated from one shared item factory.
+
+## 
 ## [1.0.16] - 2026-08-10
 ### Type - Added
 ### Scheduling (FSRS)
-- Home shows what's actually due: a `N due · N learning · N new` strip with a one-click
-  "Start review", and a due count on each topic card. Nothing due gets a "Review ahead"
-  that pulls the next-soonest items forward.
-- Drill's four grade buttons now show the interval each one produces (`10m`, `3d`, `2mo`,
-  `1.4y`). The number under the button is the interval you get for pressing it.
-- MCQ items auto-grade as before, but the derived rating is shown as a suggestion on the
-  same bar and can be overridden. Keys 1-4 grade; Enter takes the suggestion.
-- "How scheduling works" — an interactive sandbox. Grade a scratch card, push the clock,
-  drag desired retention, and watch stability, difficulty and the forgetting curve move.
-  Nothing in it is saved.
-- Settings: desired retention (0.70-0.97), daily new-item limit, maximum interval, and
-  interval fuzz. Changing retention re-derives due dates from existing stability without
-  touching it, and asks first when that would move a lot of cards.
-- Settings: toggles for the home due strip (off restores the previous home screen exactly)
-  and a scheduler inspector row under each Drill item.
+- Home shows a due / learning / new strip.
+- One-click "Start review" straight from that strip.
+- Each topic card shows its own due count.
+- "Review ahead" pulls the next-soonest items forward when nothing's due.
+- Drill grade buttons show the interval each rating produces.
+- MCQ items suggest a grade you can override.
+- Keys 1-4 grade a Drill item; Enter takes the suggestion.
+- "How scheduling works": an interactive sandbox, nothing saved.
+- Settings: desired retention, daily new limit, max interval, fuzz.
+- Changing retention re-derives due dates without touching stability.
+- Settings: toggles for the due strip and scheduler inspector.
 ### Type - Fixed
 ### Scheduling (FSRS)
-- Rescheduling a card and logging the review are now one transaction. They were two loose
-  statements, so a crash between them left a card rescheduled with no log row.
-- Double-clicking a grade button no longer counts as two reviews. The second one derived
-  its interval from the state the first had just advanced to.
-- The review log now records the card state the scheduler actually saw — stability,
-  difficulty, state, elapsed days — plus the parameter version. Without those the history
-  can't be replayed, which is the whole reason to keep it.
-- Learning-step position is persisted, so a card in `learning` no longer restarts at step 0
-  on every review.
+- Rescheduling a card and logging the review are one transaction.
+- Double-clicking a grade button no longer counts as two reviews.
+- Review log records the card state the scheduler actually saw.
+- Parameter version recorded too, so history can be replayed.
+- Learning-step position persists instead of restarting at step 0.
 
 ## 
 ## [1.0.15] - 2026-08-10
@@ -47,6 +88,24 @@
 - Seeding no longer wipes questions and rebuilds them. 
   It updates in place and only deletes questions you actually removed from the curriculum.
 
+
+## 
+## [1.0.14] - 2026-08-10
+### Type - Fixed
+### Fill Mode
+- Inline code spans are no longer turned into blanks.
+- `int *ptr` no longer swallows a sentence into emphasis.
+### Content
+- Swept the discrete card base and templates for errors.
+- Removed the stale version string from the home subtitle.
+
+## 
+## [1.0.13] - 2026-08-09
+### Type - Fixed
+### MCQ Quiz
+- Correct answer was the longest choice in 58%.
+- Trimmed answers and gave distractors matching specificity, bank-wide.
+- Audit now warns on choice-length bias per topic.
 
 ## 
 ## [1.0.12] - 2026-08-09
@@ -94,8 +153,70 @@
 ### General
 - LLM not working in app
 
+## 
+## [1.0.6] - 2026-08-08
+### Type - Fixed
+### Practice grading
+- Grading failures now name the cause, not "unavailable".
+- Ollama's own error text is surfaced on the card.
+- Server-unreachable and model-missing no longer read the same.
+- Tests pinning every failure reason to distinct wording.
 
-## [1.0.4] - 2026-07-30
-### Added
+## 
+## [1.0.5] - 2026-08-08
+### Type - Added
+### Desktop app
+- Electron starts a local Ollama server when one isn't running.
+- Grading works offline in the packaged app.
+- `docs/OLLAMA_GRADING.md` documents the setup.
+### Type - Fixed
+### Desktop app
+- Trimmed dead auto-update config from the builder file.
+
+## 
+## [1.0.4] - 2026-08-07
+### Type - Added
 ### General
-- LLM-based grading
+- Course tabs renamed: C++ capitalized, CS3000 becomes Discrete.
+### Type - Changed
+### Auto update
+- Test release, published to confirm the 1.0.3 cache fix.
+
+## 
+## [1.0.3] - 2026-08-07
+### Type - Fixed
+### Auto update
+- Installing an update left a blank window on launch.
+- Cached `index.html` pointed at asset filenames the update deleted.
+- `index.html` now sent `no-store`; hashed assets cached forever.
+- Electron clears its cache at launch, recovering already-broken installs.
+
+## 
+## [1.0.2] - 2026-08-07
+### Type - Added
+### Auto update
+- In-app update banner: download progress, then restart to install.
+- `npm run release:win` publishes a GitHub release apps see.
+
+## 
+## [1.0.1] - 2026-08-06
+### Type - Added
+### Auto update
+- electron-updater checks GitHub releases and installs on quit.
+- Update checks skipped in dev, where the app isn't packaged.
+### Audit
+- Audit script falls back to legacy `questions` when `items` absent.
+- Topics with no questions are now reported, not skipped.
+
+## 
+## [1.0.0] - 2026-08-06
+### Type - Added
+### Practice Mode
+- LLM-based grading of free-text answers via local Ollama.
+- Practice mode: pick topics, formats, and session length.
+- Ollama settings hook, plus `docs/OLLAMA_GRADING.md`.
+### Desktop app
+- App icons and the electron-builder packaging config.
+### Item bank
+- New decks: derived classes, queues, multidimensional arrays.
+- Tests for fill, blank editing, criteria grading, FSRS.

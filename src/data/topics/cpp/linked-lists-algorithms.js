@@ -448,7 +448,7 @@ export default {
         excerpt:
           "} else { // somewhere in the middle\nDNode *after = cursor->getNext();\nDNode *before = cursor->getPrevious();\nbefore->setNext(after);\nafter->setPrevious(before);\n}\ndelete cursor; //deallocate the node",
         citation:
-          "Lecture Deck 03.3 — Doubly Linked Lists",
+          "Deck 03.3 — Doubly Linked Lists",
       },
       difficulty: 2,
       verifiedByHuman: true,
