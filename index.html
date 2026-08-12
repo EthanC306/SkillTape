@@ -85,11 +85,53 @@
        * the same variable, so a theme-preset swap (src/hooks/useTheme.js)
        * only ever has to set the one base var and every tint follows it —
        * PALETTE.accentSoft/accentSoftStrong in theme.js just point here.
+       *
+       * Surface tokens (bg, panel, text, …) live here too so dark/light can
+       * swap via html[data-scheme] without a React re-render. Keep hex values
+       * in sync with the comments in src/data/theme.js.
        */
       :root {
+        color-scheme: dark;
         --nocturne-accent: #9184d9;
         --nocturne-accent-soft: color-mix(in srgb, var(--nocturne-accent) 12%, transparent);
         --nocturne-accent-soft-strong: color-mix(in srgb, var(--nocturne-accent) 22%, transparent);
+        --nocturne-bg: #161826;
+        --nocturne-panel: #232532;
+        --nocturne-panel2: #292b31;
+        --nocturne-line: #3f424d;
+        --nocturne-text: #e9e9ed;
+        --nocturne-muted: #9397ab;
+        --nocturne-divider: rgba(233, 233, 237, 0.16);
+        --nocturne-divider-row: rgba(233, 233, 237, 0.08);
+        --nocturne-good: #7fb894;
+        --nocturne-good-soft: rgba(127, 184, 148, 0.15);
+        --nocturne-bad: #c97b7b;
+        --nocturne-bad-soft: rgba(201, 123, 123, 0.15);
+        --nocturne-warn: #d9ab6e;
+        --nocturne-warn-soft: rgba(217, 171, 110, 0.15);
+        --nocturne-shadow-sm: 0 0 0 1px #3f424d;
+        --nocturne-shadow-md: 0 0 0 1px #595d6c, 0 6px 18px rgba(0, 0, 0, 0.55);
+        --nocturne-shadow-lg: 0 0 0 1px #9397ab, 0 16px 40px rgba(0, 0, 0, 0.65);
+      }
+      html[data-scheme="light"] {
+        color-scheme: light;
+        --nocturne-bg: #eef0f6;
+        --nocturne-panel: #ffffff;
+        --nocturne-panel2: #f3f5fe;
+        --nocturne-line: #cfd3e5;
+        --nocturne-text: #292b31;
+        --nocturne-muted: #75798c;
+        --nocturne-divider: rgba(41, 43, 49, 0.12);
+        --nocturne-divider-row: rgba(41, 43, 49, 0.06);
+        --nocturne-good: #3d8a5a;
+        --nocturne-good-soft: rgba(61, 138, 90, 0.12);
+        --nocturne-bad: #b54a4a;
+        --nocturne-bad-soft: rgba(181, 74, 74, 0.12);
+        --nocturne-warn: #b8843a;
+        --nocturne-warn-soft: rgba(184, 132, 58, 0.12);
+        --nocturne-shadow-sm: 0 1px 2px rgba(41, 43, 49, 0.06);
+        --nocturne-shadow-md: 0 4px 16px rgba(41, 43, 49, 0.08);
+        --nocturne-shadow-lg: 0 12px 32px rgba(41, 43, 49, 0.12);
       }
       ::selection {
         background: color-mix(in srgb, var(--nocturne-accent) 30%, transparent);
@@ -99,6 +141,8 @@
       }
       body {
         margin: 0;
+        background: var(--nocturne-bg);
+        color: var(--nocturne-text);
       }
       /*
        * Previously `:focus { outline: none; }`, which strips the outline for
@@ -147,8 +191,8 @@
       }
     </style>
     <script>
-      // Applies a saved theme preset before first paint, so switching away
-      // from purple doesn't flash purple on reload. Mirrors ACCENT_PRESETS in
+      // Applies saved accent + color scheme before first paint, so reload
+      // doesn't flash the defaults. Mirrors ACCENT_PRESETS / COLOR_SCHEMES in
       // src/data/theme.js (kept as a plain inline script, not an import, so
       // it can run ahead of the module bundle).
       (function () {
@@ -163,6 +207,10 @@
           };
           if (saved && presets[saved]) {
             document.documentElement.style.setProperty("--nocturne-accent", presets[saved]);
+          }
+          var scheme = localStorage.getItem("skilltape:scheme");
+          if (scheme === "light" || scheme === "dark") {
+            document.documentElement.setAttribute("data-scheme", scheme);
           }
         } catch (e) {}
       })();

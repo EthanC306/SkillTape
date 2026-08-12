@@ -251,15 +251,20 @@ export default function PracticeView({ course, onExit }) {
     submitAllAndFinish(resultsRef.current, { keepalive });
   }
 
-  /** Logs every item through the existing attempts endpoint. mode "closed" throughout. */
+  /**
+   * Logs every item through the existing attempts endpoint. mode "closed"
+   * throughout — Practice is closed-book, same as Drill, which is exactly why
+   * `surface: "practice"` rides along: the two were indistinguishable in the
+   * log until it existed (server/schema.sql, `item_attempts.surface`).
+   */
   async function submitAllAndFinish(finalResults, { keepalive = false } = {}) {
     const submissions = finalResults.map((r) => {
       const seconds = timeSpentByItemId.current[r.item.id] ?? 0;
       const tabBlurs = tabBlursByItemId.current[r.item.id] ?? 0;
       const note = r.answerText?.trim() || undefined;
       return r.grade == null
-        ? postDrillAttempt({ itemId: r.item.id, mode: "closed", note, seconds, tabBlurs, abandoned: true }, { keepalive }).catch(() => {})
-        : postDrillAttempt({ itemId: r.item.id, mode: "closed", grade: r.grade, note, seconds, tabBlurs }, { keepalive }).catch(() => {});
+        ? postDrillAttempt({ itemId: r.item.id, mode: "closed", surface: "practice", note, seconds, tabBlurs, abandoned: true }, { keepalive }).catch(() => {})
+        : postDrillAttempt({ itemId: r.item.id, mode: "closed", surface: "practice", grade: r.grade, note, seconds, tabBlurs }, { keepalive }).catch(() => {});
     });
     await Promise.all(submissions);
   }

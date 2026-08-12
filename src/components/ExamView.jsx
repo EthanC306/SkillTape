@@ -221,6 +221,11 @@ export default function ExamView({ course, onExit }) {
         postDrillAttempt({
           itemId: r.item.id,
           mode: "exam",
+          // Redundant with mode here (nothing else writes "exam", and the
+          // server derives it when absent), but sent explicitly so all three
+          // study screens label their own rows rather than one relying on a
+          // fallback that only holds while exam is the sole timed surface.
+          surface: "exam",
           grade: r.grade,
           note: r.answerText?.trim() || undefined,
           seconds: r.seconds,
@@ -231,6 +236,7 @@ export default function ExamView({ course, onExit }) {
         postDrillAttempt({
           itemId: item.id,
           mode: "exam",
+          surface: "exam",
           seconds: 0,
           tabBlurs: 0,
           abandoned: true,

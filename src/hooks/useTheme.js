@@ -1,20 +1,33 @@
 import { useEffect, useState } from "react";
-import { ACCENT_PRESETS, DEFAULT_THEME_ID } from "../data/theme";
+import {
+  ACCENT_PRESETS,
+  COLOR_SCHEMES,
+  DEFAULT_COLOR_SCHEME,
+  DEFAULT_THEME_ID,
+} from "../data/theme";
 
-const STORAGE_KEY = "skilltape:theme";
+const THEME_KEY = "skilltape:theme";
+const SCHEME_KEY = "skilltape:scheme";
 
 /**
- * useTheme — the selected accent preset id, persisted across reloads.
+ * useTheme — accent preset + dark/light scheme, both persisted across reloads.
  *
- * Applying a preset means setting the single --nocturne-accent CSS var
- * (index.html); PALETTE.accent/accentSoft/accentSoftStrong all read from it
- * or a color-mix() of it, so every styled element repaints without a React
- * re-render. index.html also applies the saved preset before first paint
- * (its own small mirror of ACCENT_PRESETS) so reload doesn't flash purple.
+ * Accent: sets --nocturne-accent; soft tints are color-mix() derivations in
+ * index.html, so every PALETTE.accent* call site repaints without a React
+ * re-render.
+ *
+ * Scheme: sets html[data-scheme], which swaps the surface CSS vars (bg, panel,
+ * text, …) also defined in index.html. Same no-re-render story.
+ *
+ * index.html also applies both before first paint (its own small mirror of the
+ * presets) so reload doesn't flash purple-on-dark.
  */
 export default function useTheme() {
   const [themeId, setThemeIdState] = useState(
-    () => localStorage.getItem(STORAGE_KEY) || DEFAULT_THEME_ID
+    () => localStorage.getItem(THEME_KEY) || DEFAULT_THEME_ID
+  );
+  const [scheme, setSchemeState] = useState(
+    () => localStorage.getItem(SCHEME_KEY) || DEFAULT_COLOR_SCHEME
   );
 
   useEffect(() => {
@@ -22,10 +35,26 @@ export default function useTheme() {
     document.documentElement.style.setProperty("--nocturne-accent", preset.value);
   }, [themeId]);
 
+  useEffect(() => {
+    document.documentElement.setAttribute("data-scheme", scheme);
+  }, [scheme]);
+
   function setThemeId(id) {
-    localStorage.setItem(STORAGE_KEY, id);
+    localStorage.setItem(THEME_KEY, id);
     setThemeIdState(id);
   }
 
-  return { themeId, setThemeId, presets: ACCENT_PRESETS };
+  function setScheme(next) {
+    localStorage.setItem(SCHEME_KEY, next);
+    setSchemeState(next);
+  }
+
+  return {
+    themeId,
+    setThemeId,
+    presets: ACCENT_PRESETS,
+    scheme,
+    setScheme,
+    schemes: COLOR_SCHEMES,
+  };
 }

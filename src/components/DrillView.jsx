@@ -135,6 +135,10 @@ export default function DrillView({ course, onExit, ahead = false, inspector = f
         itemId: item.id,
         note: writtenAnswer.trim() || undefined,
         mode: "closed",
+        // `mode` is the book condition and Practice is closed-book too, so it
+        // cannot say which screen this came from. `surface` can. See the
+        // column comment in server/schema.sql.
+        surface: "drill",
         grade: abandoned ? undefined : grade,
         seconds,
         tabBlurs,

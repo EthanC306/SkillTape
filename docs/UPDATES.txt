@@ -12,6 +12,70 @@ Files:    <files changed>
 Summary:
   - <what changed and why>
 --------------------------------------------------------------------------------
+Report overhaul: per-topic accuracy broken down by study mode
+--------------------------------------------------------------------------------
+Date:     2026-08-11
+Commit:   uncommitted
+Files:    server/{schema.sql,db.js,index.js,stats.js},
+          server/routes/{drill.js,stats.js},
+          src/api/client.js, src/components/{ReportView,DrillView,ExamView,
+          PracticeView}.jsx, src/components/ui/Select.jsx,
+          src/components/report/StatsPanel.jsx, test/stats.test.js
+
+Summary (plain-English version, written for a non-technical reader):
+
+  THE PROBLEM
+  The app can quiz you four different ways: a plain multiple-choice Quiz, a
+  spaced-repetition Drill, a Practice session graded by a local AI model, and a
+  timed Exam simulator. Until now the Report screen could not compare them. It
+  showed one accuracy number per topic and that was it.
+
+  That hides the thing you most need to know. Getting 100% on linked lists when
+  the answers are listed in front of you is not the same as getting 56% when
+  you have to write the answer from a blank page. Both are "linked lists", and
+  the old report averaged them into one figure that flattered you.
+
+  TWO THINGS HAD TO BE FIXED FIRST
+  1. The app stored Quiz results and everything-else results in two separate
+     places that were never designed to be read together. Nothing joined them.
+  2. Drill and Practice were literally indistinguishable in the saved history.
+     Both recorded themselves as "closed book", which is true of both, so there
+     was no way after the fact to tell which screen an answer came from.
+
+  Fixing (2) meant adding a new field recording which screen each answer came
+  from. Answers saved before today do not have it and never can — the
+  information was simply never written down. Rather than guess (and quietly put
+  invented history in front of you), those older closed-book answers are left
+  out of the Stats grid. New answers always land under Exam, Drill, Practice,
+  or MCQ.
+
+  WHAT YOU GET
+  The Report screen now has two tabs. "Overview" is exactly what was there
+  before, unchanged. "Stats" is new: two dropdowns — pick a topic, pick a mode —
+  and the page reshapes itself to answer that exact question.
+
+    - All topics + all modes  -> a grid comparing every topic against every mode
+    - One topic + all modes   -> how you do on that topic in each mode
+    - All topics + one mode   -> which topics are weakest in that mode, worst first
+    - One topic + one mode    -> the detail, including your last 20 answers
+
+  There is also a toggle between "first-try" (only the first time you saw each
+  question, which is the honest predictor of an exam) and "all attempts", plus a
+  30-day activity strip showing how much you actually studied.
+
+  A NOTE ON HONESTY
+  A getting-Hard-on-a-card counts as wrong here, the same as it does everywhere
+  else in the app, so the two tabs can never disagree about the same answer.
+  Where a number cannot be computed honestly the screen says so instead of
+  showing something plausible: older quiz answers that predate per-question
+  tracking are named and excluded from the first-try figure rather than silently
+  dropped, and an empty slice says "no Practice attempts recorded for Linked
+  Lists yet" rather than showing a grid of dashes.
+
+  STILL TO COME
+  Progress tracking and study streaks are each getting their own plan.
+
+--------------------------------------------------------------------------------
 Human-verified question bank, paired question formats, and two rebuilt topics
 --------------------------------------------------------------------------------
 Date:     2026-08-11

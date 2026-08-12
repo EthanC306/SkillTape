@@ -22,7 +22,7 @@ import AuthBar from "./AuthBar";
  */
 export default function SettingsMenu({ auth }) {
   const [open, setOpen] = useState(false);
-  const { themeId, setThemeId, presets } = useTheme();
+  const { themeId, setThemeId, presets, scheme, setScheme, schemes } = useTheme();
   const { host, model, codeModel, setHost, setModel, setCodeModel } = useOllamaSettings();
   const scheduler = useSchedulerSettings();
   const flags = useSchedulerFlags();
@@ -119,6 +119,28 @@ export default function SettingsMenu({ auth }) {
                 }}
               >
                 Theme
+              </div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                {schemes.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setScheme(s.id)}
+                    aria-pressed={scheme === s.id}
+                    style={{
+                      flex: 1,
+                      fontFamily: HEADING,
+                      fontSize: 12,
+                      padding: "7px 10px",
+                      borderRadius: RADII.md,
+                      cursor: "pointer",
+                      border: `1px solid ${scheme === s.id ? PALETTE.accent : PALETTE.line}`,
+                      background: scheme === s.id ? PALETTE.accentSoft : "transparent",
+                      color: scheme === s.id ? PALETTE.accent : PALETTE.text,
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                ))}
               </div>
               <div style={{ display: "flex", gap: 10 }}>
                 {presets.map((p) => (

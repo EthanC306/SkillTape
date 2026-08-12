@@ -110,4 +110,25 @@ ensureColumn("item_review_state", "scheduled_days", "scheduled_days INTEGER NOT 
 ensureColumn("item_review_state", "learning_steps", "learning_steps INTEGER NOT NULL DEFAULT 0");
 ensureColumn("item_review_state", "last_grade", "last_grade INTEGER");
 
+// `item_attempts.surface` — which SCREEN wrote the row, as opposed to `mode`,
+// which is the book condition. See the column comment in schema.sql for why the
+// two are separate. Same guarded-ALTER story as everything above; nullable
+// because a pre-A11 row genuinely does not know which screen it came from.
+ensureColumn("item_attempts", "surface", "surface TEXT");
+
+// The one backfill in this file, and it is a recovery rather than a guess:
+// `mode = 'exam'` was only ever written by ExamView, so those rows can be
+// labeled with certainty. `mode = 'closed'` rows are deliberately LEFT NULL in
+// the log — DrillView and PracticeView both wrote them and nothing in the row
+// distinguishes the two. Stats counts those NULL closed rows under Drill (see
+// server/stats.js) without rewriting the append-only history, so the report
+// stays populated without inventing a Legacy column.
+//
+// Idempotent: the `surface IS NULL` guard makes every re-run a no-op, which
+// matters because this executes on every boot alongside the ALTERs above.
+db.exec("UPDATE item_attempts SET surface = 'exam' WHERE surface IS NULL AND mode = 'exam'");
+db.exec(
+  "CREATE INDEX IF NOT EXISTS idx_item_attempts_surface ON item_attempts(user_id, surface, ts)"
+);
+
 export default db;

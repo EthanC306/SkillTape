@@ -563,7 +563,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 2,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-algorithms-11",
@@ -586,7 +586,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 1,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-algorithms-12",
@@ -613,7 +613,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 1,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-algorithms-13",
@@ -639,7 +639,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 2,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-algorithms-14",
@@ -666,7 +666,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 3,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-algorithms-15",
@@ -690,7 +690,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 2,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-algorithms-16",
@@ -714,7 +714,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 3,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-algorithms-17",
@@ -738,7 +738,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 3,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-algorithms-18",
@@ -762,7 +762,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 2,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-algorithms-19",
@@ -786,7 +786,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 2,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-algorithms-20",
@@ -810,7 +810,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 2,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-algorithms-21",
@@ -837,7 +837,7 @@ export default {
         citation: "Lecture Deck 03.2",
       },
       difficulty: 2,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
 
     // ── Practice bank ──────────────────────────────────────────────────────

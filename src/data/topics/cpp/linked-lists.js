@@ -520,7 +520,7 @@ export default {
         citation: "Lecture Deck 03.1",
       },
       difficulty: 1,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-10",
@@ -551,7 +551,7 @@ export default {
         citation: "Lecture Deck 03.1",
       },
       difficulty: 2,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-11",
@@ -575,7 +575,7 @@ export default {
         citation: "Lecture Deck 03.1",
       },
       difficulty: 2,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-12",
@@ -599,7 +599,7 @@ export default {
         citation: "Lecture Deck 03.1",
       },
       difficulty: 1,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
     makeItem({
       id: "linked-lists-13",
@@ -623,7 +623,7 @@ export default {
         citation: "Lecture Deck 03.1",
       },
       difficulty: 2,
-      verifiedByHuman: false,
+      verifiedByHuman: true,
     }),
   ],
 };

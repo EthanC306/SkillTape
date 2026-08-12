@@ -361,6 +361,88 @@ remaining `examWeight: 1.0` cpp topics) and the entire `discrete` course have
 no source material yet. No items were fabricated for them. Next batch of PDFs
 the user supplies should target these.
 
+### A11 — Cross-surface stats
+
+A6 answers one question by design: closed-book first-try accuracy per topic,
+"the only number that predicts the exam." That framing is still right and the
+Overview tab is unchanged. But the app now has four places you can answer a
+question — Quiz, Drill, Practice, Exam — and no view could compare them, so
+"I'm fine on linked lists" and "I'm fine on linked lists *when it's multiple
+choice*" looked identical.
+
+**Done when:** you can name your accuracy on one topic in one mode, and the
+number agrees with the Overview tab where they overlap.
+
+**✅ Done (2026-08-11).**
+
+- **The blocker was the log, not the UI.** Two problems had to be fixed before
+  any panel could be honest. (1) Quiz history lives in `attempts` (boolean
+  `correct`, keyed by `question_stable_id`) and item history lives in
+  `item_attempts` (`grade` 0..3, keyed by `item_id`); nothing joined them.
+  (2) **Drill and Practice were indistinguishable** — both posted
+  `mode: "closed"`, and `mode` is the book condition, not the screen.
+- **`item_attempts.surface`** (`"drill" | "practice" | "exam"`) added rather
+  than widening `mode`, because `mode` is what FSRS and both existing report
+  endpoints filter on and changing its meaning would have silently moved the A6
+  headline. Guarded `ALTER TABLE` in `db.js` like every other migration here.
+  `mode = 'exam'` rows were backfilled (only `ExamView` ever wrote them, so that
+  is a recovery); `mode = 'closed'` rows were **deliberately left NULL** and
+  report as `legacy`. Which of Drill or Practice wrote them is unrecoverable and
+  no later change can fix it — guessing would have put fabricated attribution
+  into an append-only log. The backfill is idempotent and re-runs as a no-op on
+  every boot. `surface` also rides along in `/export` and `/import`, so a round
+  trip stops losing it.
+- **`GET /api/stats/summary`** (`server/routes/stats.js`, rules in the pure
+  `server/stats.js`) — the whole topic × surface cross-product in one response,
+  each cell carrying both counting modes. Its own route module because it is the
+  only endpoint that reads both attempt tables; hanging it off `/api/drill`
+  would have said it belongs to the drill subsystem, which is the framing this
+  phase exists to break.
+- **One correctness rule across both tables:** `grade >= 2` (Good/Easy) or quiz
+  `correct = 1`. **Hard counts as wrong**, matching `/api/drill/stats` and
+  `/api/drill/report` exactly — a different line here would have made the two
+  tabs disagree about the same attempt on the same screen. Abandoned and
+  ungraded rows are excluded: those record that an item was *seen*, and scoring
+  them as failures would punish the escape hatch for working.
+- **First-try is per (item, surface)**, not per item. The same item answered in
+  Practice and then in Drill is two first tries; collapsing them would make
+  whichever surface came second read as never attempted.
+- **Report is now tabbed.** Overview is A6/A8 verbatim — same four sections,
+  same wording. Stats is new: a topic dropdown, a mode dropdown, a
+  first-try/all-attempts toggle, and one adaptive body (topic × mode matrix →
+  per-mode bars → per-topic bars → single-slice detail with a recent run).
+  `src/components/ui/Select.jsx` is the app's **first `<select>`** and the first
+  resident of the `ui/` folder STUDY_HUB §4.2 plans; a chip row does not scale
+  to 17 topics. Native element, so keyboard and screen-reader behaviour are free.
+- **Two things testing changed.** The median-time tile originally averaged
+  per-cell medians and read *3.8s* against real answers of 20–40s — a median of
+  medians is not a median, so the server now ships raw durations and the median
+  is taken once over whatever the dropdowns select. And `buildActivity` was
+  keyed by day and surface only, so the 30-day strip reported course-wide
+  activity while sitting under a panel scoped to one topic; it is keyed by topic
+  now too.
+- **Verification:** `npm test` (159 pass, 24 new in `test/stats.test.js` over
+  the pure module), `npm run audit:bank` at its existing baseline (no content
+  touched), `npx vite build` clean. `/api/drill/report`, `/api/drill/stats` and
+  `/api/progress` were captured before the change and diffed after —
+  byte-identical, which is the proof `mode` semantics and FSRS were not
+  disturbed. Migration checked against a copy of the real database: column
+  present, 54 exam rows backfilled, 51 closed rows still NULL, counts unchanged
+  across a second boot. A Playwright walkthrough exercised all four dropdown
+  combinations, both counting modes, the empty slice, and the tab round trip.
+- **Not done, deliberately:** progress and streaks (each wants its own plan);
+  feeding Quiz answers into FSRS (legacy `questions` are not `items`, and the
+  `<topic>-mcq-NN` twins `convertLegacyMcq.mjs` produced are not a complete or
+  guaranteed-stable mapping — so Quiz and MCQ-format drill items stay separate
+  surfaces); item format as a filter axis (it stays a display column in Bank
+  coverage); and Master Set, which still records nothing (`MasterQuizView`
+  passes `onFinish={() => {}}`, and what `topic_id` a mixed-topic run belongs to
+  is an open question).
+- **Known limitation:** every quiz row currently in the database predates stable
+  question ids, so first-try mode shows no quiz history at all. The panel names
+  the number it had to drop rather than letting the gap look like inactivity.
+  New quiz answers carry ids and will fill in.
+
 ### Operating protocol (once A4 ships)
 From `CS_DRILL` §10 — this is the habit the whole system exists to support:
 - **Daily, 20 min:** drill. Closed book. No IDE, no notes, no second monitor.

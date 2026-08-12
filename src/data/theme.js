@@ -1,10 +1,14 @@
 // Shared visual theme for the whole app: colors, fonts, radii, shadows.
 // Import from here (not from curriculum.js) wherever a component needs styling.
 //
-// Tokens follow the "Nocturne" design system: a near-neutral blue-grey dark
-// ground, Inter type, soft 8px radii, tonal ramps (100-900) for neutral and
-// accent, and an accent used sparingly (lines, borders, small marks) rather
-// than as a flood fill. Buttons are outlined, never solid-filled.
+// Tokens follow the "Nocturne" design system: a near-neutral blue-grey ground,
+// Inter type, soft 8px radii, tonal ramps (100-900) for neutral and accent,
+// and an accent used sparingly (lines, borders, small marks) rather than as a
+// flood fill. Buttons are outlined, never solid-filled.
+//
+// Surface colors (bg, panel, text, …) are CSS variables defined in index.html
+// so dark/light can swap without touching every call site. Accent works the
+// same way via --nocturne-accent (see useTheme).
 
 // ---- Tonal ramps (from Nocturne's OKLCH-derived scale) ---------------------
 export const NEUTRAL = {
@@ -38,14 +42,14 @@ export const RADII = {
 };
 
 export const SHADOWS = {
-  sm: `0 0 0 1px ${NEUTRAL[800]}`,
-  md: `0 0 0 1px ${NEUTRAL[700]}, 0 6px 18px rgba(0,0,0,0.55)`,
-  lg: `0 0 0 1px ${NEUTRAL[500]}, 0 16px 40px rgba(0,0,0,0.65)`,
+  sm: "var(--nocturne-shadow-sm)",
+  md: "var(--nocturne-shadow-md)",
+  lg: "var(--nocturne-shadow-lg)",
 };
 
-// A hairline divider tint (matches --color-divider: text at 16% opacity).
-export const DIVIDER = "rgba(233,233,237,0.16)";
-export const DIVIDER_ROW = "rgba(233,233,237,0.08)";
+// Hairline divider tints (fading rules + row separators).
+export const DIVIDER = "var(--nocturne-divider)";
+export const DIVIDER_ROW = "var(--nocturne-divider-row)";
 
 // Builds a rule that fades to transparent at both ends, over `edge`px a side —
 // the Nocturne "fading divider" signature, used in place of a solid <hr>.
@@ -54,31 +58,31 @@ export function fadeDivider(edge = 48, color = DIVIDER) {
 }
 
 // Central palette. Field names stay backward-compatible with the app's
-// original theme so every existing call site keeps working; values are the
-// Nocturne tokens.
+// original theme so every existing call site keeps working; values are CSS
+// vars so dark/light (and accent) swaps repaint without a React re-render.
 export const PALETTE = {
-  bg: "#161826", // --color-bg
-  panel: "#232532", // --color-surface
-  panel2: NEUTRAL[900], // a step up from bg, under surface — secondary panel fill
-  line: NEUTRAL[800], // solid hairline border (box outlines stay solid per spec)
-  divider: DIVIDER, // fading-rule tint
+  bg: "var(--nocturne-bg)",
+  panel: "var(--nocturne-panel)",
+  panel2: "var(--nocturne-panel2)",
+  line: "var(--nocturne-line)",
+  divider: DIVIDER,
   dividerRow: DIVIDER_ROW,
-  text: "#e9e9ed", // --color-text
-  muted: NEUTRAL[500],
-  accent: "var(--nocturne-accent)", // --color-accent — defined once in index.html, see the TOKEN COUPLING note there
-  accentSoft: "var(--nocturne-accent-soft)", // hover tint (accent @ 12%, color-mix'd in index.html)
-  accentSoftStrong: "var(--nocturne-accent-soft-strong)", // pressed tint (accent @ 22%)
+  text: "var(--nocturne-text)",
+  muted: "var(--nocturne-muted)",
+  accent: "var(--nocturne-accent)",
+  accentSoft: "var(--nocturne-accent-soft)",
+  accentSoftStrong: "var(--nocturne-accent-soft-strong)",
   // Keep good/bad functionally distinct from the accent (quiz semantics),
   // but desaturate them to sit inside the same tonal-ramp aesthetic.
-  good: "#7fb894",
-  goodSoft: "rgba(127,184,148,0.15)",
-  bad: "#c97b7b",
-  badSoft: "rgba(201,123,123,0.15)",
+  good: "var(--nocturne-good)",
+  goodSoft: "var(--nocturne-good-soft)",
+  bad: "var(--nocturne-bad)",
+  badSoft: "var(--nocturne-bad-soft)",
   // The fourth semantic role, for the FSRS grade bar's Hard button. Hard is
   // neither a failure nor a pass, so good/bad would both misreport it. Same
   // warm sand as the amber theme preset so it stays inside the tonal family.
-  warn: "#d9ab6e",
-  warnSoft: "rgba(217,171,110,0.15)",
+  warn: "var(--nocturne-warn)",
+  warnSoft: "var(--nocturne-warn-soft)",
 };
 
 export const RAMP = {
@@ -100,6 +104,12 @@ export const ACCENT_PRESETS = [
   { id: "rose", label: "Rose", value: "#d98a9e" },
 ];
 export const DEFAULT_THEME_ID = "purple";
+
+export const COLOR_SCHEMES = [
+  { id: "dark", label: "Dark" },
+  { id: "light", label: "Light" },
+];
+export const DEFAULT_COLOR_SCHEME = "dark";
 
 // Syntax-highlighting colors for code listings (src/components/CodeBlock.jsx).
 // Desaturated on purpose: they have to read as one family with the accent

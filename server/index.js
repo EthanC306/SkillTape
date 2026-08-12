@@ -7,6 +7,7 @@ import topics from "./routes/topics.js";
 import progress from "./routes/progress.js";
 import auth from "./routes/auth.js";
 import drill from "./routes/drill.js";
+import stats from "./routes/stats.js";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -31,6 +32,9 @@ app.use("/api/topics", topics);
 app.use("/api", progress);
 app.use("/api/auth", auth);
 app.use("/api/drill", drill);
+// Reads both attempt tables, so it belongs under neither /api/drill nor the
+// bare /api progress prefix. See routes/stats.js.
+app.use("/api/stats", stats);
 
 // 404 for anything under /api that matched no route above. Without this, an
 // unknown /api path falls through and returns Express's HTML error page, which

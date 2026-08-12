@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 import { getDrillReport, resetLeech } from "../api/client";
+import StatsPanel from "./report/StatsPanel";
 
 /**
  * ReportView — the standing dashboard (ROADMAP.md A6), plus the leech-handoff
@@ -15,8 +16,15 @@ import { getDrillReport, resetLeech } from "../api/client";
  * study-next ranking up top is the one thing this view leads with; the
  * formats grid, median time, and open/closed delta are secondary, and render
  * below it as exactly that: diagnostics, not the headline.
+ *
+ * A11 added a second tab rather than more sections. The Overview below is
+ * unchanged and still leads with that one number; Stats is the per-topic,
+ * per-mode breakdown underneath it, and it owns its own fetch (see
+ * report/StatsPanel.jsx) so a failure there cannot take the A6 dashboard down
+ * with it.
  */
 export default function ReportView({ course, onExit }) {
+  const [tab, setTab] = useState("overview");
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
@@ -70,14 +78,29 @@ export default function ReportView({ course, onExit }) {
     borderRadius: RADII.md,
     cursor: "pointer",
     border: `1px solid ${PALETTE.line}`,
-    background: "transparent",
+    background: PALETTE.panel,
     color: PALETTE.text,
   };
+
+  // The tab bar renders before either tab's data does, on purpose: the two
+  // tabs fetch from different endpoints, and gating the whole view on the A6
+  // report would make a failure there swallow a Stats tab that would have
+  // loaded fine.
+  const chrome = <Chrome tab={tab} setTab={setTab} onExit={onExit} />;
+
+  if (tab === "stats") {
+    return (
+      <div>
+        {chrome}
+        <StatsPanel course={course} />
+      </div>
+    );
+  }
 
   if (error) {
     return (
       <div>
-        <TopBar onExit={onExit} />
+        {chrome}
         <Status text={error} tone="bad" />
       </div>
     );
@@ -85,7 +108,7 @@ export default function ReportView({ course, onExit }) {
   if (!report) {
     return (
       <div>
-        <TopBar onExit={onExit} />
+        {chrome}
         <Status text="loading report…" />
       </div>
     );
@@ -96,11 +119,10 @@ export default function ReportView({ course, onExit }) {
 
   return (
     <div>
-      <TopBar onExit={onExit} />
+      {chrome}
 
-      {/* ── Study these next (the headline signal) ──────────────────────── */}
-      <Section title="Study these next" subtitle="examWeight × (1 − closed-book first-try accuracy), highest first">
-        <div style={{ display: "grid", gap: 8 }}>
+      <Section title="Study these next">
+        <div style={{ display: "grid", gap: 6 }}>
           {weakestTopics.map((t) => (
             <div
               key={t.id}
@@ -108,22 +130,33 @@ export default function ReportView({ course, onExit }) {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                padding: "10px 14px",
+                gap: 16,
+                padding: "12px 14px",
                 borderRadius: RADII.md,
-                background: PALETTE.panel2,
+                background: PALETTE.panel,
                 border: `1px solid ${PALETTE.line}`,
               }}
             >
-              <span style={{ fontFamily: HEADING, fontSize: 14 }}>{t.title}</span>
-              <span style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted, display: "flex", gap: 14 }}>
-                <span>weight {t.examWeight}</span>
+              <span style={{ fontFamily: HEADING, fontSize: 14, fontWeight: 500 }}>{t.title}</span>
+              <span
+                style={{
+                  fontFamily: MONO,
+                  fontSize: 12,
+                  color: PALETTE.muted,
+                  display: "flex",
+                  gap: 14,
+                  flexShrink: 0,
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                <span>w{t.examWeight}</span>
                 {t.verifiedItemCount === 0 ? (
-                  <span style={{ color: PALETTE.bad }}>no items yet — migrate this topic first (A3)</span>
+                  <span style={{ color: PALETTE.muted }}>no items</span>
                 ) : t.firstTryAccuracy == null ? (
-                  <span>not drilled yet</span>
+                  <span>not drilled</span>
                 ) : (
                   <span style={{ color: t.meetsTarget ? PALETTE.good : PALETTE.bad }}>
-                    {Math.round(t.firstTryAccuracy * 100)}% first-try
+                    {Math.round(t.firstTryAccuracy * 100)}%
                   </span>
                 )}
               </span>
@@ -132,15 +165,14 @@ export default function ReportView({ course, onExit }) {
         </div>
       </Section>
 
-      {/* ── Per-topic accuracy overview ──────────────────────────────────── */}
-      <Section title="Topics" subtitle="closed-book first-try accuracy — target ≥85% where exam weight ≥ 1.0">
-        <div style={{ overflowX: "auto" }}>
+      <Section title="Topics">
+        <Panel>
           <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: MONO, fontSize: 12 }}>
             <thead>
               <tr style={{ textAlign: "left", color: PALETTE.muted }}>
                 <th style={th}>Topic</th>
                 <th style={th}>Weight</th>
-                <th style={th}>Verified items</th>
+                <th style={th}>Items</th>
                 <th style={th}>First-try</th>
                 <th style={th}>Open − closed</th>
                 <th style={th}>Leeches</th>
@@ -152,22 +184,33 @@ export default function ReportView({ course, onExit }) {
                   <td style={{ ...td, color: PALETTE.text }}>{t.title}</td>
                   <td style={td}>{t.examWeight}</td>
                   <td style={td}>{t.verifiedItemCount}</td>
-                  <td style={{ ...td, color: t.firstTryAccuracy == null ? PALETTE.muted : t.meetsTarget ? PALETTE.good : PALETTE.bad }}>
-                    {t.firstTryAccuracy == null ? "—" : `${Math.round(t.firstTryAccuracy * 100)}% (${t.firstTryCount})`}
+                  <td
+                    style={{
+                      ...td,
+                      color:
+                        t.firstTryAccuracy == null ? PALETTE.muted : t.meetsTarget ? PALETTE.good : PALETTE.bad,
+                    }}
+                  >
+                    {t.firstTryAccuracy == null
+                      ? "—"
+                      : `${Math.round(t.firstTryAccuracy * 100)}% (${t.firstTryCorrect}/${t.firstTryCount})`}
                   </td>
-                  <td style={td}>{t.openClosedDelta == null ? "—" : `${t.openClosedDelta >= 0 ? "+" : ""}${Math.round(t.openClosedDelta * 100)}%`}</td>
+                  <td style={td}>
+                    {t.openClosedDelta == null
+                      ? "—"
+                      : `${t.openClosedDelta >= 0 ? "+" : ""}${Math.round(t.openClosedDelta * 100)}%`}
+                  </td>
                   <td style={{ ...td, color: t.leechCount > 0 ? PALETTE.bad : PALETTE.muted }}>{t.leechCount}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Panel>
       </Section>
 
-      {/* ── Topics x formats grid ────────────────────────────────────────── */}
-      <Section title="Bank coverage" subtitle="verified / total items, by topic and format">
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: MONO, fontSize: 11 }}>
+      <Section title="Bank coverage">
+        <Panel>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: MONO, fontSize: 12 }}>
             <thead>
               <tr style={{ textAlign: "left", color: PALETTE.muted }}>
                 <th style={th}>Topic</th>
@@ -194,10 +237,10 @@ export default function ReportView({ course, onExit }) {
               ))}
             </tbody>
           </table>
-        </div>
+        </Panel>
         {Object.keys(report.formatMedianSeconds).length > 0 && (
           <div style={{ marginTop: 10, fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>
-            median time (closed, first-try):{" "}
+            Median first-try time:{" "}
             {Object.entries(report.formatMedianSeconds)
               .map(([f, s]) => `${f} ${s}s`)
               .join(" · ")}
@@ -205,27 +248,48 @@ export default function ReportView({ course, onExit }) {
         )}
       </Section>
 
-      {/* ── Leech list + handoff (A8) ────────────────────────────────────── */}
-      <Section title="Leeches" subtitle="items pulled from rotation after 3 lapses — the item is probably broken, not you">
+      <Section title="Leeches">
         {report.leeches.length === 0 ? (
-          <div style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted }}>None right now.</div>
+          <div
+            style={{
+              fontFamily: MONO,
+              fontSize: 12,
+              color: PALETTE.muted,
+              padding: "16px 14px",
+              borderRadius: RADII.md,
+              border: `1px dashed ${PALETTE.line}`,
+              textAlign: "center",
+            }}
+          >
+            None right now
+          </div>
         ) : (
-          <div style={{ display: "grid", gap: 10 }}>
+          <div style={{ display: "grid", gap: 8 }}>
             {report.leeches.map((l) => (
-              <div key={l.itemId} style={{ background: PALETTE.panel2, border: `1px solid ${PALETTE.line}`, borderRadius: RADII.md, padding: "12px 14px" }}>
-                <div style={{ fontSize: 14, marginBottom: 6 }}>{l.prompt}</div>
-                <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, marginBottom: 10 }}>
+              <div
+                key={l.itemId}
+                style={{
+                  background: PALETTE.panel,
+                  border: `1px solid ${PALETTE.line}`,
+                  borderRadius: RADII.md,
+                  padding: "14px 16px",
+                }}
+              >
+                <div style={{ fontFamily: HEADING, fontSize: 14, fontWeight: 500, marginBottom: 6 }}>
+                  {l.prompt}
+                </div>
+                <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, marginBottom: 12 }}>
                   {l.topicTitle} · {l.format} · {l.lapses} lapses · {l.history.length} attempts
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button onClick={() => copyForTutor(l)} style={navBtn}>
-                    {copiedId === l.itemId ? "Copied ✓" : "Copy for tutor"}
+                    {copiedId === l.itemId ? "Copied" : "Copy for tutor"}
                   </button>
                   <button
                     onClick={() => doResetLeech(l.itemId)}
                     disabled={resettingId === l.itemId}
                     style={{ ...navBtn, opacity: resettingId === l.itemId ? 0.5 : 1 }}
-                    title='"Concept landed, item is fine" — clears lapses and re-enters rotation fresh'
+                    title="Clears lapses and re-enters rotation fresh"
                   >
                     {resettingId === l.itemId ? "Resetting…" : "Reset scheduling"}
                   </button>
@@ -234,22 +298,64 @@ export default function ReportView({ course, onExit }) {
             ))}
           </div>
         )}
-        <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, marginTop: 10 }}>
-          Rewriting the item or splitting an overloaded fact both still need a direct edit to the topic file — there's no
-          content editor for drill items yet (A7).
-        </div>
       </Section>
     </div>
   );
 }
 
-const th = { padding: "6px 10px", fontWeight: 400 };
-const td = { padding: "6px 10px", color: PALETTE.muted };
+const th = { padding: "10px 12px", fontWeight: 400 };
+const td = { padding: "10px 12px", color: PALETTE.muted, fontVariantNumeric: "tabular-nums" };
 
-function TopBar({ onExit }) {
+/**
+ * Title, Overview/Stats segment, and Back — one row so the report doesn't
+ * spend two stacked bars on chrome before any data.
+ */
+function Chrome({ tab, setTab, onExit }) {
+  const seg = (active) => ({
+    fontFamily: HEADING,
+    fontSize: 12,
+    padding: "6px 14px",
+    borderRadius: RADII.sm,
+    cursor: "pointer",
+    border: "none",
+    background: active ? PALETTE.panel : "transparent",
+    color: active ? PALETTE.text : PALETTE.muted,
+    boxShadow: active ? `inset 0 0 0 1px ${PALETTE.line}` : "none",
+  });
+
   return (
-    <div style={{ display: "flex", alignItems: "center", marginBottom: 18 }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        marginBottom: 22,
+        flexWrap: "wrap",
+      }}
+    >
       <div style={{ fontFamily: HEADING, fontSize: 16, fontWeight: 500 }}>Report</div>
+      <div
+        style={{
+          display: "flex",
+          gap: 2,
+          padding: 3,
+          borderRadius: RADII.md,
+          background: PALETTE.panel2,
+          border: `1px solid ${PALETTE.line}`,
+        }}
+      >
+        <button onClick={() => setTab("overview")} aria-pressed={tab === "overview"} style={seg(tab === "overview")}>
+          Overview
+        </button>
+        <button
+          onClick={() => setTab("stats")}
+          aria-pressed={tab === "stats"}
+          title="Accuracy by topic and study mode"
+          style={seg(tab === "stats")}
+        >
+          Stats
+        </button>
+      </div>
       <button
         onClick={onExit}
         style={{
@@ -264,17 +370,33 @@ function TopBar({ onExit }) {
           color: PALETTE.text,
         }}
       >
-        ‹ Back
+        Back
       </button>
     </div>
   );
 }
 
-function Section({ title, subtitle, children }) {
+function Section({ title, children }) {
   return (
-    <div style={{ marginBottom: 26 }}>
-      <div style={{ fontFamily: HEADING, fontSize: 14, fontWeight: 500, marginBottom: 2 }}>{title}</div>
-      {subtitle && <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, marginBottom: 10 }}>{subtitle}</div>}
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ fontFamily: HEADING, fontSize: 13, fontWeight: 500, color: PALETTE.muted, marginBottom: 10 }}>
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Panel({ children }) {
+  return (
+    <div
+      style={{
+        overflowX: "auto",
+        background: PALETTE.panel,
+        border: `1px solid ${PALETTE.line}`,
+        borderRadius: RADII.md,
+      }}
+    >
       {children}
     </div>
   );

@@ -75,6 +75,32 @@ function requireArrayOfAnswers(items) {
 
 const VALID_MODES = new Set(["closed", "open", "exam"]);
 
+// Which screen sent the attempt, orthogonal to VALID_MODES above (the book
+// condition). Drill and Practice are both `mode: "closed"` and were
+// indistinguishable in the log until this existed — see the `surface` column
+// comment in schema.sql.
+const VALID_SURFACES = new Set(["drill", "practice", "exam"]);
+
+/**
+ * The surface a request is recording against, or null for "unlabeled".
+ *
+ * A missing `surface` is NOT defaulted to "drill". An old client, or a replayed
+ * export from before A11, has no idea which screen a closed-book row came from,
+ * and inventing one would put fabricated attribution into an append-only log.
+ * `mode: "exam"` is the one case that can be derived with certainty, since
+ * nothing but the exam simulator ever sets it.
+ */
+function surfaceFrom(value, mode) {
+  if (value == null) {
+    if (mode === "exam") return "exam";
+    return null;
+  }
+  if (typeof value !== "string" || !VALID_SURFACES.has(value)) {
+    fail(`surface must be one of ${[...VALID_SURFACES].join(", ")}`);
+  }
+  return value;
+}
+
 /** One `items` row -> the item shape both /queue and /exam send to the client. */
 function rowToItem(r) {
   return {
@@ -141,16 +167,17 @@ const upsertReviewState = db.prepare(`
 
 const insertItemAttempt = db.prepare(`
   INSERT INTO item_attempts
-    (user_id, item_id, ts, mode, grade, seconds, tab_blurs, note, abandoned,
+    (user_id, item_id, ts, mode, surface, grade, seconds, tab_blurs, note, abandoned,
      state_before, stability_before, difficulty_before, elapsed_days, scheduled_days, params_version)
   VALUES
-    (@user_id, @item_id, @ts, @mode, @grade, @seconds, @tab_blurs, @note, @abandoned,
+    (@user_id, @item_id, @ts, @mode, @surface, @grade, @seconds, @tab_blurs, @note, @abandoned,
      @state_before, @stability_before, @difficulty_before, @elapsed_days, @scheduled_days, @params_version)
 `);
 
 /** An abandoned or otherwise unscheduled attempt: logged, but the scheduler never saw it. */
 function logUnscheduledAttempt(row) {
   insertItemAttempt.run({
+    surface: null,
     state_before: null,
     stability_before: null,
     difficulty_before: null,
@@ -189,7 +216,7 @@ function settingsFor(userId) {
  * exactly the gap the review log exists to not have.
  */
 const applyReview = db.transaction(
-  ({ userId, item, grade, ts, mode, seconds, tabBlurs, note, settings }) => {
+  ({ userId, item, grade, ts, mode, surface, seconds, tabBlurs, note, settings }) => {
     const existing = getReviewState.get(userId, item.id) ?? null;
     const next = scheduleReview(existing, item.format, grade, new Date(ts), settings);
 
@@ -215,6 +242,7 @@ const applyReview = db.transaction(
       item_id: item.id,
       ts,
       mode,
+      surface: surface ?? null,
       grade,
       seconds,
       tab_blurs: tabBlurs,
@@ -972,6 +1000,7 @@ router.get("/report", (req, res) => {
       verifiedItemCount,
       firstTryAccuracy,
       firstTryCount: b.closedFirstTry.length,
+      firstTryCorrect: b.closedFirstTry.reduce((s, n) => s + n, 0),
       openClosedDelta: openAccuracy != null && firstTryAccuracy != null ? openAccuracy - firstTryAccuracy : null,
       leechCount,
       meetsTarget: t.exam_weight >= 1.0 ? firstTryAccuracy != null && firstTryAccuracy >= 0.85 : null,
@@ -1234,11 +1263,12 @@ router.post("/attempts", (req, res) => {
   const userId = user?.id ?? ANON_USER_ID;
   const body = req.body ?? {};
 
-  let itemId, mode, seconds, tabBlurs, note, abandoned, grade;
+  let itemId, mode, surface, seconds, tabBlurs, note, abandoned, grade;
   try {
     itemId = requiredString(body.itemId, "itemId");
     mode = requiredString(body.mode, "mode");
     if (!VALID_MODES.has(mode)) fail(`mode must be one of ${[...VALID_MODES].join(", ")}`);
+    surface = surfaceFrom(body.surface, mode);
     if (!Number.isInteger(body.seconds) || body.seconds < 0) fail("seconds must be a non-negative integer");
     seconds = body.seconds;
     tabBlurs = Number.isInteger(body.tabBlurs) && body.tabBlurs >= 0 ? body.tabBlurs : 0;
@@ -1267,6 +1297,7 @@ router.post("/attempts", (req, res) => {
       item_id: itemId,
       ts,
       mode,
+      surface,
       grade: null,
       seconds,
       tab_blurs: tabBlurs,
@@ -1295,7 +1326,7 @@ router.post("/attempts", (req, res) => {
   }
 
   const settings = settingsFor(userId);
-  const review = applyReview({ userId, item, grade, ts, mode, seconds, tabBlurs, note, settings });
+  const review = applyReview({ userId, item, grade, ts, mode, surface, seconds, tabBlurs, note, settings });
   res.status(201).json({
     ok: true,
     review: {
@@ -1322,7 +1353,7 @@ router.get("/export", (req, res) => {
 
   const rows = db
     .prepare(
-      `SELECT item_id, ts, mode, grade, seconds, tab_blurs, note, abandoned
+      `SELECT item_id, ts, mode, surface, grade, seconds, tab_blurs, note, abandoned
        FROM item_attempts WHERE user_id = ? ORDER BY ts ASC`
     )
     .all(userId);
@@ -1333,6 +1364,9 @@ router.get("/export", (req, res) => {
       itemId: r.item_id,
       ts: r.ts,
       mode: r.mode,
+      // null on legacy rows, and it stays null through a round trip — see the
+      // `surface` column comment in schema.sql for why it isn't guessed.
+      surface: r.surface,
       grade: r.grade,
       seconds: r.seconds,
       tabBlurs: r.tab_blurs,
@@ -1359,6 +1393,7 @@ router.post("/import", (req, res) => {
       if (!Number.isInteger(a.ts)) fail(`${where}.ts must be an epoch-ms integer`);
       const mode = requiredString(a.mode, `${where}.mode`);
       if (!VALID_MODES.has(mode)) fail(`${where}.mode must be one of ${[...VALID_MODES].join(", ")}`);
+      const surface = surfaceFrom(a.surface, mode);
       const abandoned = Boolean(a.abandoned);
       let grade = null;
       if (!abandoned) {
@@ -1369,7 +1404,7 @@ router.post("/import", (req, res) => {
       }
       if (!Number.isInteger(a.seconds) || a.seconds < 0) fail(`${where}.seconds must be a non-negative integer`);
       const tabBlurs = Number.isInteger(a.tabBlurs) && a.tabBlurs >= 0 ? a.tabBlurs : 0;
-      return { itemId, ts: a.ts, mode, grade, seconds: a.seconds, tabBlurs, note: a.note ?? null, abandoned };
+      return { itemId, ts: a.ts, mode, surface, grade, seconds: a.seconds, tabBlurs, note: a.note ?? null, abandoned };
     });
   } catch (err) {
     if (err instanceof BadRequest) return res.status(400).json({ error: err.message });
@@ -1396,6 +1431,7 @@ router.post("/import", (req, res) => {
           item_id: row.itemId,
           ts: row.ts,
           mode: row.mode,
+          surface: row.surface,
           grade: null,
           seconds: row.seconds,
           tab_blurs: row.tabBlurs,
@@ -1409,6 +1445,7 @@ router.post("/import", (req, res) => {
           grade: row.grade,
           ts: row.ts,
           mode: row.mode,
+          surface: row.surface,
           seconds: row.seconds,
           tabBlurs: row.tabBlurs,
           note: row.note,

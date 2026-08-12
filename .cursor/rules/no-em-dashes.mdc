@@ -1,0 +1,20 @@
+---
+description: Never use em dashes in any project text
+alwaysApply: true
+---
+
+# No em dashes
+
+Never use em dashes (Unicode U+2014) in this project.
+
+Applies to all writing: user-facing copy, comments, docs, commit messages, rules, and assistant responses about this repo.
+
+Use one of these instead:
+
+- A comma: `SkillTape, a study app`
+- A colon: `One desktop app: no Docker required`
+- A pipe: `SkillTape | Download`
+- A period and new sentence
+- A regular hyphen with spaces only when a compound modifier needs it: `fill-in-the-blank`
+
+Do not substitute an en dash (Unicode U+2013) when an em dash would have been used.

@@ -246,6 +246,21 @@ CREATE TABLE IF NOT EXISTS item_attempts (
   tab_blurs  INTEGER NOT NULL DEFAULT 0,
   note       TEXT,
   abandoned  INTEGER NOT NULL DEFAULT 0, -- 0/1, "End drill" mid-item (A4 escape hatch)
+  -- WHICH SCREEN produced this row: "drill" | "practice" | "exam".
+  --
+  -- Deliberately not folded into `mode` above. `mode` is the BOOK CONDITION,
+  -- and it is what FSRS and every existing report query filter on — widening
+  -- it would silently change what /api/drill/stats and /api/drill/report mean.
+  -- Drill and Practice are both closed-book, so `mode` alone cannot tell them
+  -- apart: until this column existed they wrote identical rows.
+  --
+  -- NULL is legal and expected on every row written before A11. Stats counts
+  -- those closed-book rows under Drill (server/stats.js) without rewriting this
+  -- column, so the report stays populated without a Legacy bucket. Practice only
+  -- counts rows that carry an explicit surface. `mode = 'exam'` rows ARE
+  -- recoverable (only ExamView ever wrote them) and were backfilled once in
+  -- db.js.
+  surface    TEXT,
   state_before      INTEGER,
   stability_before  REAL,
   difficulty_before REAL,
@@ -258,6 +273,9 @@ CREATE TABLE IF NOT EXISTS item_attempts (
 );
 CREATE INDEX IF NOT EXISTS idx_item_attempts_user ON item_attempts(user_id, ts);
 CREATE INDEX IF NOT EXISTS idx_item_attempts_item ON item_attempts(item_id, ts);
+-- idx_item_attempts_surface is created in db.js, not here, for the same reason
+-- as questions' unique index above: `surface` reaches an older database as a
+-- guarded ALTER TABLE, and the index has to be created after the column exists.
 
 -- ── Suspensions ─────────────────────────────────────────────────────────────
 -- Per-user "I know this one, stop showing it" set, driven from Practice's

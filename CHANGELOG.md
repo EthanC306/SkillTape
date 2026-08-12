@@ -8,6 +8,27 @@
 - 
 
 ## 
+## [Unreleased]
+### Type - Added
+### Report
+- Report split into Overview and Stats tabs; Overview is unchanged.
+- Stats: pick a topic and a study mode, see accuracy for that slice.
+- Compares Quiz, Drill, Practice and Exam against each other per topic.
+- Toggle between first-try accuracy and all attempts.
+- 30-day activity strip, scoped to the current topic and mode.
+- First dropdown in the app: src/components/ui/Select.jsx.
+### Attempt log
+- item_attempts records which screen an answer came from.
+- Drill and Practice were previously indistinguishable; now they are not.
+- Exam rows backfilled; older closed-book rows report as "Legacy".
+- Attribution is never guessed, so old history stays honest.
+- Export and import now carry the field.
+### Type - Changed
+### API
+- New GET /api/stats/summary, the only endpoint reading both attempt tables.
+- /api/drill/report, /api/drill/stats and /api/progress are byte-identical.
+
+## 
 ## [1.0.21] - 2026-08-11
 ### Type - Added
 ### Item bank

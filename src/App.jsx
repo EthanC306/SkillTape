@@ -258,6 +258,8 @@ export default function App({ course }) {
             onHome={() => {
               setMasterTopic(null);
               setTopicId(null);
+              setReporting(false);
+              setLab(false);
             }}
             auth={auth}
           />

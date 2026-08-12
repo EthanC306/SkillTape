@@ -237,6 +237,18 @@ export function resetLeech(itemId) {
   return api(`/api/drill/leeches/${encodeURIComponent(itemId)}/reset`, { method: "POST" });
 }
 
+/**
+ * Topic x surface accuracy for `course` (ROADMAP.md A11) — the Report view's
+ * Stats tab. Unifies Quiz (MCQ) history with Drill/Practice/Exam history, which
+ * live in separate tables and no other endpoint reads together.
+ *
+ * Sends `tz` for the same reason the scheduler reads do: the activity strip is
+ * bucketed by the USER's calendar day, not the server's.
+ */
+export function getStatsSummary(course) {
+  return api(`/api/stats/summary?course=${encodeURIComponent(course)}&${tz()}`);
+}
+
 // ── Suspensions ─────────────────────────────────────────────────────────────
 // Per-user "out of circulation" set, driven from Practice's results screen and
 // honoured by Practice's pool and Drill's queue (not by the exam simulator).
