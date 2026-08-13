@@ -22,6 +22,13 @@ import {
   buildCells,
   buildActivity,
 } from "../stats.js";
+import {
+  buildSessions,
+  buildSessionRowGroups,
+  normalizeSessionRows,
+  isDerivedKey,
+  parseDerivedKey,
+} from "../sessions.js";
 
 const router = Router();
 
@@ -121,6 +128,188 @@ router.get("/summary", (req, res) => {
     activity: buildActivity(entries, Date.now(), tzOffsetOf(req)),
     unattributedQuizAttempts,
   });
+});
+
+// ── Session view ────────────────────────────────────────────────────────────
+//
+// The Stats tab's other reading of the same history: not "how am I doing on
+// this topic in this mode" but "what happened in that sitting". Only
+// item_attempts participates — the legacy MCQ quiz has its own run_id grouping
+// and its own history UI (HistoryModal), and folding two different notions of
+// "a run" into one list would make the score column mean two things.
+//
+// `item_attempts.id` rides along in both queries as the row identity: the list
+// partitions light rows, and the detail refetches exactly the ids of one
+// partition. Matching on the primary key rather than on (item_id, ts) means the
+// two queries cannot disagree about which row is which.
+const selectSessionRows = db.prepare(`
+  SELECT item_attempts.id, items.topic_id, item_attempts.item_id, item_attempts.ts,
+         item_attempts.mode, item_attempts.surface, item_attempts.session_id,
+         item_attempts.grade, item_attempts.seconds, item_attempts.abandoned
+  FROM item_attempts
+  JOIN items  ON items.id = item_attempts.item_id
+  JOIN topics ON topics.id = items.topic_id
+  WHERE topics.course_id = ? AND item_attempts.user_id = ?
+  ORDER BY item_attempts.ts ASC
+`);
+
+/**
+ * GET /api/stats/sessions?course=cpp
+ *
+ * Summaries only — date, mode, score, grade histogram. The per-question detail
+ * is a separate request because it carries full prompt and answer text for
+ * every attempt, which is an order of magnitude larger than this and grows
+ * without bound. That is a deliberate departure from /summary's
+ * ship-it-all-and-slice-client-side stance, which works there precisely because
+ * the payload is bounded.
+ */
+router.get("/sessions", (req, res) => {
+  const user = getSessionUser(req);
+  const course = req.query.course;
+  if (!course) return res.status(400).json({ error: "course query param required" });
+
+  const rows = selectSessionRows.all(course, user?.id ?? ANON_USER_ID);
+  res.json({
+    course,
+    surfaceLabels: SURFACE_LABELS,
+    sessions: buildSessions(normalizeSessionRows(rows)),
+  });
+});
+
+/**
+ * GET /api/stats/sessions/:key?course=cpp
+ *
+ * One sitting's questions, in the order they were answered, each with what was
+ * asked, what was answered, what the right answer was, and the grade.
+ *
+ * `course` is required even though the key alone would find a tagged session:
+ * derived keys are only unique within the partition they came from, so both
+ * kinds resolve through the same course-scoped partition. One code path for two
+ * key kinds is worth one redundant query param.
+ */
+router.get("/sessions/:key", (req, res) => {
+  const user = getSessionUser(req);
+  const course = req.query.course;
+  if (!course) return res.status(400).json({ error: "course query param required" });
+
+  const key = req.params.key;
+  if (isDerivedKey(key) && !parseDerivedKey(key)) {
+    return res.status(400).json({ error: "malformed session key" });
+  }
+
+  const userId = user?.id ?? ANON_USER_ID;
+  const light = normalizeSessionRows(selectSessionRows.all(course, userId));
+  const group = buildSessionRowGroups(light).find((g) => g.key === key);
+  // A key from a page left open while the underlying rows changed. 404 rather
+  // than an empty session, so the client can say "this session no longer
+  // exists" instead of "this session had no questions".
+  if (!group) return res.status(404).json({ error: "no such session" });
+
+  const ids = group.rows.map((r) => r.attemptId);
+  const placeholders = ids.map(() => "?").join(",");
+  const detail = db
+    .prepare(
+      `SELECT item_attempts.id, item_attempts.ts, item_attempts.grade, item_attempts.seconds,
+              item_attempts.abandoned, item_attempts.note, item_attempts.answer_choice,
+              items.id AS item_id, items.format, items.prompt, items.expected,
+              items.criteria, items.choices, items.answer_index,
+              topics.id AS topic_id, topics.title AS topic_title
+       FROM item_attempts
+       JOIN items  ON items.id = item_attempts.item_id
+       JOIN topics ON topics.id = items.topic_id
+       WHERE item_attempts.id IN (${placeholders})`
+    )
+    .all(...ids);
+
+  // Re-order to the partition's order (answered order); SQL rows are unordered
+  // and an IN clause does not preserve the list it was given.
+  const byId = new Map(detail.map((r) => [r.id, r]));
+
+  res.json({
+    key: group.key,
+    surface: group.surface,
+    derived: group.derived,
+    surfaceLabels: SURFACE_LABELS,
+    questions: group.rows
+      .map((r) => byId.get(r.attemptId))
+      .filter(Boolean)
+      .map((r) => ({
+        attemptId: r.id,
+        ts: r.ts,
+        topicId: r.topic_id,
+        topicTitle: r.topic_title,
+        itemId: r.item_id,
+        format: r.format,
+        prompt: r.prompt,
+        expected: r.expected,
+        // JSON columns, parsed here so the client never has to know they were
+        // stored as text. A malformed value degrades to null rather than
+        // failing the whole session — one unreadable item should not blank a
+        // twenty-question report.
+        criteria: parseJsonColumn(r.criteria),
+        choices: parseJsonColumn(r.choices),
+        answerIndex: r.answer_index,
+        grade: r.grade,
+        seconds: r.seconds,
+        abandoned: Boolean(r.abandoned),
+        // The two halves of "your answer": free text for written formats, an
+        // option index for MCQ. Both null on rows written before the session
+        // view existed, which the client renders as "not recorded" rather than
+        // as an empty answer — a question you never answered and one whose
+        // answer was never stored are opposite facts.
+        note: r.note,
+        answerChoice: r.answer_choice,
+      })),
+  });
+});
+
+function parseJsonColumn(value) {
+  if (value == null) return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+// ── Report view mode ────────────────────────────────────────────────────────
+//
+// Which of the two readings the Stats tab opens in. Server-side rather than
+// localStorage — see the ui_settings comment in schema.sql.
+
+const VALID_REPORT_VIEWS = new Set(["grid", "sessions"]);
+
+const getUiSettings = db.prepare("SELECT report_view FROM ui_settings WHERE user_id = ?");
+const upsertReportView = db.prepare(`
+  INSERT INTO ui_settings (user_id, report_view, updated_at)
+  VALUES (@user_id, @report_view, @updated_at)
+  ON CONFLICT(user_id) DO UPDATE SET
+    report_view = excluded.report_view,
+    updated_at  = excluded.updated_at
+`);
+
+router.get("/view", (req, res) => {
+  const user = getSessionUser(req);
+  const row = getUiSettings.get(user?.id ?? ANON_USER_ID);
+  // Unknown stored values fall back rather than being served as-is: the column
+  // is deliberately unconstrained (schema.sql) so an older client cannot wedge
+  // the panel on a value it has no branch for.
+  const view = VALID_REPORT_VIEWS.has(row?.report_view) ? row.report_view : "grid";
+  res.json({ view });
+});
+
+router.put("/view", (req, res) => {
+  const user = getSessionUser(req);
+  const view = req.body?.view;
+  if (!VALID_REPORT_VIEWS.has(view)) {
+    return res.status(400).json({ error: `view must be one of ${[...VALID_REPORT_VIEWS].join(", ")}` });
+  }
+  upsertReportView.run({
+    user_id: user?.id ?? ANON_USER_ID,
+    report_view: view,
+    updated_at: Date.now(),
+  });
+  res.json({ view });
 });
 
 export default router;

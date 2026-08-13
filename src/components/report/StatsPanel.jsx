@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../../data/theme";
 import { getStatsSummary } from "../../api/client";
 import Select from "../ui/Select";
+import SessionList from "./SessionList";
 
 /**
  * StatsPanel — the Report view's Stats tab (ROADMAP.md A11).
@@ -24,7 +25,7 @@ import Select from "../ui/Select";
 
 const ALL = "__all__";
 
-export default function StatsPanel({ course }) {
+export default function StatsPanel({ course, view = "grid" }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [topicId, setTopicId] = useState(ALL);
@@ -117,66 +118,92 @@ export default function StatsPanel({ course }) {
     }),
   ];
 
+  const sessionView = view === "sessions";
+
   return (
     <div>
       {/* ── Controls ──────────────────────────────────────────────────────── */}
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 22 }}>
-        <Select label="TOPIC" value={topicId} onChange={setTopicId} options={topicOptions} />
+        {/* A sitting is inherently mixed-topic — a drill queue and an exam both
+            pull across topics — so filtering sessions by one topic would make
+            the score column mean something other than "how that sitting went".
+            Disabled and visibly so, rather than silently ignored. The value is
+            left alone so switching back to Grid restores the previous slice. */}
+        <Select
+          label="TOPIC"
+          value={sessionView ? ALL : topicId}
+          onChange={setTopicId}
+          options={topicOptions}
+          disabled={sessionView}
+          title={sessionView ? "Sessions span topics — filter by mode instead" : undefined}
+        />
         <Select label="MODE" value={surface} onChange={setSurface} options={surfaceOptions} />
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <span style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, letterSpacing: 0.3 }}>
-            COUNTING
-          </span>
-          <div style={{ display: "flex", gap: 6 }}>
-            <Toggle active={counting === "firstTry"} onClick={() => setCounting("firstTry")}>
-              First-try
-            </Toggle>
-            <Toggle active={counting === "all"} onClick={() => setCounting("all")}>
-              All attempts
-            </Toggle>
+        {/* First-try vs all-attempts is a question about a BANK of items over
+            time. Within one sitting each item appears once, so the two counting
+            modes would produce identical numbers and the control would only
+            look broken. */}
+        {!sessionView && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, letterSpacing: 0.3 }}>
+              COUNTING
+            </span>
+            <div style={{ display: "flex", gap: 6 }}>
+              <Toggle active={counting === "firstTry"} onClick={() => setCounting("firstTry")}>
+                First-try
+              </Toggle>
+              <Toggle active={counting === "all"} onClick={() => setCounting("all")}>
+                All attempts
+              </Toggle>
+            </div>
           </div>
-        </div>
-      </div>
-
-      {/* ── Headline ──────────────────────────────────────────────────────── */}
-      <Tiles stats={headline} />
-
-      {/* ── The slice ─────────────────────────────────────────────────────── */}
-      <div style={{ marginTop: 26 }}>
-        {headline.attempts === 0 ? (
-          <Empty
-            topicTitle={topicTitle}
-            surfaceTitle={surfaceTitle}
-            counting={counting}
-            // Only worth suggesting the other counting mode when it would
-            // actually show something. "Try All attempts" under a slice that is
-            // empty either way is advice that wastes a click.
-            allAttemptsWouldHelp={selectionPairs.some(
-              ([t, s]) => (cellIndex.get(`${t} ${s}`)?.all.attempts ?? 0) > 0
-            )}
-          />
-        ) : (
-          <Body
-            topicId={topicId}
-            surface={surface}
-            topics={topics}
-            surfaces={surfaces}
-            surfaceLabels={surfaceLabels}
-            cellIndex={cellIndex}
-            counting={counting}
-            statsFor={statsFor}
-            rollup={rollup}
-          />
         )}
       </div>
 
-      {/* ── Activity ──────────────────────────────────────────────────────── */}
-      <Activity
-        activity={data.activity}
-        days={data.activityDays}
-        topicId={topicId}
-        surface={surface}
-      />
+      {sessionView ? (
+        <SessionList course={course} surface={surface} surfaceLabels={surfaceLabels} />
+      ) : (
+        <>
+          {/* ── Headline ────────────────────────────────────────────────── */}
+          <Tiles stats={headline} />
+
+          {/* ── The slice ───────────────────────────────────────────────── */}
+          <div style={{ marginTop: 26 }}>
+            {headline.attempts === 0 ? (
+              <Empty
+                topicTitle={topicTitle}
+                surfaceTitle={surfaceTitle}
+                counting={counting}
+                // Only worth suggesting the other counting mode when it would
+                // actually show something. "Try All attempts" under a slice that is
+                // empty either way is advice that wastes a click.
+                allAttemptsWouldHelp={selectionPairs.some(
+                  ([t, s]) => (cellIndex.get(`${t} ${s}`)?.all.attempts ?? 0) > 0
+                )}
+              />
+            ) : (
+              <Body
+                topicId={topicId}
+                surface={surface}
+                topics={topics}
+                surfaces={surfaces}
+                surfaceLabels={surfaceLabels}
+                cellIndex={cellIndex}
+                counting={counting}
+                statsFor={statsFor}
+                rollup={rollup}
+              />
+            )}
+          </div>
+
+          {/* ── Activity ────────────────────────────────────────────────── */}
+          <Activity
+            activity={data.activity}
+            days={data.activityDays}
+            topicId={topicId}
+            surface={surface}
+          />
+        </>
+      )}
     </div>
   );
 }

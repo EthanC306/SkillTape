@@ -261,6 +261,33 @@ CREATE TABLE IF NOT EXISTS item_attempts (
   -- recoverable (only ExamView ever wrote them) and were backfilled once in
   -- db.js.
   surface    TEXT,
+  -- WHICH SITTING produced this row: a UUID the client mints once when a study
+  -- screen starts and sends with every attempt until it exits.
+  --
+  -- There is deliberately no `study_sessions` table behind this. An explicit
+  -- session row has to be opened on entry and closed on exit, and a crash or a
+  -- force-quit leaves it open forever with no way to tell "still going" from
+  -- "died". A tag on the append-only log has no lifecycle to get wrong.
+  --
+  -- NULL is legal and expected on every row written before this column existed.
+  -- Those rows are grouped into sessions by clustering timestamps instead
+  -- (server/sessions.js, 30-minute gap). That fallback is a HEURISTIC and is
+  -- labeled as such in the UI — two back-to-back exams merge, a long pause
+  -- splits. It is not backfilled into this column: unlike the `surface = 'exam'`
+  -- recovery in db.js, nothing in an old row identifies its sitting with
+  -- certainty, and a guess written into an append-only log is indistinguishable
+  -- from a fact later.
+  session_id TEXT,
+  -- The 0-based index into the item's `choices` that was picked, for MCQ items.
+  --
+  -- Free-text answers do NOT need a column here — all three study screens
+  -- already ship the typed answer as `note`. Only the MCQ selection was purely
+  -- component state and lost on submit, which is why the Report's session view
+  -- can show "your answer" going forward but shows "not recorded" for every
+  -- multiple-choice row written before this existed. NULL therefore means
+  -- either "not an MCQ item" or "answered before this column existed"; the
+  -- item's `format` is what distinguishes the two.
+  answer_choice INTEGER,
   state_before      INTEGER,
   stability_before  REAL,
   difficulty_before REAL,
@@ -296,8 +323,9 @@ CREATE INDEX IF NOT EXISTS idx_item_suspensions_user ON item_suspensions(user_id
 -- ── Scheduler settings ──────────────────────────────────────────────────────
 -- One row per user, same user_id = 0 anonymous convention as item_review_state.
 -- Server-side rather than localStorage because the scheduler runs here: these
--- four are inputs to FSRS, not display preferences. The visual toggles (due
--- strip, inspector) stay in localStorage.
+-- four are inputs to FSRS, not display preferences. Most visual toggles (due
+-- strip, inspector) stay in localStorage; the one exception is the Report
+-- view mode, which lives in `ui_settings` below — see that table's comment.
 CREATE TABLE IF NOT EXISTS scheduler_settings (
   user_id           INTEGER PRIMARY KEY DEFAULT 0,
   request_retention REAL    NOT NULL DEFAULT 0.9,     -- 0.70 .. 0.97
@@ -305,4 +333,22 @@ CREATE TABLE IF NOT EXISTS scheduler_settings (
   daily_new_limit   INTEGER NOT NULL DEFAULT 10,      -- new items introduced per day
   enable_fuzz       INTEGER NOT NULL DEFAULT 1,       -- 0/1
   updated_at        INTEGER NOT NULL
+);
+
+-- ── UI settings ─────────────────────────────────────────────────────────────
+-- Display preferences that are deliberately NOT localStorage, one row per user,
+-- same user_id = 0 anonymous convention as item_review_state.
+--
+-- Its own table rather than a column on scheduler_settings: that table is
+-- documented as the FSRS *inputs*, and widening it to hold a display preference
+-- would blur what "settings" means there and put a value the scheduler must
+-- never read next to four it always does.
+CREATE TABLE IF NOT EXISTS ui_settings (
+  user_id     INTEGER PRIMARY KEY DEFAULT 0,
+  -- Report → Stats reading mode: 'grid' (accuracy by topic x mode, the
+  -- original) or 'sessions' (past sittings, drillable into per-question
+  -- detail). Unknown values are treated as 'grid' at read time rather than
+  -- constrained here, so a downgrade to an older client cannot wedge the panel.
+  report_view TEXT NOT NULL DEFAULT 'grid',
+  updated_at  INTEGER NOT NULL
 );

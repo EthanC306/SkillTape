@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 import { getDrillReport, resetLeech } from "../api/client";
 import StatsPanel from "./report/StatsPanel";
+import useReportView from "../hooks/useReportView";
 
 /**
  * ReportView — the standing dashboard (ROADMAP.md A6), plus the leech-handoff
@@ -25,6 +26,9 @@ import StatsPanel from "./report/StatsPanel";
  */
 export default function ReportView({ course, onExit }) {
   const [tab, setTab] = useState("overview");
+  // Persisted server-side, so which reading you prefer follows the history
+  // rather than the browser profile. See hooks/useReportView.js.
+  const [view, setView] = useReportView();
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
@@ -86,13 +90,15 @@ export default function ReportView({ course, onExit }) {
   // tabs fetch from different endpoints, and gating the whole view on the A6
   // report would make a failure there swallow a Stats tab that would have
   // loaded fine.
-  const chrome = <Chrome tab={tab} setTab={setTab} onExit={onExit} />;
+  const chrome = (
+    <Chrome tab={tab} setTab={setTab} onExit={onExit} view={view} setView={setView} />
+  );
 
   if (tab === "stats") {
     return (
       <div>
         {chrome}
-        <StatsPanel course={course} />
+        <StatsPanel course={course} view={view} />
       </div>
     );
   }
@@ -310,7 +316,7 @@ const td = { padding: "10px 12px", color: PALETTE.muted, fontVariantNumeric: "ta
  * Title, Overview/Stats segment, and Back — one row so the report doesn't
  * spend two stacked bars on chrome before any data.
  */
-function Chrome({ tab, setTab, onExit }) {
+function Chrome({ tab, setTab, onExit, view, setView }) {
   const seg = (active) => ({
     fontFamily: HEADING,
     fontSize: 12,
@@ -356,22 +362,58 @@ function Chrome({ tab, setTab, onExit }) {
           Stats
         </button>
       </div>
-      <button
-        onClick={onExit}
-        style={{
-          marginLeft: "auto",
-          fontFamily: HEADING,
-          fontSize: 12,
-          padding: "7px 14px",
-          borderRadius: RADII.md,
-          cursor: "pointer",
-          border: `1px solid ${PALETTE.line}`,
-          background: "transparent",
-          color: PALETTE.text,
-        }}
-      >
-        Back
-      </button>
+      {/* Back kept its `marginLeft: auto` behavior by moving the push onto this
+          wrapper — the view toggle has to sit beside Back, not left of the tab
+          bar, and two separately right-aligned children is not a thing flex
+          does. Only shown on Stats: it switches how that tab reads, and a
+          control that does nothing on the tab you are looking at is worse than
+          one that is absent. */}
+      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
+        {tab === "stats" && (
+          <div
+            style={{
+              display: "flex",
+              gap: 2,
+              padding: 3,
+              borderRadius: RADII.md,
+              background: PALETTE.panel2,
+              border: `1px solid ${PALETTE.line}`,
+            }}
+          >
+            <button
+              onClick={() => setView("grid")}
+              aria-pressed={view === "grid"}
+              title="Accuracy by topic and mode"
+              style={seg(view === "grid")}
+            >
+              Grid
+            </button>
+            <button
+              onClick={() => setView("sessions")}
+              aria-pressed={view === "sessions"}
+              title="Past study sittings, question by question"
+              style={seg(view === "sessions")}
+            >
+              Sessions
+            </button>
+          </div>
+        )}
+        <button
+          onClick={onExit}
+          style={{
+            fontFamily: HEADING,
+            fontSize: 12,
+            padding: "7px 14px",
+            borderRadius: RADII.md,
+            cursor: "pointer",
+            border: `1px solid ${PALETTE.line}`,
+            background: "transparent",
+            color: PALETTE.text,
+          }}
+        >
+          Back
+        </button>
+      </div>
     </div>
   );
 }

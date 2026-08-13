@@ -249,6 +249,37 @@ export function getStatsSummary(course) {
   return api(`/api/stats/summary?course=${encodeURIComponent(course)}&${tz()}`);
 }
 
+/**
+ * Past study SITTINGS for `course`, newest first — the Stats tab's other
+ * reading of the same history. Summaries only; the per-question detail is a
+ * separate call because it carries full prompt and answer text.
+ */
+export function getSessions(course) {
+  return api(`/api/stats/sessions?course=${encodeURIComponent(course)}`);
+}
+
+/**
+ * One sitting's questions in answered order: what was asked, what you answered,
+ * what was right, and the grade.
+ *
+ * `course` rides along because a derived (timestamp-clustered) key is only
+ * unique within the course partition it came from — see routes/stats.js.
+ */
+export function getSessionDetail(course, key) {
+  return api(
+    `/api/stats/sessions/${encodeURIComponent(key)}?course=${encodeURIComponent(course)}`
+  );
+}
+
+/** Which reading the Stats tab opens in: "grid" | "sessions". */
+export function getReportView() {
+  return api("/api/stats/view");
+}
+
+export function putReportView(view) {
+  return api("/api/stats/view", { method: "PUT", body: { view } });
+}
+
 // ── Suspensions ─────────────────────────────────────────────────────────────
 // Per-user "out of circulation" set, driven from Practice's results screen and
 // honoured by Practice's pool and Drill's queue (not by the exam simulator).

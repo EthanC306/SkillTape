@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 import { FORMATS } from "../data/itemSchema";
 import { getExamSet, getDrillStats, postDrillAttempt, getDrillExport } from "../api/client";
+import newSessionId from "../utils/sessionId";
 import PromptBody from "./PromptBody";
 import Inline from "./Inline";
 
@@ -63,6 +64,9 @@ export default function ExamView({ course, onExit }) {
   const [now, setNow] = useState(() => Date.now());
   // One entry per REACHED item: { item, choiceIndex, answerText, seconds, tabBlurs }
   const answersRef = useRef([]);
+  // Tags every attempt this run writes, so the Report can group them back into
+  // one sitting. Set in beginExam.
+  const sessionIdRef = useRef(null);
 
   // ── grading phase ────────────────────────────────────────────────────────
   const [gradeQueue, setGradeQueue] = useState([]); // self-graded answers still needing a grade
@@ -120,6 +124,9 @@ export default function ExamView({ course, onExit }) {
   }, [now, phase, deadline]);
 
   function beginExam() {
+    // Per exam RUN, not per mount: the report screen can start another exam
+    // without unmounting, and that is a separate sitting.
+    sessionIdRef.current = newSessionId();
     answersRef.current = [];
     setIndex(0);
     setSelected(null);
@@ -172,6 +179,10 @@ export default function ExamView({ course, onExit }) {
     const mcqResults = mcq.map((a) => ({
       item: a.item,
       grade: a.choiceIndex === a.item.answerIndex ? 2 : 0,
+      // Carried onto the result so the attempt log records WHICH option was
+      // picked, not just whether it was right — the exam report shows the
+      // answer, and the Report's session view replays it later.
+      choiceIndex: a.choiceIndex,
       seconds: a.seconds,
       tabBlurs: a.tabBlurs,
     }));
@@ -198,7 +209,7 @@ export default function ExamView({ course, onExit }) {
 
   async function gradeCurrent(grade) {
     const [current, ...rest] = gradeQueue;
-    const result = { item: current.item, grade, answerText: current.answerText, seconds: current.seconds, tabBlurs: current.tabBlurs };
+    const result = { item: current.item, grade, answerText: current.answerText, choiceIndex: current.choiceIndex, seconds: current.seconds, tabBlurs: current.tabBlurs };
     const all = [...gradedResults, result];
     setGradedResults(all);
     setGradeRevealed(false);
@@ -215,6 +226,7 @@ export default function ExamView({ course, onExit }) {
     // Everything from answersRef.current.length onward in exam.items was
     // never shown at all — not "skipped" by choice, just never reached.
     const unreached = exam.items.slice(answersRef.current.length);
+    const sessionId = sessionIdRef.current ?? undefined;
 
     const submissions = [
       ...results.map((r) =>
@@ -226,8 +238,11 @@ export default function ExamView({ course, onExit }) {
           // study screens label their own rows rather than one relying on a
           // fallback that only holds while exam is the sole timed surface.
           surface: "exam",
+          sessionId,
           grade: r.grade,
           note: r.answerText?.trim() || undefined,
+          // MCQ only; undefined on every self-graded format.
+          answerChoice: r.choiceIndex ?? undefined,
           seconds: r.seconds,
           tabBlurs: r.tabBlurs,
         }).catch(() => {})
@@ -237,6 +252,10 @@ export default function ExamView({ course, onExit }) {
           itemId: item.id,
           mode: "exam",
           surface: "exam",
+          // Never-reached items belong to this sitting too — the session view
+          // lists them as "not reached" rather than pretending the exam was
+          // only as long as the part you got to.
+          sessionId,
           seconds: 0,
           tabBlurs: 0,
           abandoned: true,

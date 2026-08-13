@@ -20,13 +20,28 @@ import { PALETTE, HEADING, MONO, RADII } from "../../data/theme";
  *   value    — the selected option's `value`
  *   onChange — called with the new value (the string, not the event)
  *   options  — [{ value, label }]
+ *   disabled — greys the control out and blocks interaction
+ *   title    — native tooltip, worth setting alongside `disabled` so the
+ *              control can say WHY it is unavailable rather than just refusing
  */
-export default function Select({ label, value, onChange, options }) {
+export default function Select({ label, value, onChange, options, disabled = false, title }) {
   const id = useId();
 
   return (
-    <label htmlFor={id} style={{ display: "inline-flex", flexDirection: "column", gap: 6 }}>
-      <span style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted, letterSpacing: 0.3 }}>
+    <label
+      htmlFor={id}
+      title={title}
+      style={{ display: "inline-flex", flexDirection: "column", gap: 6 }}
+    >
+      <span
+        style={{
+          fontFamily: MONO,
+          fontSize: 11,
+          color: PALETTE.muted,
+          letterSpacing: 0.3,
+          opacity: disabled ? 0.5 : 1,
+        }}
+      >
         {label}
       </span>
 
@@ -34,6 +49,7 @@ export default function Select({ label, value, onChange, options }) {
         <select
           id={id}
           value={value}
+          disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
           style={{
             // Matches the navBtn idiom in ReportView/Home rather than inventing
@@ -47,7 +63,8 @@ export default function Select({ label, value, onChange, options }) {
             // Right padding leaves room for the chevron below, which is
             // pointer-transparent and sits on top.
             padding: "7px 30px 7px 12px",
-            cursor: "pointer",
+            cursor: disabled ? "not-allowed" : "pointer",
+            opacity: disabled ? 0.5 : 1,
             appearance: "none",
             WebkitAppearance: "none",
             MozAppearance: "none",

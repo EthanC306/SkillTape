@@ -12,6 +12,7 @@ import {
 } from "../api/client";
 import useOllamaSettings from "../hooks/useOllamaSettings";
 import shuffle from "../utils/shuffle";
+import newSessionId from "../utils/sessionId";
 import PromptBody from "./PromptBody";
 import Inline from "./Inline";
 
@@ -74,6 +75,11 @@ export default function PracticeView({ course, onExit }) {
   // keeps the flush idempotent since a few exits can race.
   const resultsRef = useRef([]);
   const submittedRef = useRef(true);
+
+  // Minted per DECK, not per mount — see launchDeck. Practice is the one screen
+  // you can start a second sitting from without unmounting ("Retry missed",
+  // "Back to setup"), and those really are separate sessions.
+  const sessionIdRef = useRef(null);
 
   const { host, model, codeModel } = useOllamaSettings();
 
@@ -187,6 +193,10 @@ export default function PracticeView({ course, onExit }) {
   }
 
   function launchDeck(items) {
+    // Every entry into the quiz phase goes through here — startPractice,
+    // retryMissed, and backToSetup's next run — so this is the one place a new
+    // sitting begins, and the only place the session id should change.
+    sessionIdRef.current = newSessionId();
     const newDeck = shuffle(items);
     setDeck(newDeck);
     setAnswers({});
@@ -262,9 +272,12 @@ export default function PracticeView({ course, onExit }) {
       const seconds = timeSpentByItemId.current[r.item.id] ?? 0;
       const tabBlurs = tabBlursByItemId.current[r.item.id] ?? 0;
       const note = r.answerText?.trim() || undefined;
+      const sessionId = sessionIdRef.current ?? undefined;
+      // MCQ only — null on every free-text format, where `note` is the answer.
+      const answerChoice = r.choiceIndex ?? undefined;
       return r.grade == null
-        ? postDrillAttempt({ itemId: r.item.id, mode: "closed", surface: "practice", note, seconds, tabBlurs, abandoned: true }, { keepalive }).catch(() => {})
-        : postDrillAttempt({ itemId: r.item.id, mode: "closed", surface: "practice", grade: r.grade, note, seconds, tabBlurs }, { keepalive }).catch(() => {});
+        ? postDrillAttempt({ itemId: r.item.id, mode: "closed", surface: "practice", sessionId, answerChoice, note, seconds, tabBlurs, abandoned: true }, { keepalive }).catch(() => {})
+        : postDrillAttempt({ itemId: r.item.id, mode: "closed", surface: "practice", sessionId, answerChoice, grade: r.grade, note, seconds, tabBlurs }, { keepalive }).catch(() => {});
     });
     await Promise.all(submissions);
   }

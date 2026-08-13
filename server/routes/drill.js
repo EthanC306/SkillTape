@@ -167,10 +167,10 @@ const upsertReviewState = db.prepare(`
 
 const insertItemAttempt = db.prepare(`
   INSERT INTO item_attempts
-    (user_id, item_id, ts, mode, surface, grade, seconds, tab_blurs, note, abandoned,
+    (user_id, item_id, ts, mode, surface, session_id, answer_choice, grade, seconds, tab_blurs, note, abandoned,
      state_before, stability_before, difficulty_before, elapsed_days, scheduled_days, params_version)
   VALUES
-    (@user_id, @item_id, @ts, @mode, @surface, @grade, @seconds, @tab_blurs, @note, @abandoned,
+    (@user_id, @item_id, @ts, @mode, @surface, @session_id, @answer_choice, @grade, @seconds, @tab_blurs, @note, @abandoned,
      @state_before, @stability_before, @difficulty_before, @elapsed_days, @scheduled_days, @params_version)
 `);
 
@@ -178,6 +178,11 @@ const insertItemAttempt = db.prepare(`
 function logUnscheduledAttempt(row) {
   insertItemAttempt.run({
     surface: null,
+    // Abandoned rows carry their session like any other: a drill ended early is
+    // still part of that sitting, and the session view lists it as "not
+    // reached" rather than dropping it.
+    session_id: null,
+    answer_choice: null,
     state_before: null,
     stability_before: null,
     difficulty_before: null,
@@ -216,7 +221,7 @@ function settingsFor(userId) {
  * exactly the gap the review log exists to not have.
  */
 const applyReview = db.transaction(
-  ({ userId, item, grade, ts, mode, surface, seconds, tabBlurs, note, settings }) => {
+  ({ userId, item, grade, ts, mode, surface, sessionId, answerChoice, seconds, tabBlurs, note, settings }) => {
     const existing = getReviewState.get(userId, item.id) ?? null;
     const next = scheduleReview(existing, item.format, grade, new Date(ts), settings);
 
@@ -243,6 +248,8 @@ const applyReview = db.transaction(
       ts,
       mode,
       surface: surface ?? null,
+      session_id: sessionId ?? null,
+      answer_choice: answerChoice ?? null,
       grade,
       seconds,
       tab_blurs: tabBlurs,
@@ -1263,12 +1270,25 @@ router.post("/attempts", (req, res) => {
   const userId = user?.id ?? ANON_USER_ID;
   const body = req.body ?? {};
 
-  let itemId, mode, surface, seconds, tabBlurs, note, abandoned, grade;
+  let itemId, mode, surface, sessionId, answerChoice, seconds, tabBlurs, note, abandoned, grade;
   try {
     itemId = requiredString(body.itemId, "itemId");
     mode = requiredString(body.mode, "mode");
     if (!VALID_MODES.has(mode)) fail(`mode must be one of ${[...VALID_MODES].join(", ")}`);
     surface = surfaceFrom(body.surface, mode);
+    // Both optional, and an absent value is NULL rather than a default. A
+    // client that predates the session view sends neither; the read side treats
+    // an untagged row as "cluster it by timestamp" rather than inventing a
+    // session, so a missing value has to stay distinguishable from a real one.
+    sessionId = body.sessionId != null ? requiredString(body.sessionId, "sessionId") : null;
+    if (body.answerChoice != null) {
+      if (!Number.isInteger(body.answerChoice) || body.answerChoice < 0) {
+        fail("answerChoice must be a non-negative integer");
+      }
+      answerChoice = body.answerChoice;
+    } else {
+      answerChoice = null;
+    }
     if (!Number.isInteger(body.seconds) || body.seconds < 0) fail("seconds must be a non-negative integer");
     seconds = body.seconds;
     tabBlurs = Number.isInteger(body.tabBlurs) && body.tabBlurs >= 0 ? body.tabBlurs : 0;
@@ -1298,6 +1318,8 @@ router.post("/attempts", (req, res) => {
       ts,
       mode,
       surface,
+      session_id: sessionId,
+      answer_choice: answerChoice,
       grade: null,
       seconds,
       tab_blurs: tabBlurs,
@@ -1326,7 +1348,9 @@ router.post("/attempts", (req, res) => {
   }
 
   const settings = settingsFor(userId);
-  const review = applyReview({ userId, item, grade, ts, mode, surface, seconds, tabBlurs, note, settings });
+  const review = applyReview({
+    userId, item, grade, ts, mode, surface, sessionId, answerChoice, seconds, tabBlurs, note, settings,
+  });
   res.status(201).json({
     ok: true,
     review: {
@@ -1353,7 +1377,7 @@ router.get("/export", (req, res) => {
 
   const rows = db
     .prepare(
-      `SELECT item_id, ts, mode, surface, grade, seconds, tab_blurs, note, abandoned
+      `SELECT item_id, ts, mode, surface, session_id, answer_choice, grade, seconds, tab_blurs, note, abandoned
        FROM item_attempts WHERE user_id = ? ORDER BY ts ASC`
     )
     .all(userId);
@@ -1367,6 +1391,11 @@ router.get("/export", (req, res) => {
       // null on legacy rows, and it stays null through a round trip — see the
       // `surface` column comment in schema.sql for why it isn't guessed.
       surface: r.surface,
+      // Same stance as `surface`: null on rows written before the session view
+      // existed, and null through a round trip. Re-importing an old export must
+      // not manufacture sittings that were never recorded.
+      sessionId: r.session_id,
+      answerChoice: r.answer_choice,
       grade: r.grade,
       seconds: r.seconds,
       tabBlurs: r.tab_blurs,
@@ -1404,7 +1433,18 @@ router.post("/import", (req, res) => {
       }
       if (!Number.isInteger(a.seconds) || a.seconds < 0) fail(`${where}.seconds must be a non-negative integer`);
       const tabBlurs = Number.isInteger(a.tabBlurs) && a.tabBlurs >= 0 ? a.tabBlurs : 0;
-      return { itemId, ts: a.ts, mode, surface, grade, seconds: a.seconds, tabBlurs, note: a.note ?? null, abandoned };
+      const sessionId = a.sessionId != null ? requiredString(a.sessionId, `${where}.sessionId`) : null;
+      let answerChoice = null;
+      if (a.answerChoice != null) {
+        if (!Number.isInteger(a.answerChoice) || a.answerChoice < 0) {
+          fail(`${where}.answerChoice must be a non-negative integer`);
+        }
+        answerChoice = a.answerChoice;
+      }
+      return {
+        itemId, ts: a.ts, mode, surface, sessionId, answerChoice,
+        grade, seconds: a.seconds, tabBlurs, note: a.note ?? null, abandoned,
+      };
     });
   } catch (err) {
     if (err instanceof BadRequest) return res.status(400).json({ error: err.message });
@@ -1432,6 +1472,8 @@ router.post("/import", (req, res) => {
           ts: row.ts,
           mode: row.mode,
           surface: row.surface,
+          session_id: row.sessionId,
+          answer_choice: row.answerChoice,
           grade: null,
           seconds: row.seconds,
           tab_blurs: row.tabBlurs,
@@ -1446,6 +1488,8 @@ router.post("/import", (req, res) => {
           ts: row.ts,
           mode: row.mode,
           surface: row.surface,
+          sessionId: row.sessionId,
+          answerChoice: row.answerChoice,
           seconds: row.seconds,
           tabBlurs: row.tabBlurs,
           note: row.note,

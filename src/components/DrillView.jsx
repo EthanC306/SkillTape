@@ -10,6 +10,7 @@ import {
   formatRetrievability,
 } from "../data/fsrsFormat";
 import { getDrillQueue, postDrillAttempt, getDrillExport, postDrillImport } from "../api/client";
+import newSessionId from "../utils/sessionId";
 import PromptBody from "./PromptBody";
 import Inline from "./Inline";
 import GradeBar from "./fsrs/GradeBar";
@@ -68,6 +69,10 @@ export default function DrillView({ course, onExit, ahead = false, inspector = f
     nextDueOn: null,
   });
   const [finished, setFinished] = useState(false);
+  // One id for this whole sitting, minted once at mount. A ref rather than
+  // state: nothing renders it, and a re-render must not mint a new one or the
+  // Report would split one drill into several sessions.
+  const sessionId = useRef(newSessionId()).current;
   const [submitting, setSubmitting] = useState(false);
   const [importState, setImportState] = useState(null); // null | "importing" | "done" | error string
   const fileInputRef = useRef(null);
@@ -139,6 +144,10 @@ export default function DrillView({ course, onExit, ahead = false, inspector = f
         // cannot say which screen this came from. `surface` can. See the
         // column comment in server/schema.sql.
         surface: "drill",
+        sessionId,
+        // Only meaningful for MCQ items; `selected` is null for every other
+        // format, where the typed answer rides along as `note` above.
+        answerChoice: selected ?? undefined,
         grade: abandoned ? undefined : grade,
         seconds,
         tabBlurs,

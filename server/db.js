@@ -131,4 +131,19 @@ db.exec(
   "CREATE INDEX IF NOT EXISTS idx_item_attempts_surface ON item_attempts(user_id, surface, ts)"
 );
 
+// `item_attempts.session_id` / `.answer_choice` — the Report's session view.
+// Same guarded-ALTER story as everything above, and both stay NULL on old rows.
+//
+// There is deliberately NO backfill here, unlike the `surface = 'exam'` recovery
+// above. That one was a recovery: only ExamView ever wrote `mode = 'exam'`, so
+// those rows could be labeled with certainty. A sitting cannot be. Old rows are
+// grouped by clustering timestamps at read time (server/sessions.js) and the UI
+// marks those sessions approximate — a heuristic that stays visibly a heuristic,
+// rather than one frozen into the log where it would later read as fact.
+ensureColumn("item_attempts", "session_id", "session_id TEXT");
+ensureColumn("item_attempts", "answer_choice", "answer_choice INTEGER");
+db.exec(
+  "CREATE INDEX IF NOT EXISTS idx_item_attempts_session ON item_attempts(user_id, session_id, ts)"
+);
+
 export default db;
