@@ -912,7 +912,7 @@ Additional documentation is located in `docs/`.
 | [`CS_DRILL_BUILD_SPEC.md`](docs/CS_DRILL_BUILD_SPEC.md) | Drill-system specification |
 | [`SKILLTAPE_INTEGRATION.md`](docs/SKILLTAPE_INTEGRATION.md) | Tutor-skill integration |
 | [`PLAN_PLATFORMIZE.md`](docs/PLAN_PLATFORMIZE.md) | Multi-course and platform roadmap |
-| [`ROADMAP.md`](docs/ROADMAP.md) | Completed and planned work |
+| [`ROADMAP.md`](docs/ROADMAP.md) | What is still open |
 
 Some documentation describes planned or partially implemented functionality. For current behavior, prioritize this README and the implementation itself.
 
