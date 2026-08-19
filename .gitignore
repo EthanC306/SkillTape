@@ -61,5 +61,3 @@ pnpm-debug.log*
 
 # --- CLAUDE ---
 .claude/CLAUDEE.md
-# --- Marketing site (kept local) ---
-website/

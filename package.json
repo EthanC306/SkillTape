@@ -28,8 +28,7 @@
     "docker:build": "docker build -t skilltape",
     "docker:run": "docker run --rm -p 3000:3000 skilltape",
     "all:electron": "npm test && npm run build && npm run electron:build:win",
-    "all:docker": "npm test && npm run docker:build",
-    "website:preview": "npx --yes serve website -l 4321"
+    "all:docker": "npm test && npm run docker:build"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
