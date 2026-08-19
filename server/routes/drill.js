@@ -360,6 +360,63 @@ const GRADE_SYSTEM_PROMPT =
   "Respond with ONLY this JSON shape, one entry per item given, using the same itemIds. criteria must hold exactly criteriaCount entries, one per criterion, in the order given — never merge two criteria into one entry, skip one, or reorder them: " +
   '{"results":[{"itemId":"...","criteria":[{"criterion":"...","searched_for":"...","met":true},{"criterion":"...","searched_for":"...","met":false}],"rationale":"..."}]}';
 
+/**
+ * JSON Schema for the grading response, built per request so the criteria
+ * array is pinned to the exact rubric length.
+ *
+ * Ollama compiles this into a sampling grammar, so "the model merged two
+ * criteria into one entry" and "the model emitted prose around the JSON" stop
+ * being possible rather than being caught after the fact by the validation
+ * below (which stays, since a schema Ollama refuses falls back to plain JSON
+ * mode in chatJSON).
+ *
+ * minItems/maxItems only pins the per-item criteria count when the batch is a
+ * single item — which is what PracticeView actually sends (CHUNK_SIZE = 1).
+ * With several items in one call, their rubric lengths differ and one shared
+ * schema can't express that; the count then rides on criteriaCount in the
+ * prompt and the post-hoc check, exactly as before.
+ *
+ * Exported for test/gradeResponseSchema.test.js.
+ */
+export function gradeResponseSchema(items) {
+  const criteria = {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        criterion: { type: "string" },
+        searched_for: { type: "string" },
+        met: { type: "boolean" },
+      },
+      required: ["criterion", "searched_for", "met"],
+    },
+  };
+  if (items.length === 1) {
+    criteria.minItems = items[0].criteria.length;
+    criteria.maxItems = items[0].criteria.length;
+  }
+  return {
+    type: "object",
+    properties: {
+      results: {
+        type: "array",
+        minItems: items.length,
+        maxItems: items.length,
+        items: {
+          type: "object",
+          properties: {
+            itemId: { type: "string", enum: items.map((it) => it.itemId) },
+            criteria,
+            rationale: { type: "string" },
+          },
+          required: ["itemId", "criteria", "rationale"],
+        },
+      },
+    },
+    required: ["results"],
+  };
+}
+
 /** Deterministic criteria-met -> 0-3 grade, matching DrillView.jsx's own UI copy ("3 of 4 = Good, not Easy"). Computed here, never trusted from the model. Exported for test/criteriaToGrade.test.js. */
 export function criteriaToGrade(met, total) {
   if (total === 0) return null;
@@ -513,6 +570,7 @@ router.post("/grade-batch", async (req, res) => {
       // default is tuned for an already-warm model; grading needs more
       // headroom for the first call of a session.
       timeoutMs: 60000,
+      format: gradeResponseSchema(items),
       // Grading isn't creative — chatJSON's 0.15 default is for general use,
       // this call wants the same criteria judged the same way every time.
       temperature: 0,

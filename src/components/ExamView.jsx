@@ -368,7 +368,7 @@ export default function ExamView({ course, onExit }) {
 
     return (
       <ExamShell onEnd={finishAnswering} label="Finish exam">
-        <div style={{ background: PALETTE.panel, border: `1px solid ${PALETTE.line}`, borderRadius: RADII.lg, padding: 20, maxWidth: 720, margin: "0 auto" }}>
+        <div style={{ background: PALETTE.panel, border: `1px solid ${PALETTE.line}`, borderRadius: RADII.lg, padding: 20, maxWidth: 980, margin: "0 auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 12, color: PALETTE.muted, marginBottom: 14 }}>
             <span>
               ITEM {index + 1} / {exam.items.length} · {item.format.toUpperCase()}
@@ -410,7 +410,7 @@ export default function ExamView({ course, onExit }) {
                 value={writtenAnswer}
                 onChange={(e) => setWrittenAnswer(e.target.value)}
                 placeholder="Write your answer here — you'll grade it against the key once the exam ends."
-                rows={item.format === FORMATS.WRITE ? 6 : 4}
+                rows={item.format === FORMATS.WRITE ? 16 : 8}
                 style={{
                   width: "100%",
                   boxSizing: "border-box",
@@ -457,7 +457,7 @@ export default function ExamView({ course, onExit }) {
 
     return (
       <ExamShell>
-        <div style={{ background: PALETTE.panel, border: `1px solid ${PALETTE.line}`, borderRadius: RADII.lg, padding: 20, maxWidth: 720, margin: "0 auto" }}>
+        <div style={{ background: PALETTE.panel, border: `1px solid ${PALETTE.line}`, borderRadius: RADII.lg, padding: 20, maxWidth: 980, margin: "0 auto" }}>
           <div style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted, marginBottom: 14 }}>
             GRADING · {gradedResults.length + 1} / {gradedResults.length + gradeQueue.length} · {item.format.toUpperCase()}
           </div>

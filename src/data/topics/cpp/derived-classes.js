@@ -132,18 +132,18 @@ export default {
     },
     {
       id: "derived-classes-q04",
-      verifiedByHuman: true,
-      prompt: "How do you declare that BasketballPlayer inherits from Athlete?",
-      code: "class BasketballPlayer : public Athlete{\n....\n};",
+      verifiedByHuman: false,
+      prompt:
+        "You need BasketballPlayer to inherit from Athlete *and* keep Athlete's public functions callable on a BasketballPlayer object from outside the class. Which declaration does that?",
       choices: [
         "class BasketballPlayer extends Athlete { ... };",
-        "class BasketballPlayer : public Athlete{ ... };",
-        "class BasketballPlayer(Athlete) { ... };",
-        "class Athlete : public BasketballPlayer{ ... };",
+        "class BasketballPlayer : Athlete { ... };",
+        "class BasketballPlayer : public Athlete { ... };",
+        "class Athlete : public BasketballPlayer { ... };",
       ],
-      answer: 1,
+      answer: 2,
       explanation:
-        "C++ denotes inheritance with a colon and the access specifier before the base class name at the class definition.",
+        "The colon is what denotes inheritance, but a class defaults to private inheritance when the access specifier is left off — so omitting `public` compiles and then hides getName() from every caller.",
     },
     {
       id: "derived-classes-q05",
@@ -525,17 +525,18 @@ export default {
       topicId: "derived-classes",
       format: FORMATS.MCQ,
       origin: ITEM_ORIGIN.MANUAL,
-      prompt: "How do you declare that BasketballPlayer inherits from Athlete?\n```\nclass BasketballPlayer : public Athlete{\n....\n};\n```",
+      prompt:
+        "You need BasketballPlayer to inherit from Athlete *and* keep Athlete's public functions callable on a BasketballPlayer object from outside the class. Which declaration does that?",
       choices: [
         "class BasketballPlayer extends Athlete { ... };",
-        "class BasketballPlayer : public Athlete{ ... };",
-        "class BasketballPlayer(Athlete) { ... };",
-        "class Athlete : public BasketballPlayer{ ... };",
+        "class BasketballPlayer : Athlete { ... };",
+        "class BasketballPlayer : public Athlete { ... };",
+        "class Athlete : public BasketballPlayer { ... };",
       ],
-      answerIndex: 1,
-      expected: "class BasketballPlayer : public Athlete{ ... };",
+      answerIndex: 2,
+      expected: "class BasketballPlayer : public Athlete { ... };",
       criteria: [
-        "C++ denotes inheritance with a colon and the access specifier before the base class name at the class definition.",
+        "The colon denotes inheritance, and the access specifier before the base class name must be public for the base's public interface to stay public.",
       ],
       // Hand-authored course question promoted from this topic's legacy
       // questions[]. No source excerpt exists to cite, so provenance stays

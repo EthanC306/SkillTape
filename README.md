@@ -1,359 +1,987 @@
+
 # SkillTape
- 
-A self-hosted study app for computer-science coursework. Course material shows up as note cards you can read, blank out and fill from memory, or drill through as quizzes. It's a single-page React app with progress saved locally.
- 
-> Previously named **Cpp Tracker** / **cs.tutor**. The C++-specific name predated multi-course support; SkillTape is the name going forward (see `docs/PLAN_PLATFORMIZE.md`).
- 
-**Design principle:** All information is thoroughlly checked for accuracy.
+SkillTape is still being worked on and is not yet ready for production use. Please see [`docs/ROADMAP.md`](docs/ROADMAP.md) for the current development status.
+
+A self-hosted study platform for computer-science coursework.
+
+SkillTape turns course material into interactive study tools: read structured notes, recall key concepts from memory, practice with quizzes and flashcards, and track your progress over time.
+
+It is built as a React single-page application with an Express + SQLite backend and an optional Electron desktop client.
+
+The goal is for users to be able to select from courses created but also create their own. Functioning as a hub where students can share their courses and problem sets.
+
+## Design Principle
+
+**Accuracy comes first.**
+
+Course content is intended to be thoroughly checked before being placed into the active study rotation. Structural validation is automated; factual accuracy requires human verification.
 
 ## Screenshots
+
+### Home
 
 <p align="center">
   <img src="docs/screenshots/landing.png" width="80%" alt="SkillTape landing screen">
 </p>
 
-The home screen. Pick a class to drop into that course's topics.
+Select a course to open its topics and study material.
+
+### Course Topics
 
 <p align="center">
   <img src="docs/screenshots/topic-list.png" width="80%" alt="Course topic list with review queue">
 </p>
 
-A course's topic list. The bar up top is the review queue (due / learning / new) with a one-click **Start review**; each card shows its question count, best score, and a run strip for recent attempts.
+Each course has a topic list and review queue showing:
+
+- Due items
+- Learning items
+- New items
+- One-click **Start Review**
+- Question count
+- Best score
+- Recent attempt history
+
+### Learn Mode
 
 <p align="center">
   <img src="docs/screenshots/learn-mode.png" width="80%" alt="Learn mode showing note cards for multi-dimensional arrays">
 </p>
 
-**Learn mode.** Topic notes as cards, with key terms bolded and code shown inline. Toggling **Fill Mode** hides those terms so you type them from memory.
+**Learn Mode** presents course notes as cards. Key terms are emphasized and can be hidden with **Fill Mode**, allowing you to recall the missing information from memory.
+
+### Scheduling Sandbox
 
 <p align="center">
   <img src="docs/screenshots/scheduler-sandbox.png" width="80%" alt="Scheduling sandbox showing stability, difficulty, and retrievability">
 </p>
 
-**How scheduling works** — a scratch card wired to the real scheduler. Grade it, advance the clock, and watch stability, difficulty, and retrievability move. Nothing here is saved.
- 
- 
-<p align="center">
-  <img src="docs/screenshots/quiz-view.png" width="80%" alt="Quiz view showing the format of an MCQ drill">
-</p>
+**Scheduling Sandbox** is a development tool for experimenting with the study scheduler.
 
-**How quizzes work** — you can select a deck and do a quiz ranging from 7-14 MCQ , there is also an option for master set where you can select multiple topics and take one large MCQ quiz.
+Grade an item, advance the clock, and observe how its scheduling state changes. Nothing in the sandbox is saved.
 
+### Quiz Mode
 
 <p align="center">
-  <img src="docs/screenshots/review.png" width="80%" alt="Verify tool showing an unverified question with check and reject buttons">
+  <img src="docs/screenshots/quiz-view.png" width="80%" alt="Quiz view showing a multiple-choice quiz">
 </p>
 
-**How verification works** — `npm run verify` serves every question still marked `verifiedByHuman: false`, one card at a time, with the answer and its source excerpt side by side. The check mark writes the flag straight into the seed file; the X logs the question for fixing later. See [Verifying questions](#verifying-questions).
+**Quiz Mode** provides multiple-choice drills for individual topics.
+
+Quizzes normally contain **7–14 questions**. The **Master Quiz** can combine multiple topics into one larger quiz.
+
+### Question Verification
+
+<p align="center">
+  <img src="docs/screenshots/review.png" width="80%" alt="Question verification interface showing an unverified question">
+</p>
+
+**Question Verification** is the human accuracy check for the question bank.
+
+`npm run verify` displays unverified questions one at a time, along with their answers and source excerpts. Questions can be verified or flagged for later correction.
+
+See [Verifying Questions](#verifying-questions).
+
+---
 
 ## Courses
- 
-The home screen has a bottom tab bar, one tab per class:
- 
+
+SkillTape currently supports multiple courses through the bottom navigation bar.
+
 | Tab | Course | Focus |
 | --- | --- | --- |
 | `C++` | C++ Data Structures & Algorithms | Big-O, C-strings, containers, linked lists, the Big Three |
-| `Discrete` | Discrete Structures (Epp, 5e) | logic, quantifiers, proof, sets, relations, graphs |
- 
-Selecting a tab opens the tutor filtered to that course's topics.
- 
+| `Discrete` | Discrete Structures (Epp, 5e) | Logic, quantifiers, proof, sets, relations, graphs |
+
+Selecting a course filters the application to that course's topics.
+
+---
+
 ## Features
- 
-Shipped:
- 
-- **Learn mode** — topic notes as cards. Key terms are emphasized and, in **Fill Mode**, hidden so you can type them from memory and check yourself. Grading is lenient by design: case, spacing, hyphens, exponent notation, plurals, and number words all fold away, and a card can declare extra accepted answers via `accept` (see `src/utils/fill.js`).
-- **Quiz mode** — multiple-choice questions with immediate feedback and per-question explanations. A results screen shows your score and best run.
-- **Master Quiz** — draws across all topics in a course rather than one at a time.
-- **Flashcards** — front/back pairs per topic.
-- **Diagrams** — optional captioned figures on cards and questions.
-- **Big-O visuals** — C++ topics can render a complexity-growth chart and reference table, with the relevant curve highlighted when you answer.
-- **Progress tracking** — per topic: best score, run count, and the last 50 runs, persisted server-side (one row per question answered) and readable across browsers once logged in. See `docs/BACKEND.md`.
-- **Edit Mode** — an Edit toggle on any topic makes Learn cards and flashcards editable in place (add/delete/reorder, a bold-toggle button that doubles as the Fill Mode blank marker). Requires an account. Quiz questions aren't editable this way; see `docs/AUTHORING.md`.
-- **Drill mode** — closed-book, timed, navigation hidden, self-graded against an explicit criteria checklist. This is the mode that targets exam conditions; see `docs/CORRECTIONS.md` §4.2. The `body[data-drill-active]` CSS hook in `index.html` is groundwork for it; nothing sets that attribute today.
-- **Mixed-format items** — the polymorphic item shape in `src/data/itemSchema.js` (recall / write / trace / error / cloze / compare / complexity / mcq / diagram). The module is written and exercised by `npm run audit:bank`.
-- **Provenance on every item** — `sourceId` + anchor + verbatim excerpt, gated by `verifiedByHuman`. Enforced by the audit script, not yet present in the content.
-- **Per-item attempt log** — grade, elapsed seconds, open vs. closed book. Requires reworking `useProgress.js`, which currently records per-quiz-run, not per-item.
-- **Spaced repetition** — a Leitner 5-box scheduler: correct advances a box, wrong drops to box 1 and increments `lapses`, with intervals of 1/2/4/8/16 days. An item at `lapses >= 3` is flagged a **leech** and pulled from rotation for triage, since a leech usually means the item or its explanation is broken and should be rewritten. Chosen over SM-2 for being simpler and debuggable; see `docs/CS_DRILL_BUILD_SPEC.md` §Phase 5. Scheduling state (`box`, `dueOn`, `lapses`, `leech`) has no home in `src/data/itemSchema.js` yet.
-## Getting started
- 
-Requires [Node.js](https://nodejs.org/) 18 or newer.
- 
+
+### Learning
+
+- **Learn Mode** — Structured notes presented as cards.
+- **Fill Mode** — Hides emphasized terms so you can recall them from memory.
+- **Flashcards** — Front/back study cards for each topic.
+- **Diagrams** — Optional captioned figures can be attached to cards and questions.
+- **Big-O Visualizations** — C++ topics can display complexity-growth charts and reference tables.
+
+### Assessment
+
+- **Quiz Mode** — Multiple-choice questions with immediate feedback and explanations.
+- **Master Quiz** — Combines questions from multiple topics within a course.
+- **Drill Mode** — Closed-book, timed practice designed to simulate exam conditions.
+- **Mixed-format Items** — The planned item system supports recall, writing, tracing, error finding, cloze, comparison, complexity, MCQ, and diagram questions.
+
+### Progress
+
+- Best score per topic
+- Run count
+- Recent attempt history
+- Server-side progress storage
+- Progress available across browsers after logging in
+- Spaced-repetition scheduling
+
+### Content Management
+
+- **Edit Mode** — Edit Learn cards and flashcards directly from the application.
+- **Question Verification** — Human verification for question accuracy.
+- **Content Provenance** — Questions can reference their source, anchor, and source excerpt.
+- **Question-bank Auditing** — Automated validation of item structure and required fields.
+
+---
+
+## Spaced Repetition
+
+SkillTape currently uses a **Leitner 5-box scheduler**.
+
+| Result | Effect |
+| --- | --- |
+| Correct | Advances the item to the next box |
+| Incorrect | Returns the item to Box 1 and increments `lapses` |
+| 3+ lapses | Item becomes a **leech** and is removed from normal rotation |
+
+The default intervals are:
+
+**1 → 2 → 4 → 8 → 16 days**
+
+A leech is treated as a signal that the question or explanation may need to be rewritten.
+
+Leitner was chosen over SM-2 because the simpler system is easier to understand, debug, and tune.
+
+See [`docs/CS_DRILL_BUILD_SPEC.md`](docs/CS_DRILL_BUILD_SPEC.md) for the scheduling specification.
+
+> **Implementation note:** Scheduling state (`box`, `dueOn`, `lapses`, `leech`) is not yet part of `src/data/itemSchema.js`.
+
+---
+
+# Getting Started
+
+## Requirements
+
+- Node.js 18+
+- npm
+- SQLite
+- Docker, if using the containerized deployment
+- Electron dependencies, if building the desktop application
+
+## Install
+
 ```bash
-npm install         # required after pulling: @vitejs/plugin-react was added
-npm run dev         # Vite dev server, http://localhost:5173
-npm run dev:server  # API server, http://127.0.0.1:3001 — run alongside dev, separate terminal
-npm run db:seed     # load/refresh curriculum content into the database
-npm run build       # production build → dist/
-npm run preview     # serve the production build locally
-npm run audit:bank  # validate the question bank (see below)
-npm run verify      # review unverified questions in a local UI (see below)
+npm install
 ```
- 
-The app needs **both** `dev` and `dev:server` running to load content. See `docs/BACKEND.md` for the backend architecture, the two-process setup, and the database.
- 
-`npm run audit:bank` currently fails, and that's expected. It checks the bank against the planned item schema, which the existing MCQ content predates, so every legacy question is reported as missing `id`, `format`, and `provenance`. It'll pass once the bank is migrated; until then, treat its output as the migration to-do list, not a regression.
- 
-## Verifying questions
 
-`verifiedByHuman` is the accuracy gate. Nothing else in the repo establishes that a question is factually right: the audit script checks structure, and `/extract` is forbidden from ever setting the flag. `npm run verify` is the human pass that does.
+## Run the Development Environment
 
-It boots a small local review UI, separate from the app, that serves every question still marked `verifiedByHuman: false` one card at a time.
-
-**1. Start it.** The browser opens itself, and the app does not need to be running.
+Start the frontend:
 
 ```bash
-npm run verify                                     # everything unverified
-npm run verify -- --topic bigo                     # one topic
-npm run verify -- --only items                     # just the source-grounded items
-npm run verify -- --only legacy --topic discrete   # just that course's quiz MCQs
+npm run dev
 ```
 
-`--topic` accepts a topic id or a course id (`cpp`, `discrete`). `--port` defaults to 4200.
-
-**2. Review.** `J` or `→` verifies, `F` or `←` flags the question as broken and asks for a reason. Each click rewrites that one line in the seed file straight away, so Ctrl-C is a safe exit and quitting mid-session loses nothing.
-
-**3. Check the diff.** One changed line per question, so it reviews quickly.
+Start the API in a separate terminal:
 
 ```bash
-git diff --stat
-cat data/needs-fixing.json   # what you flagged, with your reasons (gitignored)
+npm run dev:server
 ```
 
-**4. Reseed, if you verified items.**
+The frontend runs at:
+
+```text
+http://localhost:5173
+```
+
+The API runs at:
+
+```text
+http://127.0.0.1:3001
+```
+
+Seed the database:
 
 ```bash
 npm run db:seed
 ```
 
-Only matters for `items`. Practice, Drill, and Exam read the `items` table and gate on `verified_by_human`, so verifying an item is what puts it into rotation. Legacy `questions[]` rows have no such column and Quiz serves them regardless, so verifying one is a record that you checked it, nothing more.
+The normal development setup therefore requires **both `dev` and `dev:server`** running simultaneously.
 
-To see what's left without booting anything:
+See [`docs/BACKEND.md`](docs/BACKEND.md) for details about the API, database, and two-process architecture.
+
+## Useful Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Vite development server |
+| `npm run dev:server` | Start the Express API |
+| `npm run db:seed` | Seed or refresh curriculum content |
+| `npm run build` | Create a production build |
+| `npm run preview` | Preview the production build |
+| `npm run audit:bank` | Validate the question bank |
+| `npm run verify` | Review unverified questions |
+
+### Question-bank audit
+
+`npm run audit:bank` currently reports failures because legacy MCQs have not yet been migrated to the planned item schema.
+
+The legacy questions are missing fields such as:
+
+- `id`
+- `format`
+- `provenance`
+
+This is currently expected. Until migration is complete, treat the audit output as a **migration checklist rather than a regression report**.
+
+---
+
+# Verifying Questions
+
+`verifiedByHuman` is SkillTape's accuracy gate.
+
+Automated auditing validates structure, but it does **not** determine whether a question is factually correct. Human verification is required for that.
+
+The verification tool provides a small local review interface separate from the main application.
+
+## 1. Start Verification
+
+```bash
+npm run verify
+```
+
+The browser opens automatically.
+
+The main application does not need to be running.
+
+### Useful filters
+
+Verify one topic:
+
+```bash
+npm run verify -- --topic bigo
+```
+
+Verify only item-based questions:
+
+```bash
+npm run verify -- --only items
+```
+
+Verify only legacy Discrete questions:
+
+```bash
+npm run verify -- --only legacy --topic discrete
+```
+
+`--topic` accepts either a topic ID or course ID such as `cpp` or `discrete`.
+
+The default port is `4200`.
+
+## 2. Review Questions
+
+Use:
+
+- `J` or `→` — Verify
+- `F` or `←` — Flag as broken
+
+Flagged questions require a reason.
+
+Each decision immediately updates the corresponding seed-file entry, so stopping the verification process with `Ctrl-C` is safe.
+
+## 3. Review the Changes
+
+```bash
+git diff --stat
+cat data/needs-fixing.json
+```
+
+Each verified question produces a small, focused change.
+
+`data/needs-fixing.json` contains flagged questions and is gitignored.
+
+## 4. Reseed the Database
+
+After verifying item-based questions:
+
+```bash
+npm run db:seed
+```
+
+Practice, Drill, and Exam modes read from the `items` database table and require `verified_by_human`.
+
+Legacy `questions[]` entries do not currently have this database field and are served by Quiz regardless of verification status.
+
+## Check Remaining Unverified Questions
+
+Without starting the verification UI:
 
 ```bash
 grep -rc "verifiedByHuman: false" src/data/topics/ | grep -v ':0'
 ```
 
-Legacy questions were authored before the flag existed. `node scripts/backfillVerifiedFlag.mjs` wrote an explicit `verifiedByHuman: false` into all 316 of them so the state is visible in the file rather than implied by an absent key. It is idempotent and takes `--dry-run`; it only needs running again if a batch of questions is ever authored without the flag.
+Legacy questions were created before the verification flag existed. The migration script added an explicit `verifiedByHuman: false` to the existing legacy questions so their state is visible.
 
-## Running with Docker
- 
 ```bash
-docker compose up -d --build   # build both images and start the containers
-docker compose ps              # check status
-docker compose logs -f api     # tail one service's logs (or `web`)
-docker compose down            # stop and remove the containers
+node scripts/backfillVerifiedFlag.mjs
 ```
- 
-Code changes and content changes need different fixes:
- 
-**Code changes** (a component, a route, `index.html`, anything under `src/` or `server/` that isn't content) require rebuilding the image:
- 
+
+The script is idempotent and supports:
+
+```bash
+node scripts/backfillVerifiedFlag.mjs --dry-run
+```
+
+---
+
+# Docker
+
+Start the application:
+
 ```bash
 docker compose up -d --build
 ```
- 
-There's no live reload and no bind mount of the source, so a plain `docker compose up -d` (no `--build`) keeps serving the old code even after you save a file.
- 
-**Content changes** (editing a topic's `title`/`subtitle`/`cards`/`questions`/`flashcards` in `src/data/topics/**`) are read from the database, not from the `.js` files at request time. Reseed instead of rebuilding:
- 
+
+Check the containers:
+
+```bash
+docker compose ps
+```
+
+View API logs:
+
+```bash
+docker compose logs -f api
+```
+
+Stop the application:
+
+```bash
+docker compose down
+```
+
+## Code Changes vs. Content Changes
+
+These two types of changes are handled differently.
+
+### Code Changes
+
+Changes to:
+
+- React components
+- Routes
+- `index.html`
+- `src/`
+- `server/`
+- Other application code
+
+require an image rebuild:
+
+```bash
+docker compose up -d --build
+```
+
+There is no live reload or source bind mount in the Docker setup, so:
+
+```bash
+docker compose up -d
+```
+
+will continue serving the previously built code.
+
+### Content Changes
+
+Changes to topic content under:
+
+```text
+src/data/topics/**
+```
+
+are loaded into SQLite through the seed process.
+
+Run:
+
 ```bash
 npm run db:seed
 ```
- 
-Run this on the host, not inside the container. `./db/skilltape.db` is bind-mounted, so it's the exact same file the `api` container reads. Reseeding on the host updates it immediately, with no rebuild or restart. (`--reset` also wipes and reseeds `courses`/`topics` themselves; plain `npm run db:seed` is enough for editing existing topics' content.)
- 
-**If the containers are up but the site 502s, or a container is just gone** (`docker compose ps` shows nothing, or `docker ps -a` shows `Exited`): this has happened repeatedly in local testing under Docker Desktop on WSL2. `api` gets killed with exit `137`, `web` exits cleanly right after, with no error in either container's own logs and no OOM. It doesn't correlate with anything the app does. `docker compose up -d` brings both back and they've held afterward each time, so treat a bounce as Docker Desktop's WSL2 integration doing something in the background, not an app bug. If it becomes frequent, check Docker Desktop's Settings → Resources and its troubleshoot/logs panel rather than this repo's code.
- 
-## Desktop app (Electron)
- 
-A real installable desktop app with its own window and icon: no terminal, no Docker, works offline. It wraps the same frontend and Express+SQLite backend used everywhere else in this repo. `electron/main.cjs` spawns the existing `server/index.js`/`server/seed.js` as child processes rather than reimplementing anything.
- 
-```bash
-npm run electron:dev       # build + launch locally, without packaging
-npm run electron:build     # Linux: rebuilds native modules for this host, then .AppImage + .deb
-npm run electron:build:win # Windows: cross-built .exe (NSIS installer) from this Linux shell
-npm run all:electron       # runs the tests and everything needed for electron to repackage
-npm run release:win        # publishes a new version to installed apps — see "Releasing an update" below
+
+You do **not** need to rebuild the Docker image.
+
+The database file:
+
+```text
+./db/skilltape.db
 ```
- 
-The first four build an installer for you. Getting a change onto a machine that already has SkillTape installed is a different job: that's `release:win`, documented under [Releasing an update](#releasing-an-update).
- 
-### Linux vs. Windows packaging
- 
-These are not the same recipe. Don't run `electron:build`'s steps for the Windows target.
- 
-`electron:build` calls `electron:rebuild` (`electron-rebuild -f -w better-sqlite3,bcrypt`), which runs a real `node-gyp` compile for the host you're running it on. That's correct for the Linux target, since this shell is the target. It's wrong for Windows: there's no cross-compiler here, so `electron-rebuild` silently produces a Linux `node_modules/bcrypt/build/Release/bcrypt_lib.node` regardless of which platform you're packaging for, and `bcrypt`'s loader (`node-gyp-build`) prefers that `build/Release/` file over the correct `node_modules/bcrypt/prebuilds/win32-x64/bcrypt.node` bundled in the package. The app packages and installs fine either way; it only breaks at runtime, the first time something calls into `bcrypt`, with `Error: ... bcrypt_lib.node is not a valid Win32 application`. This was caught by running the packaged app on real Windows, not just reading the build log.
- 
-`electron:build:win` avoids it by never running a local rebuild at all. `electron-builder.yml` sets `npmRebuild: false`, and the script's own `electron:clean-native` step (`rm -rf node_modules/{bcrypt,better-sqlite3}/build`) deletes any stale compiled artifact first, so both native modules fall back to their bundled prebuilt binaries. `better-sqlite3` and `bcrypt` both ship a genuine `win32-x64` N-API prebuild in the npm package itself, no compile or network fetch needed.
- 
-If you ever add `electron:rebuild` back into the Windows path, or run it by hand before `electron:build:win`, you'll reintroduce this bug. Verify with:
- 
+
+is bind-mounted into the API container, so reseeding on the host updates the database used by the running container.
+
+---
+
+# Desktop App
+
+SkillTape can also be packaged as an Electron desktop application.
+
+The desktop client:
+
+- Runs in its own window
+- Does not require a terminal
+- Can work offline
+- Uses the same React frontend
+- Uses the same Express + SQLite backend
+- Starts the existing backend as child processes
+
+## Development
+
+```bash
+npm run electron:dev
+```
+
+## Linux Build
+
+```bash
+npm run electron:build
+```
+
+This produces Linux `.AppImage` and `.deb` packages.
+
+## Windows Build
+
+```bash
+npm run electron:build:win
+```
+
+This cross-builds a Windows NSIS installer from Linux.
+
+## Full Electron Build
+
+```bash
+npm run all:electron
+```
+
+## Release
+
+```bash
+npm run release:win
+```
+
+See [Releasing an Update](#releasing-an-update).
+
+---
+
+# Electron Packaging Notes
+
+## Native Modules
+
+SkillTape uses native Node modules including:
+
+- `better-sqlite3`
+- `bcrypt`
+
+These modules must use binaries compiled for the target operating system.
+
+### Linux
+
+The Linux build runs `electron-rebuild` for the current host.
+
+### Windows
+
+The Windows build intentionally **does not** run `electron-rebuild`.
+
+Instead, the build removes stale native build artifacts so Electron uses the Windows prebuilt binaries included with the npm packages.
+
+Running `electron-rebuild` manually before the Windows build can produce Linux native binaries inside the Windows package and cause runtime errors such as:
+
+```text
+bcrypt_lib.node is not a valid Win32 application
+```
+
+Do not add a local native rebuild step to the Windows packaging path without accounting for cross-platform native modules.
+
+## Verifying the Windows Package
+
+Check the bcrypt binary:
+
 ```bash
 file dist-electron/win-unpacked/resources/app.asar.unpacked/node_modules/bcrypt/prebuilds/win32-x64/bcrypt.node
 ```
- 
-Confirm it says `PE32+ ... for MS Windows`, and separately confirm `find dist-electron/win-unpacked -path '*bcrypt*build*'` comes back empty.
- 
-Cross-building the Windows target from Linux also needs Wine, specifically both `wine64` and the 32-bit `wine32:i386` (electron-builder's bundled `rcedit.exe`, used to embed the icon/version info into the `.exe`, is a 32-bit tool even when packaging for x64):
- 
+
+It should report a Windows `PE32+` binary.
+
+Check for stale native build artifacts:
+
+```bash
+find dist-electron/win-unpacked -path '*bcrypt*build*'
+```
+
+The command should return nothing.
+
+## Wine Requirements
+
+Cross-building Windows packages from Linux requires Wine:
+
 ```bash
 sudo apt-get install -y wine64
-sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install -y wine32:i386
+sudo dpkg --add-architecture i386
+sudo apt-get update
+sudo apt-get install -y wine32:i386
 ```
- 
-If Wine was installed after a first failed attempt, delete `~/.wine` before retrying. A Wine prefix created before `wine32:i386` was available is missing base DLLs (`kernel32.dll` fails to load) and won't fix itself.
- 
-### Electron version
- 
-Electron is pinned to >=35 for a specific reason. `better-sqlite3`'s prebuilt native addon needs Node 22's N-API surface (`process.versions.napi === 10`). Electron <=34 bundles Node 20 (`napi === 9`), and loading the addon there doesn't error, it segfaults the instant the addon initializes, inside `better-sqlite3`'s own native code. Confirmed with `strace`: a clean crash right after the addon's shared libs resolve, on both Electron 32 and 34, and a working DB round-trip on Electron 36. This is the same "Node 22, not 20" constraint the `Dockerfile` already documents for the plain-Node path; it just isn't obvious it also applies to picking an Electron version, since Electron's own `package.json` version number doesn't tell you which Node it bundles.
- 
-If you ever bump the `electron` devDependency, sanity-check that the new version bundles Node >=22 before assuming a hang or crash is this repo's bug:
- 
+
+If Wine was previously initialized before 32-bit support was installed, remove the existing Wine prefix before retrying:
+
 ```bash
-ELECTRON_RUN_AS_NODE=1 node_modules/electron/dist/electron -e "console.log(process.versions.napi)"
+rm -rf ~/.wine
 ```
- 
-It needs to print `10`, not `9`.
- 
-### Packaged app notes
- 
-The packaged app's SQLite database lives in Electron's real per-OS user-data directory (`~/.config/SkillTape` on Linux via `app.getPath("userData")`), not this repo's `./db/`; there's no "repo" once it's installed. `server/seed.js` runs on every launch (idempotent upserts), since a packaged app has no terminal to run `npm run db:seed` from by hand.
- 
-No app icon is set yet, so `electron-builder`'s default Electron icon is used on both platforms. macOS isn't configured (`electron-builder.yml` has `linux` and `win` targets only) and hasn't been attempted. The same native-module-must-match-target-platform caveat above would apply there too, and it can't be verified from this Linux shell at all.
- 
-The Windows `.exe` is unsigned (no code-signing cert configured, expected for now; `electron-builder`'s log says "no signing info identified, signing is skipped" for each binary). Windows SmartScreen/Defender may flag or silently quarantine an unsigned installer on first run. That's a Windows policy reaction, not a sign the build is broken.
- 
-### Releasing an update
- 
-Installed copies check GitHub Releases on launch and every 6 hours (`electron/main.cjs`), download anything newer in the background, and install it on quit. To ship a change to them:
- 
+
+---
+
+# Electron Version Requirement
+
+Electron is pinned to version 35 or newer because SkillTape's native SQLite dependency requires Node 22's N-API surface.
+
+Electron versions 34 and earlier bundle Node 20.
+
+Check the N-API version bundled with Electron:
+
 ```bash
-# 1. bump "version" in package.json (plain x.y.z), commit
-# 2. a token with permission to write releases:
-export GH_TOKEN=…        # classic: `repo` scope. Fine-grained: Contents → Read and write.
-git add . && git commit -m " "
+ELECTRON_RUN_AS_NODE=1 node_modules/electron/dist/electron \
+  -e "console.log(process.versions.napi)"
+```
+
+The result should be:
+
+```text
+10
+```
+
+A result of `9` indicates Node 20 and is not compatible with the current native SQLite setup.
+
+If upgrading Electron, verify the bundled Node/N-API version before investigating native crashes elsewhere.
+
+---
+
+# Packaged Application
+
+The packaged application stores its SQLite database in Electron's per-user application-data directory rather than the repository's `./db/` directory.
+
+For example, Linux uses:
+
+```text
+~/.config/SkillTape
+```
+
+The packaged application automatically runs the database seed process on startup. The seed operation is idempotent, so a terminal-based `npm run db:seed` is not required for installed applications.
+
+## Current Packaging Limitations
+
+- No custom application icon has been configured yet.
+- macOS packaging is not currently configured.
+- Windows installers are unsigned.
+- Windows SmartScreen may warn about the unsigned installer.
+- Code signing has not yet been implemented.
+
+The SmartScreen warning is expected for the current unsigned release configuration.
+
+---
+
+# Releasing an Update
+
+Installed versions check GitHub Releases when the application starts and every six hours.
+
+To publish an update:
+
+### 1. Update the Version
+
+Update the `version` field in `package.json`.
+
+### 2. Set the GitHub Token
+
+```bash
+export GH_TOKEN=...
+```
+
+The token needs permission to write releases.
+
+### 3. Commit and Push
+
+```bash
+git add .
+git commit -m "Your commit message"
 git push
+```
+
+### 4. Publish
+
+```bash
 npm run release:win
 ```
- 
-`scripts/release.mjs` refuses to start unless the token is set and the version is valid.
- 
-**Shortcut.** To avoid retyping the sequence each time, drop a `release` function into `~/.bashrc`:
- 
+
+The release script validates the version and token before publishing.
+
+## Optional Release Helper
+
+A shell function can automate the process:
+
 ```bash
-# nano ~/.bashrc, then at the bottom:
 release() {
-  git add . && git commit -m "$1" && npm version patch && git push --follow-tags && npm run release:win
+  git add . &&
+  git commit -m "$1" &&
+  npm version patch &&
+  git push --follow-tags &&
+  npm run release:win
 }
-export GH_TOKEN=TOKEN_GOES_HERE
 ```
- 
-Reload the shell (`source ~/.bashrc`), then ship a release with one command:
- 
+
+Then:
+
 ```bash
 release "commit message"
 ```
- 
-`npm version patch` bumps `package.json` and creates the tag; `--follow-tags` pushes it. Note that the token sits in `~/.bashrc` in plaintext, so keep that file private.
- 
-There's a script here instead of a plain `--publish always` because the update path has one trap that costs a full release cycle to discover, since every symptom of it looks like success:
- 
-- `electron-updater` finds versions through `releases.atom`, and GitHub omits drafts from that feed (and from unauthenticated API reads). A draft release is, to the installed app, identical to no release. The release page looks completely correct while you're logged in.
-- `electron-builder` creates releases as drafts by default, and setting `releaseType: release` does not fix an existing one. `electron-publish`'s `gitHubPublisher.js` does `if (release.draft) { return release }`: it reuses whatever draft is already on that tag and never flips it. So a single stale draft poisons its tag permanently, and the only ways out are deleting the draft or bumping the version. The preflight checks for exactly this and tells you which.
-So `release.mjs` leans into drafts rather than avoiding them. It uploads into a draft (invisible to the feed), asserts `latest.yml`, the `.exe`, and the `.blockmap` are all present and non-zero, asserts `latest.yml`'s `path:` matches the real asset name, and only then flips `draft: false`. The atom feed can never advertise a release that isn't fully uploaded, so an app checking mid-upload sees the old version rather than a broken download.
- 
-Relatedly, `nsis.artifactName` in `electron-builder.yml` is set to a space-free `SkillTape-Setup-${version}.exe`. Spaces are handled inconsistently across the three layers involved (electron-publish uploads them raw, GitHub rewrites them, `electron-updater`'s `resolveFiles` rewrites them differently), and the failure mode is a 404 at download time on every client while the release page looks fine.
- 
-**Watching it work.** The app shows `Downloading update X… n%` and then `Update X ready — Restart now` in a banner at the top (`src/components/UpdateBanner.jsx`); the installed version is the `v1.0.1` badge next to the "View on GitHub" link. If something goes wrong, the updater logs to `%APPDATA%\SkillTape\logs\main.log` on Windows (`~/.config/SkillTape/logs/main.log` on Linux). A packaged app has no console, so this is the only diagnostic that survives, and its absence is why the earlier broken cycles were invisible.
- 
-**Security note.** Because the `.exe` is unsigned (above), SmartScreen warns on first install. Updates themselves are verified, though: `electron-updater` checks every download's sha512 against the hash in `latest.yml`, served over HTTPS from the release. What's missing versus an enterprise setup is publisher identity (code signing), which would also remove the SmartScreen prompt. That's the remaining gap.
- 
-## Project structure
- 
+
+> **Security:** Do not store a GitHub token directly in a shared or publicly accessible shell configuration file.
+
+## Why SkillTape Uses a Custom Release Script
+
+GitHub draft releases create a subtle problem for `electron-updater`.
+
+The updater discovers releases through GitHub's release feed, which does not expose draft releases. Electron Builder can also reuse an existing draft rather than converting it into a published release.
+
+SkillTape's release script therefore:
+
+1. Creates or uses a draft release.
+2. Uploads the required assets.
+3. Verifies that `latest.yml` exists.
+4. Verifies that the `.exe` exists.
+5. Verifies that the `.blockmap` exists.
+6. Confirms the asset names match `latest.yml`.
+7. Publishes the release only after validation succeeds.
+
+This prevents the updater from seeing a partially uploaded release.
+
+The Windows installer intentionally uses a space-free filename:
+
+```text
+SkillTape-Setup-${version}.exe
 ```
-├── index.html                  # HTML entry point; defines pre-mount CSS vars
-├── main.jsx                    # React root; renders <Shell />
-├── vite.config.js              # React plugin, sourcemaps, @ → src alias
+
+This avoids filename inconsistencies between GitHub, Electron Builder, and `electron-updater`.
+
+---
+
+# Auto Updates
+
+The installed application displays update progress through `UpdateBanner.jsx`.
+
+The UI shows states such as:
+
+```text
+Downloading update X... n%
+```
+
+and:
+
+```text
+Update X ready — Restart now
+```
+
+The installed version is displayed next to the **View on GitHub** link.
+
+## Update Logs
+
+Windows:
+
+```text
+%APPDATA%\SkillTape\logs\main.log
+```
+
+Linux:
+
+```text
+~/.config/SkillTape/logs/main.log
+```
+
+These logs are particularly important for diagnosing problems in the packaged application because it does not have a development console.
+
+## Update Security
+
+`electron-updater` verifies downloaded assets using the SHA-512 hash contained in `latest.yml`.
+
+Downloads are served over HTTPS.
+
+The remaining security limitation is **code signing**. Updates are integrity-checked, but the Windows installer does not currently provide publisher identity through a code-signing certificate.
+
+---
+
+# Project Structure
+
+```text
+├── index.html
+├── main.jsx
+├── vite.config.js
+│
 ├── scripts/
-│   ├── auditBank.js            # question-bank validator (npm run audit:bank)
-│   ├── backfillVerifiedFlag.mjs # one-time: writes verifiedByHuman onto legacy questions
-│   └── release.mjs             # publishes a GitHub release apps can see (npm run release:win)
+│   ├── auditBank.js
+│   ├── backfillVerifiedFlag.mjs
+│   └── release.mjs
+│
 ├── tools/
-│   └── verify/                 # local question-review UI (npm run verify)
-│       ├── server.js           # Express app, CLI args, item index
-│       ├── flag.js             # the scoped verifiedByHuman edit, shared with the backfill
-│       └── public/             # the single-page card UI
+│   └── verify/
+│       ├── server.js
+│       ├── flag.js
+│       └── public/
+│
 ├── electron/
-│   ├── main.cjs                # Main process: backend child processes, window, auto-update
-│   └── preload.cjs             # contextBridge: version + updater state, nothing else
+│   ├── main.cjs
+│   └── preload.cjs
+│
 ├── src/
-│   ├── Shell.jsx               # Home page + bottom course tab bar
-│   ├── App.jsx                 # Per-course tutor: topic list + view routing
+│   ├── Shell.jsx
+│   ├── App.jsx
+│   │
 │   ├── data/
-│   │   ├── courses.js          # Course cards (id/title/subtitle)
-│   │   ├── curriculum.js       # Topic array, assembled from topics/
-│   │   ├── complexity.js       # Big-O curve data for the chart
-│   │   ├── itemSchema.js       # Item formats, provenance, validation (unused by content yet)
-│   │   ├── theme.js            # PALETTE, MONO, HEADING, RADII
+│   │   ├── courses.js
+│   │   ├── curriculum.js
+│   │   ├── complexity.js
+│   │   ├── itemSchema.js
+│   │   ├── theme.js
 │   │   └── topics/
-│   │       └── <course>/<topic>.js   # Per-topic cards + questions
-│   ├── components/             # Views and presentational components together
-│   │   ├── Home.jsx            # Course topic list
-│   │   ├── TopicView.jsx       # Mode switcher for one topic
-│   │   ├── LearnView.jsx       # Note cards, Fill Mode
-│   │   ├── QuizView.jsx        # Single-topic quiz
-│   │   ├── MasterQuizView.jsx  # Cross-topic quiz
-│   │   ├── FlashcardsView.jsx  # Front/back drilling
-│   │   ├── HistoryModal.jsx    # Past runs for a topic
-│   │   ├── Header.jsx          # Wordmark + topic breadcrumb
-│   │   ├── Inline.jsx          # Inline text with **bold** term markup
-│   │   ├── FillBody.jsx        # Fill-in-the-blank rendering
-│   │   ├── Figure.jsx          # Captioned diagram/image
-│   │   ├── ComplexityChart.jsx # Big-O growth-rate chart
-│   │   ├── ReferenceTable.jsx  # Big-O reference table
-│   │   └── UpdateBanner.jsx    # Auto-update progress / "Restart now" (Electron only)
+│   │       └── <course>/<topic>.js
+│   │
+│   ├── components/
+│   │   ├── Home.jsx
+│   │   ├── TopicView.jsx
+│   │   ├── LearnView.jsx
+│   │   ├── QuizView.jsx
+│   │   ├── MasterQuizView.jsx
+│   │   ├── FlashcardsView.jsx
+│   │   ├── HistoryModal.jsx
+│   │   ├── Header.jsx
+│   │   ├── Inline.jsx
+│   │   ├── FillBody.jsx
+│   │   ├── Figure.jsx
+│   │   ├── ComplexityChart.jsx
+│   │   ├── ReferenceTable.jsx
+│   │   └── UpdateBanner.jsx
+│   │
 │   ├── hooks/
-│   │   ├── useProgress.js      # Per-topic best score, run count, run history
-│   │   └── useUpdater.js       # Auto-update state from the Electron preload bridge
+│   │   ├── useProgress.js
+│   │   └── useUpdater.js
+│   │
 │   └── utils/
-│       └── fill.js             # Fill Mode blank parsing + lenient grading
+│       └── fill.js
+│
 └── public/
-    └── figures/                # Diagram images served at the site root
+    └── figures/
 ```
- 
-## Adding content
- 
-Course material lives in `src/data/topics/<course>/<topic>.js`, imported by `src/data/curriculum.js`.
- 
-**Writing a new topic? Read `docs/AUTHORING.md`** for the full authoring contract: house style for cards and questions, what to bold, answer-index distribution, figures, and the registration steps. The summary below is the short version.
- 
-- **Add a course** — add an entry to `src/data/courses.js`, give its topics a matching `course` id, and add a tab in `src/Shell.jsx`.
-- **Add a topic** — create a topic file, import it in `curriculum.js` with the `.js` extension (the audit script runs under bare Node, which won't resolve extensionless paths), and add it to the exported array. Each topic has `cards` (Learn notes) and `questions` (MCQs).
-- **Key terms** — wrap in `**double asterisks**` to bold them in Learn mode and turn them into blanks in Fill Mode.
-- **Accepted answers** — Fill Mode already handles case, spacing, hyphens, exponents, plurals, and number words. For synonyms no rule can derive, add `accept: { "O(n)": ["linear", "linear time"] }` to the card.
-- **Figures** — attach `{ src, alt, caption }` to a card or question, with the image under `public/figures/`.
-### Item formats
- 
-The schema below is defined in `src/data/itemSchema.js` and enforced by `npm run audit:bank`. The cpp topics are migrated; the discrete topics are not yet. Every item also needs a `provenance` block naming the source, a stable anchor, and a verbatim excerpt; never renumber or delete a source anchor once items reference it.
- 
-Target distribution per topic:
- 
-| Format | Share | Drills |
-| --- | --- | --- |
-| `recall` | 20% | Cold definition or rule, blank page |
-| `write` | 20% | Produce a function or proof from a spec |
-| `trace` | 15% | Given code, produce output or final state |
-| `error` | 5% | Locate a bug and name the violated rule |
-| `cloze` | 5% | One load-bearing token blanked in a skeleton |
-| `compare` | 5% | Discriminate between two adjacent concepts |
-| `complexity` | 5% | Big-O plus justification |
-| `mcq` | 25% | Selection from four options, auto-graded |
- 
-MCQ carries a real share of the bank rather than a token one. Recognizing a correct answer among four options is an easier skill than producing it under exam conditions, so most new MCQs are written as a **pair** — the selection version and an open-ended version of the same question — and the production formats above still hold the bulk of the bank. Two practical reasons MCQ earns its 25%: it is the one format Practice grades instantly client-side, so a deck stays usable when the grading model is offline, and it makes the hand-written course questions reachable from spaced repetition instead of only Quiz mode. `auditBank()` warns per topic once MCQ passes `QUOTAS[mcq]` (0.4).
- 
-## Notes
- 
-- Lecture slides, textbook PDFs, and zyBooks exports (`pages/`, `sources/`) are not in this repository. They're copyrighted course materials and are gitignored. Verify with `git ls-files | grep -Ei '\.pdf$|^pages/'` before pushing.
-- There is a backend and account system now: a self-hosted Express + SQLite API (see `docs/BACKEND.md`). Progress is stored server-side, keyed to an account once you log in. Accounts are optional for reading content and taking quizzes, required only for Edit Mode. `docs/PLAN_PLATFORMIZE.md` covers the rest of the multi-user roadmap, most of which is still planning only; see `docs/ROADMAP.md` for what's landed versus what hasn't.
-- `npm run audit:bank` validates structure (anchors, formats, quotas, required fields). It does not validate accuracy. Only human sign-off (`verifiedByHuman`) does that.
-- Docs moved under `docs/`: `AUTHORING.md` (how to write a topic file, by hand or in Edit Mode), `BACKEND.md` (the API/database architecture), `CORRECTIONS.md` (code review and findings), `CS_DRILL_BUILD_SPEC.md` (the drill-system brief), `SKILLTAPE_INTEGRATION.md` (tutor-skill wiring), `PLAN_PLATFORMIZE.md` (platform roadmap). Several describe the target state; check this README's Features list for what actually runs. `AUTHORING.md` and `BACKEND.md` describe what to do today.
+
+---
+
+# Adding Course Content
+
+Course content lives under:
+
+```text
+src/data/topics/<course>/<topic>.js
+```
+
+Topics are imported by:
+
+```text
+src/data/curriculum.js
+```
+
+For the complete authoring rules, see [`docs/AUTHORING.md`](docs/AUTHORING.md).
+
+## Add a Course
+
+1. Add the course to `src/data/courses.js`.
+2. Give its topics the matching course ID.
+3. Add the course tab to `src/Shell.jsx`.
+
+## Add a Topic
+
+1. Create the topic file.
+2. Import it in `curriculum.js`.
+3. Include the `.js` extension in the import.
+4. Add it to the exported curriculum array.
+5. Add the topic's cards and questions.
+
+Each topic contains:
+
+- `cards` — Learn Mode material
+- `questions` — Quiz material
+
+## Key Terms
+
+Wrap important terms in double asterisks:
+
+```text
+**binary search tree**
+```
+
+These are rendered as bold text in Learn Mode and become blanks in Fill Mode.
+
+## Accepted Answers
+
+Fill Mode automatically normalizes:
+
+- Case
+- Spacing
+- Hyphens
+- Exponent notation
+- Plurals
+- Number words
+
+When a synonym cannot be derived automatically, specify additional accepted answers:
+
+```js
+accept: {
+  "O(n)": ["linear", "linear time"]
+}
+```
+
+## Figures
+
+Attach a figure to a card or question using:
+
+```js
+{
+  src,
+  alt,
+  caption
+}
+```
+
+Place the image under:
+
+```text
+public/figures/
+```
+
+---
+
+# Item Formats
+
+The item schema is defined in:
+
+```text
+src/data/itemSchema.js
+```
+
+It is validated by:
+
+```bash
+npm run audit:bank
+```
+
+The C++ topics have been migrated to the item system. The Discrete topics have not yet been fully migrated.
+
+Every migrated item should include provenance identifying:
+
+- Source
+- Stable anchor
+- Verbatim source excerpt
+
+Source anchors should not be renumbered or deleted once items reference them.
+
+## Target Distribution
+
+| Format | Target | Purpose |
+| --- | ---: | --- |
+| `recall` | 20% | Recall a definition or rule |
+| `write` | 20% | Produce code or a proof from a specification |
+| `trace` | 15% | Determine code output or final state |
+| `error` | 5% | Locate a bug and identify the violated rule |
+| `cloze` | 5% | Fill in a critical token |
+| `compare` | 5% | Distinguish between related concepts |
+| `complexity` | 5% | Determine Big-O and justify it |
+| `mcq` | 25% | Select the correct answer from four options |
+
+MCQs remain a meaningful part of the bank because they provide instant client-side grading and make existing course questions useful for spaced repetition.
+
+Where practical, MCQs should be paired with an open-ended version of the same concept. Recognition is easier than production, so the open-ended version provides the more demanding assessment.
+
+---
+
+# Documentation
+
+Additional documentation is located in `docs/`.
+
+| Document | Purpose |
+| --- | --- |
+| [`AUTHORING.md`](docs/AUTHORING.md) | How to create and edit course content |
+| [`BACKEND.md`](docs/BACKEND.md) | API, database, and authentication architecture |
+| [`CORRECTIONS.md`](docs/CORRECTIONS.md) | Code review findings and corrections |
+| [`CS_DRILL_BUILD_SPEC.md`](docs/CS_DRILL_BUILD_SPEC.md) | Drill-system specification |
+| [`SKILLTAPE_INTEGRATION.md`](docs/SKILLTAPE_INTEGRATION.md) | Tutor-skill integration |
+| [`PLAN_PLATFORMIZE.md`](docs/PLAN_PLATFORMIZE.md) | Multi-course and platform roadmap |
+| [`ROADMAP.md`](docs/ROADMAP.md) | Completed and planned work |
+
+Some documentation describes planned or partially implemented functionality. For current behavior, prioritize this README and the implementation itself.
+
+---
+
+# Important Notes
+
+## Course Materials
+
+Lecture slides, textbook PDFs, and zyBooks exports are intentionally excluded from the repository because they are copyrighted course materials.
+
+Before pushing, check for accidentally tracked course materials:
+
+```bash
+git ls-files | grep -Ei '\.pdf$|^pages/'
+```
+
+## Accounts and Progress
+
+SkillTape now includes a self-hosted Express + SQLite API and account system.
+
+Accounts are:
+
+- Optional for reading content
+- Optional for taking quizzes
+- Required for Edit Mode
+
+Progress is stored server-side and associated with the user's account.
+
+See [`docs/BACKEND.md`](docs/BACKEND.md) for the backend architecture.
+
+## Accuracy vs. Validation
+
+These systems perform different jobs:
+
+| System | Purpose |
+| --- | --- |
+| `npm run audit:bank` | Validates structure and required fields |
+| `npm run verify` | Human verification of factual accuracy |
+| `npm run db:seed` | Loads content into the database |
+
+**The audit does not prove that a question is correct.**
+
+Only human verification establishes the current accuracy status of a question.
+
+---
+
+# Current Development Status
+
+SkillTape is actively transitioning from its original C++-specific architecture into a multi-course study platform.
+
+The major pieces already in place include:
+
+- Multi-course navigation
+- React frontend
+- Express + SQLite backend
+- Account-based progress
+- Learn Mode
+- Fill Mode
+- Quiz Mode
+- Master Quiz
+- Flashcards
+- Question verification
+- Docker deployment
+- Electron desktop packaging
+- Windows release/update pipeline
+- Spaced-repetition infrastructure
+- Structured item schema
+
+Some of the more advanced item formats, scheduling state, per-item attempt logging, and full curriculum migration remain under development.
+
+For planned work, see [`docs/ROADMAP.md`](docs/ROADMAP.md) and [`docs/PLAN_PLATFORMIZE.md`](docs/PLAN_PLATFORMIZE.md).

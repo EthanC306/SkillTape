@@ -380,7 +380,7 @@ export default function DrillView({ course, onExit, ahead = false, inspector = f
 
   return (
     <DrillShell onEnd={endDrill}>
-      <div style={{ background: PALETTE.panel, border: `1px solid ${PALETTE.line}`, borderRadius: RADII.lg, padding: 20, maxWidth: 720, margin: "0 auto" }}>
+      <div style={{ background: PALETTE.panel, border: `1px solid ${PALETTE.line}`, borderRadius: RADII.lg, padding: 20, maxWidth: 980, margin: "0 auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 12, color: PALETTE.muted, marginBottom: 14 }}>
           <span>
             ITEM {index + 1} / {queue.length} · {item.format.toUpperCase()}
@@ -452,7 +452,7 @@ export default function DrillView({ course, onExit, ahead = false, inspector = f
               value={writtenAnswer}
               onChange={(e) => setWrittenAnswer(e.target.value)}
               placeholder="Write your answer here before revealing…"
-              rows={item.format === FORMATS.WRITE ? 6 : 4}
+              rows={item.format === FORMATS.WRITE ? 16 : 8}
               style={{
                 width: "100%",
                 boxSizing: "border-box",

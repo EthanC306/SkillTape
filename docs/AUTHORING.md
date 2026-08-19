@@ -240,6 +240,8 @@ Rarer, and it touches three files. Check `COURSES` in `src/data/courses.js` firs
 3. `src/Shell.jsx` — **the bottom tab bar is hardcoded**, not generated from `COURSES`. Tabs are keyed by their own ids (`"c++"`, `"cs3000"`) which are *not* the course ids, and each branch renders `<App key="…" course="…" />`. A new course needs a branch here or it will never be reachable.
 4. `scripts/auditBank.js` — add an `ALLOWLIST` entry keyed by the new course id, listing notation the content tripwire would otherwise flag.
 
+For a full beginner-facing walkthrough of these steps, with a worked example and a troubleshooting table, see [`ADDING-A-COURSE.md`](ADDING-A-COURSE.md).
+
 ---
 
 ## 10. Verifying

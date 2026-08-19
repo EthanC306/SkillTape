@@ -158,7 +158,17 @@ export class OllamaBadResponseError extends Error {
   }
 }
 
-async function postChat({ host, model, system, user, temperature, timeoutMs }) {
+// Ollama's default context is 4096 tokens, shared between prompt and output.
+// The grading system prompt alone is ~1.2k tokens before the item, the
+// reference answer, the rubric and the student's code go in; a long WRITE
+// answer pushes the whole thing past the window, the model's JSON gets
+// truncated mid-object, and the caller sees OllamaBadResponseError ("replied
+// with something that wasn't valid JSON") with no hint that the real cause
+// was running out of room. 8192 costs a little more KV cache and removes
+// that failure entirely.
+const DEFAULT_NUM_CTX = 8192;
+
+async function postChat({ host, model, system, user, temperature, timeoutMs, format, numCtx }) {
   host = resolveHost(host);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -170,7 +180,11 @@ async function postChat({ host, model, system, user, temperature, timeoutMs }) {
       signal: controller.signal,
       body: JSON.stringify({
         model,
-        format: "json",
+        // Either the string "json" (free-form JSON) or a JSON Schema object.
+        // A schema is compiled into a sampling grammar by Ollama, so the model
+        // *cannot* emit a wrong shape — which is what the callers here
+        // actually need: exactly one entry per rubric criterion, in order.
+        format,
         stream: false,
         keep_alive: KEEP_ALIVE_SEC,
         // Required, not a tuning knob. qwen3.5 and other hybrid-reasoning
@@ -183,7 +197,7 @@ async function postChat({ host, model, system, user, temperature, timeoutMs }) {
         // models, which matters because existing installs have qwen2.5
         // pinned in localStorage via useOllamaSettings.js.
         think: false,
-        options: { temperature },
+        options: { temperature, num_ctx: numCtx },
         messages: [
           { role: "system", content: system },
           { role: "user", content: user },
@@ -240,13 +254,19 @@ export async function chatJSON({
   user,
   temperature = 0.15,
   timeoutMs = 30000,
+  format = "json",
+  numCtx = DEFAULT_NUM_CTX,
 } = {}) {
   try {
-    return await postChat({ host, model, system, user, temperature, timeoutMs });
+    return await postChat({ host, model, system, user, temperature, timeoutMs, format, numCtx });
   } catch (err) {
     if (!(err instanceof OllamaBadResponseError)) throw err;
     const stricter = `${system}\n\nIMPORTANT: reply with ONLY the JSON object. No prose, no markdown fences, no explanation.`;
-    return await postChat({ host, model, system: stricter, user, temperature, timeoutMs });
+    // Retry without the schema. A schema Ollama can't compile (older builds,
+    // or a model whose sampler chokes on the grammar) fails exactly like a
+    // model that rambled, and falling back to plain JSON mode keeps grading
+    // working on those installs instead of reporting every item ungraded.
+    return await postChat({ host, model, system: stricter, user, temperature, timeoutMs, format: "json", numCtx });
   }
 }
 

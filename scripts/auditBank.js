@@ -166,6 +166,11 @@ const ALLOWLIST = {
     "∀", "∃", "¬", "∧", "∨", "→", "↔", "≡", "qed", "iff", "modulo",
     "contrapositive", "vacuously",
   ],
+  spring:[
+    "@springbootapplication", "@restcontroller", "@service", "@repository",
+    "@autowired", "@component", "@bean", "@entity", "bean", "pom.xml",
+    "maven", "gradle", "jpa", "http", "rest", "json",
+  ],
 };
 
 async function loadTopics() {

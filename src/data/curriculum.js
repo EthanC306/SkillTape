@@ -77,6 +77,10 @@ import discrete24Circuits from "./topics/discrete/2-4-circuits.js";
 import discrete25NumberSystems from "./topics/discrete/2-5-number-systems.js";
 import discreteVocabulary from "./topics/discrete/vocabulary.js";
 
+//Spring Boot
+import springVocabulary from "./topics/spring/vocabulary.js";
+
+
 const curriculum = [
   bigo,
   cstrings,
@@ -106,6 +110,8 @@ const curriculum = [
   discrete24Circuits,
   discrete25NumberSystems,
   discreteVocabulary,
+
+  springVocabulary,
 ];
 
 export default curriculum;

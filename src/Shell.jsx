@@ -1,30 +1,113 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import App from "./App";
 import UpdateBanner from "./components/UpdateBanner";
 import useUpdater from "./hooks/useUpdater";
+import { COURSES } from "./data/courses";
 import { PALETTE, MONO, HEADING, RADII, fadeDivider } from "./data/theme";
 
-/**
- * Shell — the app's home page.
- *
- * A single page with a tab bar pinned to the bottom. Three tabs:
- *   • "Home"   → the landing page with a link to the GitHub repo (tab === null).
- *   • "C++" → the tutor showing the C++ class topics.
- *   • "CS3000" → the tutor showing the Discrete Structures topics.
- *
- * The tab bar is rendered here, outside of <App>, so it stays on screen no matter
- * how deep the user navigates inside a course (topic list, Learn, or Quiz) — the
- * "Home" tab is always a one-click way out of whatever course/topic is open.
- *
- * On first load no course tab is selected, so the blank home page is shown.
- */
-export default function Shell() {
-  // Which bottom tab is active. `null` = the plain home page (nothing selected).
-  const [tab, setTab] = useState(null); // "c++" | "cs3000" | null
+// Shared look for the buttons in the bottom bar. `active` highlights the
+// button for the course you are currently reading.
+function barButtonStyle(active) {
+  const style = {
+    fontFamily: HEADING,
+    fontSize: 13,
+    letterSpacing: 1,
+    padding: "8px 20px",
+    borderRadius: RADII.md,
+    cursor: "pointer",
+    border: `1px solid ${PALETTE.line}`,
+    background: "transparent",
+    color: PALETTE.text,
+    fontWeight: 500,
+  };
 
-  // Only for the version badge below — the update banner subscribes on its own.
-  // `appVersion` is null outside Electron, which is what hides the badge there.
+  if (active) {
+    style.border = `1px solid ${PALETTE.accent}`;
+    style.background = PALETTE.accentSoft;
+    style.color = PALETTE.accent;
+  }
+
+  return style;
+}
+
+// One row inside the drop-up menu.
+function menuItemStyle(active) {
+  const style = {
+    display: "block",
+    width: "100%",
+    textAlign: "left",
+    padding: "8px 12px",
+    borderRadius: RADII.sm,
+    border: "none",
+    cursor: "pointer",
+    background: "transparent",
+    color: PALETTE.text,
+  };
+
+  if (active) {
+    style.background = PALETTE.accentSoft;
+    style.color = PALETTE.accent;
+  }
+
+  return style;
+}
+
+export default function Shell() {
+  // `course` is a course id from COURSES, or null while on the home screen.
+  const [course, setCourse] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   const { appVersion } = useUpdater();
+
+  // Close the menu when you click somewhere else, or press Escape.
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    function handleClick(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    }
+
+    function handleKey(event) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [menuOpen]);
+
+  function openCourse(id) {
+    setCourse(id);
+    setMenuOpen(false);
+  }
+
+  function goHome() {
+    setCourse(null);
+    setMenuOpen(false);
+  }
+
+  // The course object for the label on the menu button.
+  const selectedCourse = COURSES.find((entry) => entry.id === course);
+
+  let menuLabel = "Choose a class";
+  if (selectedCourse) {
+    menuLabel = selectedCourse.title;
+  }
+
+  let menuArrow = "\u25B4";
+  if (menuOpen) {
+    menuArrow = "\u25BE";
+  }
 
   return (
     <div
@@ -36,19 +119,11 @@ export default function Shell() {
         color: PALETTE.text,
       }}
     >
-      {/* Auto-update notice. Renders null unless the Electron shell is actually
-          downloading or has staged an update, so it costs nothing in the
-          browser/Docker paths. Above the content div so it displaces the page
-          rather than covering it. */}
       <UpdateBanner />
 
-      {/* Active view fills the space above the tab bar. Each class tab renders
-          the tutor filtered to that course; no tab yet = the blank home page. */}
       <div style={{ flex: 1, minHeight: 0 }}>
-        {tab === "c++" ? (
-          <App key="c++" course="cpp" />
-        ) : tab === "cs3000" ? (
-          <App key="cs3000" course="discrete" />
+        {course ? (
+          <App key={course} course={course} />
         ) : (
           <div
             style={{
@@ -77,9 +152,6 @@ export default function Shell() {
                 maxWidth: 480,
               }}
             >
-              {/* App logo. Lives in public/icons/, so Vite serves it from the
-                  site root in dev, in the build, and in Electron (which loads
-                  the app over http, not file://). */}
               <img
                 src="/icons/256x256.png"
                 alt="SkillTape"
@@ -93,59 +165,83 @@ export default function Shell() {
                   marginBottom: 10,
                 }}
               />
-              <div style={{ fontFamily: HEADING, fontSize: 12, fontWeight: 600, color: PALETTE.accent }}>
+
+              <div
+                style={{
+                  fontFamily: HEADING,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: PALETTE.accent,
+                }}
+              >
                 Question what you know
               </div>
-              <div style={{ fontFamily: MONO, fontSize: 32, color: PALETTE.muted }}>
+
+              <div
+                style={{
+                  fontFamily: MONO,
+                  fontSize: 32,
+                  color: PALETTE.muted,
+                }}
+              >
                 A quiet place to review your coursework.
               </div>
-              <div style={{ fontFamily: MONO, fontSize: 13, color: PALETTE.muted }}>
-                Pick a class below to read through topic notes, drill yourself with fill-in-the-blank recall, or run a multiple-choice quiz.
+
+              <div
+                style={{
+                  fontFamily: MONO,
+                  fontSize: 13,
+                  color: PALETTE.muted,
+                }}
+              >
+                Pick a class below to read through topic notes, drill yourself
+                with fill-in-the-blank recall, or run a multiple-choice quiz.
               </div>
             </div>
-            {/* GitHub link + the installed version. The version is the permanent
-                replacement for the temporary purple smoke-test bar index.html
-                used to carry: after an update installs, this number changing is
-                the proof the loop closed. Hidden outside Electron, where
-                `appVersion` is null — a browser tab has no "installed version"
-                to speak of. */}
+
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <a
-              href="https://github.com/EthanC306/SkillTape"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                fontFamily: HEADING,
-                fontWeight: 500,
-                fontSize: 13,
-                letterSpacing: 1,
-                padding: "8px 20px",
-                borderRadius: RADII.md,
-                cursor: "pointer",
-                border: `1px solid ${PALETTE.line}`,
-                background: "transparent",
-                color: PALETTE.text,
-                textDecoration: "none",
-                textTransform: "none",
-              }}
-            >
-              {/* GitHub octocat mark (inline SVG so no asset/network needed). */}
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                aria-hidden="true"
+              <a
+                href="https://github.com/EthanC306/SkillTape"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontFamily: HEADING,
+                  fontWeight: 500,
+                  fontSize: 13,
+                  letterSpacing: 1,
+                  padding: "8px 20px",
+                  borderRadius: RADII.md,
+                  cursor: "pointer",
+                  border: `1px solid ${PALETTE.line}`,
+                  background: "transparent",
+                  color: PALETTE.text,
+                  textDecoration: "none",
+                  textTransform: "none",
+                }}
               >
-                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
-              </svg>
-              View on GitHub
-            </a>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                </svg>
+                View on GitHub
+              </a>
+
               {appVersion && (
-                <span style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted }}>
+                <span
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: 12,
+                    color: PALETTE.muted,
+                  }}
+                >
                   v{appVersion}
                 </span>
               )}
@@ -154,9 +250,6 @@ export default function Shell() {
         )}
       </div>
 
-      {/* Bottom tab bar. A fading rule stands in for the old solid border-top.
-          `.app-chrome` is what index.html's drill-mode rule hides when
-          document.body.dataset.drillActive is set (ROADMAP.md A1/A4). */}
       <nav
         className="app-chrome"
         style={{
@@ -167,34 +260,66 @@ export default function Shell() {
           background: `${fadeDivider()} no-repeat top / 100% 1px, ${PALETTE.panel}`,
         }}
       >
-        {[
-          [null, "Home"],
-          ["c++", "C++"],
-          ["cs3000", "Discrete"],
-        ].map(([id, label]) => {
-          const active = tab === id;
-          return (
-            <button
-              key={label}
-              type="button"
-              onClick={() => setTab(id)}
+        <button type="button" onClick={goHome} style={barButtonStyle(course === null)}>
+          Home
+        </button>
+
+        <div ref={menuRef} style={{ position: "relative" }}>
+          <button
+            type="button"
+            aria-haspopup="listbox"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={barButtonStyle(selectedCourse !== undefined)}
+          >
+            {menuLabel} {menuArrow}
+          </button>
+
+          {menuOpen && (
+            <div
+              role="listbox"
               style={{
-                fontFamily: HEADING,
-                fontSize: 13,
-                letterSpacing: 1,
-                padding: "8px 20px",
+                position: "absolute",
+                bottom: "calc(100% + 8px)",
+                left: "50%",
+                transform: "translateX(-50%)",
+                minWidth: 240,
+                maxHeight: 320,
+                overflowY: "auto",
+                padding: 6,
                 borderRadius: RADII.md,
-                cursor: "pointer",
-                border: `1px solid ${active ? PALETTE.accent : PALETTE.line}`,
-                background: active ? PALETTE.accentSoft : "transparent",
-                color: active ? PALETTE.accent : PALETTE.text,
-                fontWeight: 500,
+                border: `1px solid ${PALETTE.line}`,
+                background: PALETTE.panel,
+                boxShadow: "0 12px 32px rgba(0, 0, 0, 0.35)",
+                zIndex: 50,
               }}
             >
-              {label}
-            </button>
-          );
-        })}
+              {COURSES.map((entry) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  role="option"
+                  aria-selected={course === entry.id}
+                  onClick={() => openCourse(entry.id)}
+                  style={menuItemStyle(course === entry.id)}
+                >
+                  <div style={{ fontFamily: HEADING, fontSize: 13 }}>
+                    {entry.title}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: MONO,
+                      fontSize: 11,
+                      color: PALETTE.muted,
+                    }}
+                  >
+                    {entry.subtitle}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </nav>
     </div>
   );
