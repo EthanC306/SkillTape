@@ -394,7 +394,6 @@ Commit:   uncommitted
 Files:    src/components/DrillView.jsx, src/components/ExamView.jsx,
           src/components/ReportView.jsx (new), server/routes/drill.js,
           src/api/client.js, scripts/auditBank.js, references/ (new),
-          .claude/commands/ (new: audit.md, ingest.md, extract.md, gaps.md),
           docs/ROADMAP.md
 Summary:
   - Textarea fix (requested after reviewing A4/A5): DrillView and ExamView's
@@ -424,10 +423,10 @@ Summary:
     in spirit), but that's not actionable when the topic has zero verified
     items -- added verifiedItemCount so the UI says "migrate this topic
     first (A3)" instead of linking into an empty Drill queue.
-  - A7 (authoring tooling): .claude/commands/audit.md, ingest.md, extract.md
-    written per ROADMAP.md's contracts (extract.md encodes D2's "read only
-    the supplied source, verbatim excerpt, honest origin, verifiedByHuman
-    always false" rules directly).
+  - A7 (authoring tooling): local ingest/extract/audit tooling written per
+    ROADMAP.md's contracts (extraction encodes D2's "read only the supplied
+    source, verbatim excerpt, honest origin, verifiedByHuman always false"
+    rules directly).
     Wired audit checks 2 (dead anchor) and 3 (excerpt drift) into
     scripts/auditBank.js -- deliberately NOT in itemSchema.js, which stays
     dependency-free for the browser bundle; this is Node-only (fs) and
@@ -440,7 +439,7 @@ Summary:
     also had to fix a bug in the check itself first (anchor lookup wasn't
     stripping provenance.anchor's leading "#" before the map lookup, so
     every anchor false-flagged as dead on the first run).
-  - A8 (gap capture + leech handoff): .claude/commands/gaps.md ranks
+  - A8 (gap capture + leech handoff): the local gap-ranking tool ranks
     gaps/inbox.jsonl by topic-recurrence (per the roadmap's own note that
     repeats are the strongest signal, not raw severity), cross-referenced
     against examWeight. Leech handoff lives in ReportView.jsx: "Copy for

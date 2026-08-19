@@ -61,3 +61,7 @@ pnpm-debug.log*
 
 # --- CLAUDE ---
 .claude/CLAUDEE.md
+
+# --- Editor / agent config (kept local) ---
+.claude/
+.cursor/

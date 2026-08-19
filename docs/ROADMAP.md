@@ -72,7 +72,7 @@ What is actually true in the repo today, against what the docs assume.
 
 ### Not started
 
-`sources/` · `references/cpp-conventions.md` · `.claude/commands/` · provenance on any card or item · `examWeight` on `discrete` topics · attempts log · scheduler · `DrillView` · exam simulator · reporting · the entire platform track.
+`sources/` · `references/cpp-conventions.md` · local authoring tooling · provenance on any card or item · `examWeight` on `discrete` topics · attempts log · scheduler · `DrillView` · exam simulator · reporting · the entire platform track.
 
 ---
 
@@ -103,7 +103,7 @@ So the axis moved from *who wrote it* to *can it be verified*.
 
 *Consequences:*
 - `ITEM_ORIGIN.GENERATED` is **legal for cpp/discrete**. This knowingly supersedes CORRECTIONS §3.1's promise that generation stays off GPA-critical material — the promise is replaced by a stronger one: nothing enters rotation unverified, whoever wrote it.
-- `/extract` (A7) **may phrase items** from your source text, not merely transform them mechanically. It must still set `provenance` with an anchored verbatim excerpt and leave `verifiedByHuman: false`.
+- The extraction tooling (A7) **may phrase items** from your source text, not merely transform them mechanically. It must still set `provenance` with an anchored verbatim excerpt and leave `verifiedByHuman: false`.
 - The audit already enforces the remaining half: generated items need `generationMeta`, and `validateItem` warns on any generated item that is unverified. **`verifiedByHuman: true` is now the only thing standing between a model and your exam prep** — §7 rule 2 is load-bearing, not ceremonial.
 - The platform track's "✨ Generate quiz with AI" button (B4) is no longer in tension with the personal track. One policy, both tracks.
 
@@ -294,27 +294,21 @@ Target ≥85% closed-book on every topic with `examWeight >= 1.0` before an exam
 ### A7 — Authoring tooling
 Only after one topic has been migrated by hand. `SKILLTAPE_INTEGRATION` §6.6: *"before scaling past one topic."*
 
-1. **`references/cpp-conventions.md`** — lift the  skill's "course code conventions" section **verbatim**: C++11/14 only · `using DataType = ...` · full getter/setter interface · cursor traversal idiom · const-correctness · `nullptr` never `NULL` · `using namespace std;` · no `#include <string>` · includes limited to `<cstdlib> <iomanip> <iostream> <fstream>` · attached opening brace · `} // main` and `#endif` closers. Both the tutor skill and `/extract` read this file; **neither keeps a private copy** — a second copy guarantees drift, and drift means items that don't match the exam.
-2. **`.claude/commands/`**:
-
-| Command | Does | Per Integration §3 |
-| --- | --- | --- |
-| `/audit` | runs `npm run audit:bank` | "Now — it's a one-liner" |
-| `/ingest <file>` | formats a pasted section into frontmatter + `{#anchor}` headings under `sources/` | "Write this first" |
-| `/extract <source> <topic-file>` | reads the source, appends items with provenance and `verifiedByHuman: false` | "The main one" |
+1. **`references/cpp-conventions.md`** — lift the  skill's "course code conventions" section **verbatim**: C++11/14 only · `using DataType = ...` · full getter/setter interface · cursor traversal idiom · const-correctness · `nullptr` never `NULL` · `using namespace std;` · no `#include <string>` · includes limited to `<cstdlib> <iomanip> <iostream> <fstream>` · attached opening brace · `} // main` and `#endif` closers. Both the tutor skill and the extraction tooling read this file; **neither keeps a private copy** — a second copy guarantees drift, and drift means items that don't match the exam.
+2. **Local authoring tooling** (untracked) — three operations, per Integration §3: run `npm run audit:bank`; format a pasted section into frontmatter + `{#anchor}` headings under `sources/`; and read a source to append items with provenance and `verifiedByHuman: false`.
 
 3. Once `sources/` exists, wire audit checks 2 (dead anchor) and 3 (excerpt drift) — the latter catches a source edit silently invalidating items.
 
-`/drill` is deliberately **not** on this list: drilling happens in the app, closed-book, with the timer and hidden navigation. *A terminal can't hide your browser.*
+Drilling from the terminal is deliberately **not** on this list: it happens in the app, closed-book, with the timer and hidden navigation. *A terminal can't hide your browser.*
 
 **Done when:** a new section goes source → items → clean audit without hand-writing JSON.
 
-**Per D2, `/extract` may phrase items**, not merely transform them mechanically. Its contract: read only the supplied source text, set `provenance` with an anchored verbatim excerpt, set `origin` honestly (`GENERATED` when it phrased, `EXTRACTED` when it transformed), attach `generationMeta`, and always leave `verifiedByHuman: false`. It must never state a fact absent from the section; where the source is ambiguous it flags the ambiguity rather than resolving it (`CS_DRILL` §8 Phase 3). Your verification pass is the only accuracy guarantee in the pipeline.
+**Per D2, extraction may phrase items**, not merely transform them mechanically. Its contract: read only the supplied source text, set `provenance` with an anchored verbatim excerpt, set `origin` honestly (`GENERATED` when it phrased, `EXTRACTED` when it transformed), attach `generationMeta`, and always leave `verifiedByHuman: false`. It must never state a fact absent from the section; where the source is ambiguous it flags the ambiguity rather than resolving it (`CS_DRILL` §8 Phase 3). Your verification pass is the only accuracy guarantee in the pipeline.
 
 **✅ Done (2026-08-01)
 
 ### A8 — Gap capture, then leech handoff
-1. **Gap capture** (§1.1) — the tutor skill appends a gap record to `gaps/inbox.jsonl` (`ts`, `topic_guess`, `what_broke`, `source_hint`, `severity`) whenever something doesn't stick. It logs *what needs drilling, never the content that drills it* — the tutor doesn't have the source text in front of it, so it would be recalling from training data with nothing to verify against. `/gaps` ranks the inbox and says what to ingest next. **Repeated gap records on one topic are the strongest available signal about where the next exam will hurt.**
+1. **Gap capture** (§1.1) — the tutor skill appends a gap record to `gaps/inbox.jsonl` (`ts`, `topic_guess`, `what_broke`, `source_hint`, `severity`) whenever something doesn't stick. It logs *what needs drilling, never the content that drills it* — the tutor doesn't have the source text in front of it, so it would be recalling from training data with nothing to verify against. The gap-ranking tool reads the inbox and says what to ingest next. **Repeated gap records on one topic are the strongest available signal about where the next exam will hurt.**
 2. **Leech handoff** (§1.2) — a "copy for tutor" button on any flagged leech, putting prompt, `expected`, `criteria`, source excerpt, citation, and full attempt history on the clipboard. Paste into Claude Code; the tutor's existing homework-verification protocol handles it. Then pick one:
 
 | Outcome | When | Action |
@@ -325,7 +319,7 @@ Only after one topic has been migrated by hand. `SKILLTAPE_INTEGRATION` §6.6: *
 
 **Build order matters:** the handoff needs attempt history to hand over, so it comes after A4 has been running a while.
 
-**✅ Done (2026-08-01), one of three outcomes.** `.claude/commands/gaps.md` ranks `gaps/inbox.jsonl` by topic-recurrence (per this section's own note: "repeated gap records... strongest available signal") rather than raw `severity`, cross-referenced against `examWeight` where known. The leech handoff lives in `ReportView.jsx`'s Leeches section: "Copy for tutor" builds exactly the bundle this section specifies (prompt, `expected`, `criteria`, source excerpt, citation, full attempt history) onto the clipboard via `GET /api/drill/report`'s leech detail; "Reset scheduling state" calls `POST /api/drill/leeches/:itemId/reset`, which deletes the item's `item_review_state` row — equivalent to "never reviewed," so it re-enters rotation immediately. **Not built:** "Rewrite the item" and "split the fact" — both are content edits (prompt/criteria/retiring an item), and there's no item content editor yet; that's A7-adjacent authoring-UI scope (Track B's B3 "Module Builder" territory) that was never part of this phase's spec, just correctly flagged in the UI as still needing a direct file edit.
+**✅ Done (2026-08-01), one of three outcomes.** The local gap-ranking tool ranks `gaps/inbox.jsonl` by topic-recurrence (per this section's own note: "repeated gap records... strongest available signal") rather than raw `severity`, cross-referenced against `examWeight` where known. The leech handoff lives in `ReportView.jsx`'s Leeches section: "Copy for tutor" builds exactly the bundle this section specifies (prompt, `expected`, `criteria`, source excerpt, citation, full attempt history) onto the clipboard via `GET /api/drill/report`'s leech detail; "Reset scheduling state" calls `POST /api/drill/leeches/:itemId/reset`, which deletes the item's `item_review_state` row — equivalent to "never reviewed," so it re-enters rotation immediately. **Not built:** "Rewrite the item" and "split the fact" — both are content edits (prompt/criteria/retiring an item), and there's no item content editor yet; that's A7-adjacent authoring-UI scope (Track B's B3 "Module Builder" territory) that was never part of this phase's spec, just correctly flagged in the UI as still needing a direct file edit.
 
 ### A9 — Scale extraction
 Work the A2 queue in A0's priority order until every `examWeight >= 1.0` topic has ≥3 verified items (`CS_DRILL` §7 check 7).
@@ -524,7 +518,7 @@ Every substantive idea in the four documents, and its destination. **Nothing is 
 | §3 `sources/` tree | A3, A7 — **kept** |
 | §3 `atoms/` + `items/` dirs, `db/`, `src/{extract,generate,validate,drill,exam,report}` | **SUPERSEDED** — Integration §0 ("no `atoms/` layer"). Atomicity survives as §7 rule 6; provenance lives inline in topic files per CORR §4.1 |
 | §3 `curriculum.yaml` | **SUPERSEDED** — Integration §5: weights go on topic objects (A0) |
-| §3 `.claude/skills/`, `.claude/commands/` | A7 |
+| §3 authoring tooling layout | A7 |
 | §4 source file format (frontmatter + `{#anchor}`, never renumber) | A3, A7 — **kept verbatim** |
 | §4 manual ingestion rationale | §7 rule 7 |
 | §5 `topics`/`atoms`/`items`/`attempts`/`schedule` tables | Shapes survive as JS objects: items → `itemSchema.js` (**done**), attempts → A4, schedule → A4, weights → A0 |
@@ -537,8 +531,8 @@ Every substantive idea in the four documents, and its destination. **Nothing is 
 | §7 check 7 (coverage gap) | A9 — blocked on `examWeight` |
 | §8 Phase 1 scaffold | **SUPERSEDED** (no CLI/DB) |
 | §8 Phase 2 ingest + hand-built pilot | A3 |
-| §8 Phase 3 atom-extractor skill | A7 `/extract` (atoms layer dropped, extraction discipline kept) |
-| §8 Phase 4 item-writer skill + C++ house style | A7 (`/extract` + conventions file) |
+| §8 Phase 3 atom-extractor skill | A7 extraction (atoms layer dropped, extraction discipline kept) |
+| §8 Phase 4 item-writer skill + C++ house style | A7 (extraction + conventions file) |
 | §8 Phase 5 drill loop | A4 |
 | §8 Phase 5 Leitner (the specific algorithm) | **D10 — superseded.** FSRS replaces Leitner |
 | §8 Phase 6 exam simulator | **A5 — kept** (D6), re-homed from CLI to in-app |
@@ -591,8 +585,8 @@ Every substantive idea in the four documents, and its destination. **Nothing is 
 | §1.2 leech handoff, "copy for tutor", 3 outcomes | A8 |
 | §2 conventions file, single source of truth | A7 |
 | §3 SessionStart hook can't work; 3 options | **D4** |
-| §3 slash commands `/ingest` `/extract` `/gap` `/gaps` `/audit` | A7, A8 |
-| §3 `/drill` removed | **Confirmed dropped** — drilling is in-app |
+| §3 authoring command set | A7, A8 |
+| §3 terminal drilling removed | **Confirmed dropped** — drilling is in-app |
 | §3 notifications (2 events only) | Deferred — depends on D4 option 2 |
 | §4 keep repos separate; attempts shape rhymes with macro tracking | §7 rule 9 |
 | §4 skip React Native | **D3** |
@@ -612,8 +606,8 @@ D1, D2, D5, D6, and D10 are settled, which unblocks the whole of Track A through
 5. **A4 — drill mode.** ✅ Done (2026-08-01), with a follow-up: added a typed-answer textarea for self-graded formats so grading happens against something actually written, not silent recall (see A4's [UPDATED] note). Attempt log + FSRS scheduler (`server/fsrs.js`, via `ts-fsrs`) + `DrillView` + JSON export/import. **The phase that actually addresses the 53% is now live.**
 6. **A5 — exam simulator.** ✅ Done (2026-08-01), same textarea follow-up as A4. examWeight-sampled, mixed-topic exam with a hard timer, no feedback until the end, post-hoc self/auto-grading, and a per-topic report compared against closed-book drill accuracy.
 7. **A6 — reporting.** ✅ Done (2026-08-01) — the standing dashboard: topics × formats coverage grid, closed-book first-try accuracy per topic, examWeight-ranked "study these next," leech list. `ReportView.jsx`, entry point next to Drill/Exam.
-8. **A7 — authoring tooling.** ✅ Done (2026-08-01), one caveat — `/audit`, `/ingest`, `/extract` slash commands, and audit checks 2/3 (dead anchor, excerpt drift) wired and confirmed working (caught two real excerpt-drift bugs in existing A3 content on first run). `references/cpp-conventions.md` is a reconstruction from this doc's own summary, not a true verbatim lift — the source skill isn't installed in this environment. Flagged in the file itself.
-9. **A8 — gap capture, then leech handoff.** ✅ Done (2026-08-01) for capture-ranking and 1 of 3 leech-handoff outcomes — `/gaps`, and `ReportView.jsx`'s "copy for tutor" + "reset scheduling state." "Rewrite the item" / "split the fact" need a content editor that doesn't exist yet (A7-adjacent, out of this phase's scope).
+8. **A7 — authoring tooling.** ✅ Done (2026-08-01), one caveat — the authoring tooling, and audit checks 2/3 (dead anchor, excerpt drift) wired and confirmed working (caught two real excerpt-drift bugs in existing A3 content on first run). `references/cpp-conventions.md` is a reconstruction from this doc's own summary, not a true verbatim lift — the source skill isn't installed in this environment. Flagged in the file itself.
+9. **A8 — gap capture, then leech handoff.** ✅ Done (2026-08-01) for capture-ranking and 1 of 3 leech-handoff outcomes — gap ranking, and `ReportView.jsx`'s "copy for tutor" + "reset scheduling state." "Rewrite the item" / "split the fact" need a content editor that doesn't exist yet (A7-adjacent, out of this phase's scope).
 10. **A9 — scale extraction.** 🟡 Mostly done (2026-08-01) — 8 of 11 remaining `cpp` topics (dynamic-arrays, dynamic-classes, linked-lists, linked-lists-algorithms, doubly-linked-lists, templates, iterators, stacks) now have real sources and verified items, on top of `dynamic-alloc` from A3. `bigo`, `cstrings`, `containers`, and the whole `discrete` course are still blocked on missing source material — no items were fabricated for them.
 
 **Still open, each blocking only its own phase:** D3 (React Native — recommend skip), D4 (SessionStart nudge — recommend option 1; the JSON export A4 shipped covers the "cheapest insurance" half regardless). D7 and D9 are Track B and parked by D5.
