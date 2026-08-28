@@ -50,7 +50,7 @@ This file holds the list of course cards. Add one entry to the `COURSES` array:
 ```js
 export const COURSES = [
   { id: "cpp", title: "C++", subtitle: "Computer Science Intro" },
-  { id: "discrete", title: "Discrete Structures", subtitle: "Epp — Discrete Mathematics 5e" },
+  { id: "discrete", title: "Discrete Structures", subtitle: "Epp — Discrete Mathematics" },
   { id: "spring", title: "Spring Boot", subtitle: "Java — Spring Boot" },   // ← new
 ];
 ```

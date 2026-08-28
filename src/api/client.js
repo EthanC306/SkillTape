@@ -68,6 +68,13 @@ export function invalidateTopics() {
   topicsPromise = null;
 }
 
+export function postTopic(course, title, subtitle) {
+  return api("/api/topics", {
+    method: "POST",
+    body: { course, title, subtitle },
+  });
+}
+
 export function putCards(topicId, cards) {
   return api(`/api/topics/${encodeURIComponent(topicId)}/cards`, {
     method: "PUT",

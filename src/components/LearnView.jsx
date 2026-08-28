@@ -189,6 +189,7 @@ export default function LearnView({ topic, editMode, onSave, saveState, register
                 onChange={(next) => updateCard(i, next)}
                 onMove={moveCard}
                 onDelete={deleteCard}
+                mathEnabled={topic.course === "calcII"}
               />
             ) : (
               <>

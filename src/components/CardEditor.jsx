@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 import Inline from "./Inline";
 import { toggleBold, validateBody } from "../utils/blankEdit";
+import MathKeyboard from "./MathKeyboard";
 
 /**
  * CardEditor — one Learn card, editable in place.
@@ -19,7 +20,8 @@ import { toggleBold, validateBody } from "../utils/blankEdit";
  *   onMove    — (index, delta) => void
  *   onDelete  — (index) => void
  */
-export default function CardEditor({ card, index, total, onChange, onMove, onDelete }) {
+export default function CardEditor({ card, index, total, onChange, onMove, onDelete, mathEnabled = false }) {
+  const headingRef = useRef(null);
   const bodyRef = useRef(null);
   // Selection to restore after the next render. React re-renders the textarea
   // from `value` on every keystroke and that drops the caret to the end, so a
@@ -89,6 +91,7 @@ export default function CardEditor({ card, index, total, onChange, onMove, onDel
       {/* Heading + card controls */}
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <input
+          ref={headingRef}
           value={card.heading ?? ""}
           onChange={(e) => set({ heading: e.target.value })}
           placeholder="Card heading"
@@ -129,6 +132,7 @@ export default function CardEditor({ card, index, total, onChange, onMove, onDel
           ✕
         </button>
       </div>
+      {mathEnabled && <MathKeyboard inputRef={headingRef} value={card.heading ?? ""} onChange={(heading) => set({ heading })} label="math keyboard for card heading" />}
 
       {/* Body */}
       <textarea
@@ -147,6 +151,7 @@ export default function CardEditor({ card, index, total, onChange, onMove, onDel
         aria-label="card body"
         style={{ ...field, resize: "vertical" }}
       />
+      {mathEnabled && <MathKeyboard inputRef={bodyRef} value={body} onChange={(nextBody) => set({ body: nextBody })} label="math keyboard for card body" />}
 
       {/* Toolbar + live blank count */}
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>

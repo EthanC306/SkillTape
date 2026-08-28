@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 import DueStrip from "./fsrs/DueStrip";
 
@@ -58,7 +58,32 @@ export default function Home({
   onReviewAhead,
   onLab,
   showDueStrip = true,
+  onAddDeck,
 }) {
+  const [addingDeck, setAddingDeck] = useState(false);
+  const [deckTitle, setDeckTitle] = useState("");
+  const [deckSubtitle, setDeckSubtitle] = useState("");
+  const [deckState, setDeckState] = useState(null);
+
+  function closeDeckDialog() {
+    if (deckState === "saving") return;
+    setAddingDeck(false);
+    setDeckTitle("");
+    setDeckSubtitle("");
+    setDeckState(null);
+  }
+
+  async function submitDeck(event) {
+    event.preventDefault();
+    if (!deckTitle.trim() || deckState === "saving") return;
+    setDeckState("saving");
+    try {
+      await onAddDeck({ title: deckTitle.trim(), subtitle: deckSubtitle.trim() });
+      closeDeckDialog();
+    } catch (error) {
+      setDeckState(error.message);
+    }
+  }
   const ctrlBtn = (active) => ({
     fontFamily: HEADING,
     fontSize: 12,
@@ -303,7 +328,83 @@ export default function Home({
             </div>
           );
         })}
+        {/* Reserved topic action. Intentionally inert for now: this establishes
+            its position and visual footprint before any creation flow exists. */}
+        <button
+          type="button"
+          aria-label="Add topic"
+          onClick={() => setAddingDeck(true)}
+          style={{
+            width: 128,
+            height: 128,
+            margin: "0 0 0 8px",
+            justifySelf: "start",
+            alignSelf: "center",
+            display: "grid",
+            placeItems: "center",
+            padding: 0,
+            border: `1px solid ${PALETTE.line}`,
+            borderRadius: RADII.lg,
+            background: "transparent",
+            color: PALETTE.muted,
+            fontFamily: MONO,
+            fontSize: 48,
+            fontWeight: 300,
+            lineHeight: 1,
+            cursor: "pointer",
+          }}
+        >
+          +
+        </button>
       </div>
+      {addingDeck && (
+        <div
+          role="presentation"
+          onMouseDown={(event) => { if (event.target === event.currentTarget) closeDeckDialog(); }}
+          style={{ position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 20, background: "rgba(8, 9, 16, 0.72)" }}
+        >
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-deck-title"
+            onSubmit={submitDeck}
+            style={{ width: "min(440px, 100%)", boxSizing: "border-box", display: "grid", gap: 16, padding: "24px 26px", border: `1px solid ${PALETTE.line}`, borderRadius: RADII.lg, background: PALETTE.panel, color: PALETTE.text }}
+          >
+            <div>
+              <div id="new-deck-title" style={{ fontFamily: HEADING, fontSize: 20, fontWeight: 600, marginBottom: 5 }}>New card deck</div>
+              <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>Create an empty deck in this course, then open it to add cards.</div>
+            </div>
+            <label style={{ display: "grid", gap: 6, fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>
+              TITLE
+              <input
+                autoFocus
+                value={deckTitle}
+                onChange={(event) => setDeckTitle(event.target.value)}
+                maxLength={200}
+                placeholder="Integration techniques"
+                style={{ boxSizing: "border-box", width: "100%", padding: "10px 12px", border: `1px solid ${PALETTE.line}`, borderRadius: RADII.md, background: PALETTE.bg, color: PALETTE.text, fontFamily: HEADING, fontSize: 15 }}
+              />
+            </label>
+            <label style={{ display: "grid", gap: 6, fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>
+              SUBTITLE
+              <input
+                value={deckSubtitle}
+                onChange={(event) => setDeckSubtitle(event.target.value)}
+                maxLength={200}
+                placeholder="Methods and common forms"
+                style={{ boxSizing: "border-box", width: "100%", padding: "10px 12px", border: `1px solid ${PALETTE.line}`, borderRadius: RADII.md, background: PALETTE.bg, color: PALETTE.text, fontFamily: MONO, fontSize: 13 }}
+              />
+            </label>
+            {deckState && deckState !== "saving" && <div role="alert" style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.bad }}>{deckState}</div>}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button type="button" onClick={closeDeckDialog} disabled={deckState === "saving"} style={ctrlBtn(false)}>Cancel</button>
+              <button type="submit" disabled={!deckTitle.trim() || deckState === "saving"} style={{ ...ctrlBtn(Boolean(deckTitle.trim())), opacity: deckTitle.trim() && deckState !== "saving" ? 1 : 0.5 }}>
+                {deckState === "saving" ? "Adding…" : "Add +"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

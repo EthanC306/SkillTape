@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PALETTE, MONO, HEADING, DISPLAY, RADII } from "../data/theme";
 import Inline from "./Inline";
+import MathKeyboard from "./MathKeyboard";
 
 /**
  * FlashcardsView — a flip-through deck for a topic's `flashcards` array.
@@ -172,6 +173,7 @@ function newCardId() {
  */
 function FlashcardEditor({ topic, onSave, saveState, registerEditor }) {
   const [draft, setDraft] = useState(null);
+  const fieldRefs = React.useRef({});
 
   // Every card in the draft is guaranteed to have an id, so the React key below
   // can rely on one. The server backfilled the deck it serves, so the `??` only
@@ -325,6 +327,7 @@ function FlashcardEditor({ topic, onSave, saveState, registerEditor }) {
               {i + 1}
             </span>
             <input
+              ref={(node) => { fieldRefs.current[`${c.id}:front`] = node; }}
               value={c.front ?? ""}
               onChange={(e) => update(i, { front: e.target.value })}
               placeholder="Front — the prompt"
@@ -355,8 +358,12 @@ function FlashcardEditor({ topic, onSave, saveState, registerEditor }) {
               ✕
             </button>
           </div>
+          {topic.course === "calcII" && (
+            <MathKeyboard inputRef={{ get current() { return fieldRefs.current[`${c.id}:front`]; } }} value={c.front ?? ""} onChange={(front) => update(i, { front })} label={`math keyboard for flashcard ${i + 1} front`} />
+          )}
           {/* pre-wrap in the reader, so keep it a textarea — backs carry line breaks. */}
           <textarea
+            ref={(node) => { fieldRefs.current[`${c.id}:back`] = node; }}
             value={c.back ?? ""}
             onChange={(e) => update(i, { back: e.target.value })}
             rows={Math.min(8, Math.max(2, Math.ceil((c.back?.length ?? 0) / 70)))}
@@ -364,6 +371,9 @@ function FlashcardEditor({ topic, onSave, saveState, registerEditor }) {
             aria-label="flashcard back"
             style={{ ...field, resize: "vertical" }}
           />
+          {topic.course === "calcII" && (
+            <MathKeyboard inputRef={{ get current() { return fieldRefs.current[`${c.id}:back`]; } }} value={c.back ?? ""} onChange={(back) => update(i, { back })} label={`math keyboard for flashcard ${i + 1} back`} />
+          )}
         </div>
       ))}
 

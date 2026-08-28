@@ -38,6 +38,15 @@ const getTopic = db.prepare(`
   FROM topics WHERE id = ?
 `);
 
+const getCourse = db.prepare("SELECT id FROM courses WHERE id = ?");
+const getNextTopicPosition = db.prepare(
+  "SELECT COALESCE(MAX(position), -1) + 1 AS position FROM topics WHERE course_id = ?"
+);
+const insertTopic = db.prepare(`
+  INSERT INTO topics (id, course_id, title, subtitle, show_chart, position, exam_weight)
+  VALUES (@id, @course_id, @title, @subtitle, 0, @position, 1.0)
+`);
+
 const getCards = db.prepare(`
   SELECT heading, body, code, art, accept, figure_src, figure_alt, figure_caption
   FROM cards WHERE topic_id = ? ORDER BY position
@@ -204,6 +213,59 @@ function optionalString(value, where) {
   if (value.length > MAX_STRING) fail(`${where} exceeds ${MAX_STRING} characters`);
   return value;
 }
+
+function shortString(value, where, { required = false, max = 200 } = {}) {
+  if (typeof value !== "string") fail(`${where} must be a string`);
+  const clean = value.trim();
+  if (required && !clean) fail(`${where} must not be blank`);
+  if (clean.length > max) fail(`${where} exceeds ${max} characters`);
+  return clean;
+}
+
+function topicSlug(title) {
+  return title
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "deck";
+}
+
+const createTopic = db.transaction(({ courseId, title, subtitle }) => {
+  const base = `${courseId}-${topicSlug(title)}`;
+  let id = base;
+  let suffix = 2;
+  while (getTopic.get(id)) id = `${base}-${suffix++}`;
+  insertTopic.run({
+    id,
+    course_id: courseId,
+    title,
+    subtitle: subtitle || null,
+    position: getNextTopicPosition.get(courseId).position,
+  });
+  return getTopic.get(id);
+});
+
+// POST /api/topics — create an empty flashcard-capable topic in one course.
+// Content is shared across accounts, so creation has the same admin boundary
+// as editing an existing topic's cards or flashcards.
+router.post("/", requireAdmin, (req, res) => {
+  let courseId;
+  let title;
+  let subtitle;
+  try {
+    courseId = shortString(req.body?.course, "course", { required: true, max: 100 });
+    title = shortString(req.body?.title, "title", { required: true });
+    subtitle = shortString(req.body?.subtitle ?? "", "subtitle");
+    if (!getCourse.get(courseId)) fail("course does not exist");
+  } catch (err) {
+    if (err instanceof BadRequest) return res.status(400).json({ error: err.message });
+    throw err;
+  }
+
+  const row = createTopic({ courseId, title, subtitle });
+  res.status(201).json(buildTopic(row));
+});
 
 /** Arrays are objects and null is an object; neither is a usable record. */
 function isPlainObject(value) {

@@ -49,6 +49,14 @@ function putCards(who, cards) {
   });
 }
 
+function postTopic(who, body) {
+  return fetch(base, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(who ? { Cookie: who.cookie } : {}) },
+    body: JSON.stringify(body),
+  });
+}
+
 test("a logged-out request cannot edit content", async () => {
   assert.equal((await putCards(null, [])).status, 401);
   assert.equal(cardCount(), 2, "and nothing was deleted");
@@ -72,6 +80,29 @@ test("an admin can edit content", async () => {
   const res = await putCards(ADMIN, [{ heading: "Only", body: "one" }]);
   assert.equal(res.status, 200);
   assert.equal(cardCount(), 1);
+});
+
+test("an admin can create an empty deck at the end of its course", async () => {
+  const res = await postTopic(ADMIN, {
+    course: "authz",
+    title: "Integration Techniques",
+    subtitle: "Methods and common forms",
+  });
+  assert.equal(res.status, 201);
+  const topic = await res.json();
+  assert.equal(topic.id, "authz-integration-techniques");
+  assert.equal(topic.course, "authz");
+  assert.equal(topic.title, "Integration Techniques");
+  assert.equal(topic.subtitle, "Methods and common forms");
+  assert.deepEqual(topic.cards, []);
+  assert.deepEqual(topic.questions, []);
+  assert.equal(db.prepare("SELECT position FROM topics WHERE id = ?").get(topic.id).position, 1);
+});
+
+test("a non-admin cannot create a shared deck", async () => {
+  const res = await postTopic(PLAIN, { course: "authz", title: "Forbidden", subtitle: "" });
+  assert.equal(res.status, 403);
+  assert.equal(db.prepare("SELECT 1 FROM topics WHERE title = 'Forbidden'").get(), undefined);
 });
 
 test("revoking the flag takes effect immediately, not when the cookie expires", async () => {

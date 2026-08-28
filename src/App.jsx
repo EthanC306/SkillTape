@@ -5,7 +5,7 @@ import useProgress from "./hooks/useProgress";
 import useTopics from "./hooks/useTopics";
 import useSchedulerCounts from "./hooks/useSchedulerCounts";
 import useSchedulerFlags from "./hooks/useSchedulerFlags";
-import { putCards, putFlashcards } from "./api/client";
+import { postTopic, putCards, putFlashcards } from "./api/client";
 import Header from "./components/Header";
 import Home from "./components/Home";
 import TopicView from "./components/TopicView";
@@ -175,6 +175,11 @@ export default function App({ course }) {
     }
   }
 
+  async function addDeck({ title, subtitle }) {
+    await postTopic(course, title, subtitle);
+    await reload();
+  }
+
   function goPrev() {
     // No earlier lesson (we're at the first topic) — back goes to the topic list.
     if (prevTopic) openTopic(prevTopic.id);
@@ -295,6 +300,7 @@ export default function App({ course }) {
               onReviewAhead={() => setDrilling({ ahead: true })}
               onLab={() => setLab(true)}
               showDueStrip={dueStrip}
+              onAddDeck={addDeck}
             />
           ) : (
             <TopicView
