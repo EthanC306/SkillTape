@@ -17,7 +17,7 @@ import Inline from "./Inline";
  * FlashcardEditor below): the card container sets `userSelect: "none"` and
  * flips on any click, both of which fight text selection.
  */
-export default function FlashcardsView({ topic, editMode, onSave, saveState }) {
+export default function FlashcardsView({ topic, editMode, onSave, saveState, registerEditor }) {
   const [index, setIndex] = useState(0);   // which card is showing
   const [flipped, setFlipped] = useState(false); // false = front, true = back
 
@@ -29,7 +29,14 @@ export default function FlashcardsView({ topic, editMode, onSave, saveState }) {
   const card = cards[safeIndex];
 
   if (editMode) {
-    return <FlashcardEditor topic={topic} onSave={onSave} saveState={saveState} />;
+    return (
+      <FlashcardEditor
+        topic={topic}
+        onSave={onSave}
+        saveState={saveState}
+        registerEditor={registerEditor}
+      />
+    );
   }
 
   if (!card) {
@@ -133,6 +140,29 @@ export default function FlashcardsView({ topic, editMode, onSave, saveState }) {
 }
 
 /**
+ * A brand-new card's permanent id, minted the moment "+ Add flashcard" is
+ * clicked rather than waiting for the server to name the row.
+ *
+ * Doing it here is what makes the id genuinely stable: the card has one
+ * identity from the instant it appears on screen, the React key below never
+ * changes under it, and the save is an ordinary "here is this card" rather than
+ * a "create something and tell me what you called it" the client then has to
+ * reconcile. The server validates and stores the id as sent, and mints its own
+ * only for a card that arrives without one (server/routes/topics.js).
+ *
+ * randomUUID needs a secure context. That covers every way this app is served
+ * — localhost counts as one, as does Electron's file origin — but the fallback
+ * keeps a card from being unaddable if it is ever missing, and its ids are
+ * still unique enough for the only job they have: naming one card in one deck.
+ */
+function newCardId() {
+  const uuid =
+    globalThis.crypto?.randomUUID?.() ??
+    `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  return `fc-${uuid}`;
+}
+
+/**
  * FlashcardEditor — the deck as an editable list.
  *
  * Deliberately not the flip card: authoring a deck means seeing front and back
@@ -140,20 +170,48 @@ export default function FlashcardsView({ topic, editMode, onSave, saveState }) {
  * backs are plain strings with no `**bold**` markup (AUTHORING §5), so there is
  * no B button here — that only belongs on Learn cards.
  */
-function FlashcardEditor({ topic, onSave, saveState }) {
+function FlashcardEditor({ topic, onSave, saveState, registerEditor }) {
   const [draft, setDraft] = useState(null);
 
+  // Every card in the draft is guaranteed to have an id, so the React key below
+  // can rely on one. The server backfilled the deck it serves, so the `??` only
+  // covers a card reaching this editor from somewhere that predates ids — and
+  // minting on arrival means it gets a permanent one on the next save rather
+  // than being the single card the list cannot track.
+  //
+  // Shared with Revert, which rebuilds the draft from the same source and must
+  // not produce a subtly different one.
+  const draftFromTopic = () =>
+    (topic.flashcards ?? []).map((c) => ({ ...c, id: c.id ?? newCardId() }));
+
   useEffect(() => {
-    setDraft((topic.flashcards ?? []).map((c) => ({ ...c })));
+    setDraft(draftFromTopic());
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the deck's identity, not the closure's
   }, [topic.id, topic.flashcards]);
 
-  if (!draft) return null;
+  // Compare only the fields a save actually writes, in a fixed order, rather
+  // than JSON.stringify-ing the two objects whole. Key order is not part of
+  // what makes two decks the same deck, and a card minted here has its keys in
+  // a different order from one the server sent back — which a raw stringify
+  // would report as an unsaved change forever.
+  const fingerprint = (cards) =>
+    JSON.stringify((cards ?? []).map((c) => [c.id ?? null, c.front ?? "", c.back ?? ""]));
 
-  const dirty = JSON.stringify(draft) !== JSON.stringify(topic.flashcards ?? []);
+  const dirty = !!draft && fingerprint(draft) !== fingerprint(topic.flashcards);
   // The server rejects blank front/back, so catch it here rather than letting
   // the save round-trip into a 400.
-  const blank = draft.some((c) => !c.front?.trim() || !c.back?.trim());
+  const blank = !!draft && draft.some((c) => !c.front?.trim() || !c.back?.trim());
   const canSave = dirty && !blank && saveState !== "saving";
+
+  // Hand the live draft up to TopicView, so Done commits it instead of dropping
+  // it. Declared before the early return below — hooks can't sit behind one.
+  useEffect(() => {
+    if (!registerEditor || !draft) return;
+    registerEditor({ dirty, blocked: blank, save: () => onSave({ flashcards: draft }) });
+    return () => registerEditor(null);
+  });
+
+  if (!draft) return null;
 
   function update(i, patch) {
     setDraft((prev) => prev.map((c, j) => (j === i ? { ...c, ...patch } : c)));
@@ -217,7 +275,7 @@ function FlashcardEditor({ topic, onSave, saveState }) {
           {saveState === "saving" ? "Saving…" : "Save"}
         </button>
         <button
-          onClick={() => setDraft((topic.flashcards ?? []).map((c) => ({ ...c })))}
+          onClick={() => setDraft(draftFromTopic())}
           disabled={!dirty}
           style={{ ...btn(false), opacity: dirty ? 1 : 0.5, cursor: dirty ? "pointer" : "default" }}
         >
@@ -247,7 +305,12 @@ function FlashcardEditor({ topic, onSave, saveState }) {
 
       {draft.map((c, i) => (
         <div
-          key={i}
+          // The card's own id, never the array index. With an index key, React
+          // reuses one card's DOM for whatever slot number it now holds, so
+          // deleting or reordering leaves the focused textarea attached to a
+          // different card — you keep typing into the wrong one. Every card has
+          // an id from the moment it exists, so there is no gap to cover.
+          key={c.id}
           style={{
             background: PALETTE.panel,
             border: `1px solid ${PALETTE.line}`,
@@ -305,7 +368,7 @@ function FlashcardEditor({ topic, onSave, saveState }) {
       ))}
 
       <button
-        onClick={() => setDraft((prev) => [...prev, { front: "", back: "" }])}
+        onClick={() => setDraft((prev) => [...prev, { id: newCardId(), front: "", back: "" }])}
         style={{
           background: "transparent",
           border: `1px dashed ${PALETTE.line}`,

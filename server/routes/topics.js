@@ -6,6 +6,7 @@
 // Anything optional in the module (code, figure, accept, flashcards) is OMITTED
 // here rather than sent as null, so a fetched topic and an imported one are
 // indistinguishable to the views.
+import crypto from "node:crypto";
 import { Router } from "express";
 import db from "../db.js";
 import { requireAdmin } from "../userScope.js";
@@ -52,8 +53,11 @@ const getChoices = db.prepare(
   "SELECT text FROM choices WHERE question_id = ? ORDER BY position"
 );
 
+// stable_id is aliased to `id` on the way out: it IS the card's id as far as
+// every consumer is concerned, and the AUTOINCREMENT column of the same name is
+// a private surrogate the client must never see (it changes on every save).
 const getFlashcards = db.prepare(
-  "SELECT front, back FROM flashcards WHERE topic_id = ? ORDER BY position"
+  "SELECT stable_id AS id, front, back FROM flashcards WHERE topic_id = ? ORDER BY position"
 );
 
 // ROADMAP.md A4 — drill mode's item bank. Server/routes/drill.js is what
@@ -264,15 +268,72 @@ function cardRow(card, i) {
   };
 }
 
+// A flashcard id is opaque, but not arbitrary: it ends up as a React key, and
+// it is the obvious thing for a future feature (scheduling a deck, linking a
+// card from a note) to put in a URL or a foreign key. Keeping it to this set
+// means none of those later uses has to think about escaping.
+const ID_PATTERN = /^[A-Za-z0-9._:-]{1,200}$/;
+
+/**
+ * The card's permanent name.
+ *
+ * Minted here only as a fallback. Normally the EDITOR mints it, at the instant
+ * "+ Add flashcard" is clicked, and sends it with the save — so the id exists
+ * before the card has ever been written down, and the row that lands in SQLite
+ * is already wearing the identity the UI has been using all along. The fallback
+ * covers the other writers: seeded decks, an older client, a curl.
+ *
+ * No topic id in the string. A card's identity should not become a lie the day
+ * something moves it to another topic.
+ */
+function mintFlashcardId() {
+  return `fc-${crypto.randomUUID()}`;
+}
+
 /** One client flashcard → one bound-parameter object for insertFlashcard. */
 function flashcardRow(card, i) {
   const where = `flashcards[${i}]`;
   if (!isPlainObject(card)) fail(`${where} must be an object`);
+  // Absent id = a card being added for the first time. Present id = a card the
+  // client already knows, and it MUST survive the round trip untouched: this is
+  // the whole point of the column, and regenerating it here would quietly make
+  // every save a delete-and-recreate again.
+  if (card.id != null && (typeof card.id !== "string" || !ID_PATTERN.test(card.id))) {
+    fail(`${where}.id must be 1-200 characters of A-Z a-z 0-9 . _ : or -`);
+  }
   return {
     position: i,
+    stable_id: card.id ?? mintFlashcardId(),
     front: requiredString(card.front, `${where}.front`),
     back: requiredString(card.back, `${where}.back`),
   };
+}
+
+/**
+ * Two ways a payload's ids can be wrong in a way a per-card check cannot see.
+ * Both are 400s rather than something to paper over, because both mean the
+ * client has lost track of which card is which — and silently reassigning an id
+ * to "fix" it would destroy exactly the identity this is all here to protect.
+ */
+const flashcardOwner = db.prepare("SELECT topic_id FROM flashcards WHERE stable_id = ?");
+
+function checkFlashcardIds(rows, topicId) {
+  const seen = new Map();
+  rows.forEach((row, i) => {
+    // Duplicated within this payload — the unique index would reject it anyway,
+    // but as an opaque SQLite constraint error rather than a usable message.
+    if (seen.has(row.stable_id)) {
+      fail(`flashcards[${i}].id duplicates flashcards[${seen.get(row.stable_id)}].id`);
+    }
+    seen.set(row.stable_id, i);
+
+    // Already in use by a DIFFERENT topic. The save clears only this topic's
+    // rows, so the insert would collide with one it never deleted.
+    const owner = flashcardOwner.get(row.stable_id);
+    if (owner && owner.topic_id !== topicId) {
+      fail(`flashcards[${i}].id already belongs to topic "${owner.topic_id}"`);
+    }
+  });
 }
 
 const clearCards = db.prepare("DELETE FROM cards WHERE topic_id = ?");
@@ -286,9 +347,13 @@ const insertCard = db.prepare(`
 `);
 
 const insertFlashcard = db.prepare(`
-  INSERT INTO flashcards (topic_id, position, front, back)
-  VALUES (@topic_id, @position, @front, @back)
+  INSERT INTO flashcards (topic_id, position, front, back, stable_id, origin)
+  VALUES (@topic_id, @position, @front, @back, @stable_id, @origin)
 `);
+
+const existingFlashcardOrigins = db.prepare(
+  "SELECT stable_id, origin FROM flashcards WHERE topic_id = ?"
+);
 
 // Replace-wholesale rather than diff, matching seed.js: the volume is a handful
 // of rows and the alternative is reconciling client-side edits against row ids
@@ -300,9 +365,24 @@ const replaceCards = db.transaction((topicId, rows) => {
   rows.forEach((row) => insertCard.run({ topic_id: topicId, ...row }));
 });
 
+// Still replace-wholesale, but `origin` has to be carried across the gap by
+// hand. The DELETE takes it with the row, and re-deriving it afterwards is
+// impossible — so read it first, keyed by the one thing that survives, and put
+// it back. A card the topic has never seen before is 'user': it was typed into
+// Edit Mode, which makes this row the only copy of it that exists anywhere, and
+// seed.js has to know to leave it alone.
 const replaceFlashcards = db.transaction((topicId, rows) => {
+  const origins = new Map(
+    existingFlashcardOrigins.all(topicId).map((r) => [r.stable_id, r.origin])
+  );
   clearFlashcards.run(topicId);
-  rows.forEach((row) => insertFlashcard.run({ topic_id: topicId, ...row }));
+  rows.forEach((row) =>
+    insertFlashcard.run({
+      topic_id: topicId,
+      origin: origins.get(row.stable_id) ?? "user",
+      ...row,
+    })
+  );
 });
 
 // Validate the whole payload up front, then write. Doing it in this order means
@@ -311,13 +391,17 @@ const replaceFlashcards = db.transaction((topicId, rows) => {
 //
 // The catch is narrowed to BadRequest: anything else is a genuine server fault
 // and belongs in index.js's error handler as a 500, not disguised as a 400.
-function replaceChildren(req, res, key, toRow, replace) {
+// `checkAll` is the optional whole-payload pass, for the rules no single item
+// can be judged against on its own (flashcard id collisions). It runs inside
+// the same try, so it gets the same BadRequest → 400 treatment.
+function replaceChildren(req, res, key, toRow, replace, checkAll) {
   const row = getTopic.get(req.params.id);
   if (!row) return res.status(404).json({ error: "topic not found" });
 
   let rows;
   try {
     rows = requireArray(req.body, key).map((item, i) => toRow(item, i));
+    checkAll?.(rows, row.id);
   } catch (err) {
     if (err instanceof BadRequest) return res.status(400).json({ error: err.message });
     throw err;
@@ -347,8 +431,11 @@ router.put("/:id/cards", requireAdmin, (req, res) =>
 // PUT /api/topics/:id/flashcards — replace the topic's deck. An empty array is
 // a legal payload: it is how the editor deletes a deck, and buildTopic turns
 // zero rows back into an absent `flashcards` key.
+//
+// Each card carries its own `id` in and back out again. Send a card's id to
+// edit or reorder it; omit it to add a new one and be told what it is called.
 router.put("/:id/flashcards", requireAdmin, (req, res) =>
-  replaceChildren(req, res, "flashcards", flashcardRow, replaceFlashcards)
+  replaceChildren(req, res, "flashcards", flashcardRow, replaceFlashcards, checkFlashcardIds)
 );
 
 export default router;

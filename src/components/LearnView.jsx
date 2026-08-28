@@ -10,7 +10,7 @@ import CardEditor from "./CardEditor";
 import { validateBody } from "../utils/blankEdit";
 
 /** LearnView — the note cards for a topic, with an optional "Fill Mode" quiz-of-recall. */
-export default function LearnView({ topic, editMode, onSave, saveState }) {
+export default function LearnView({ topic, editMode, onSave, saveState, registerEditor }) {
   const [fillMode, setFillMode] = useState(false);
   const [inputs, setInputs] = useState({});
   const [checked, setChecked] = useState(false);
@@ -67,6 +67,19 @@ export default function LearnView({ topic, editMode, onSave, saveState }) {
     : [];
 
   const canSave = dirty && blocking.length === 0 && saveState !== "saving";
+
+  // Hand the live draft up to TopicView so its Done button can commit it. No
+  // dependency array on purpose: this is a ref write, and it has to describe
+  // the draft as of the *last* render, not as of whenever the deps last moved.
+  useEffect(() => {
+    if (!registerEditor || !editing) return;
+    registerEditor({
+      dirty,
+      blocked: blocking.length > 0,
+      save: () => onSave({ cards: draft }),
+    });
+    return () => registerEditor(null);
+  });
 
   function updateCard(i, next) {
     setDraft((prev) => prev.map((c, j) => (j === i ? next : c)));

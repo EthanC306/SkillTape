@@ -155,17 +155,23 @@ export default function App({ course }) {
    *
    * `patch` is { cards } or { flashcards }. The server validates independently;
    * this is not the boundary, just the caller.
+   *
+   * Resolves true when the write landed and false when it didn't, so callers
+   * that do something *after* saving — Done, which then leaves edit mode — can
+   * hold their ground on a failure instead of closing over a lost draft.
    */
   async function saveContent(patch) {
-    if (!topic) return;
+    if (!topic) return false;
     setSaveState("saving");
     try {
       if (patch.cards) await putCards(topic.id, patch.cards);
       if (patch.flashcards) await putFlashcards(topic.id, patch.flashcards);
       await reload();
       setSaveState("saved");
+      return true;
     } catch (e) {
       setSaveState(e.message);
+      return false;
     }
   }
 

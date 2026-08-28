@@ -171,6 +171,11 @@ const ALLOWLIST = {
     "@autowired", "@component", "@bean", "@entity", "bean", "pom.xml",
     "maven", "gradle", "jpa", "http", "rest", "json",
   ],
+  calcII: [
+    "dx", "dy", "du", "dv", "d/dx", "f'(x)", "f''(x)", "∫", "∑", "lim",
+    "sin", "cos", "tan", "sec", "csc", "cot", "arcsin", "arctan",
+    "ln", "e^x", "chain rule", "product rule", "quotient rule",
+  ],
 };
 
 async function loadTopics() {

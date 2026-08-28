@@ -93,11 +93,30 @@ CREATE INDEX IF NOT EXISTS idx_choices_question ON choices(question_id, position
 
 -- front/back are plain strings — no **bold** markup (AUTHORING §5).
 CREATE TABLE IF NOT EXISTS flashcards (
-  id       INTEGER PRIMARY KEY AUTOINCREMENT,
-  topic_id TEXT NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
-  position INTEGER NOT NULL,
-  front    TEXT NOT NULL,
-  back     TEXT NOT NULL
+  -- LEGACY surrogate. The editor saves a deck by DELETE-then-INSERT, so this
+  -- AUTOINCREMENT value is reassigned on every save and identifies nothing over
+  -- time. Use stable_id for identity — same lesson as questions.id
+  -- (docs/STABLE_QUESTION_IDS.md).
+  id        INTEGER PRIMARY KEY AUTOINCREMENT,
+  topic_id  TEXT NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
+  position  INTEGER NOT NULL,
+  front     TEXT NOT NULL,
+  back      TEXT NOT NULL,
+  -- The card's real, permanent name. Minted once when the card is first added
+  -- (by the editor client, or by the server if the client sent none) and then
+  -- carried unchanged through every later save, so a deck can be reordered,
+  -- edited, emptied and refilled without any card losing its identity.
+  -- Declared without UNIQUE here because ALTER TABLE cannot add a UNIQUE column
+  -- for databases that predate it; the constraint arrives as a separate
+  -- CREATE UNIQUE INDEX in db.js, so old and new installs converge.
+  stable_id TEXT,
+  -- 'authored' — came from a topic module under src/data/topics/, and belongs
+  --              to seed.js, which may replace it on any reseed.
+  -- 'user'     — created in Edit Mode. seed.js must never touch these; they are
+  --              the only copy that exists. Defaulting to 'user' is deliberate:
+  --              the editor inserts without naming an origin, and the safe
+  --              default for an unlabeled row is the one seed leaves alone.
+  origin    TEXT NOT NULL DEFAULT 'user'
 );
 CREATE INDEX IF NOT EXISTS idx_flashcards_topic ON flashcards(topic_id, position);
 

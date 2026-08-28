@@ -18,4 +18,5 @@ export const COURSES = [
   { id: "cpp", title: "C++", subtitle: "Computer Science Intro" },
   { id: "discrete", title: "Discrete Structures", subtitle: "Epp — Discrete Mathematics 5e" },
   { id:  "spring", title: "Spring Boot", subtitle: "Java - Spring Boot" },
+  { id: "calcII", title: "Calculus II", subtitle: "Calculus"},
 ];

@@ -80,6 +80,9 @@ import discreteVocabulary from "./topics/discrete/vocabulary.js";
 //Spring Boot
 import springVocabulary from "./topics/spring/vocabulary.js";
 
+//Calculus II
+import calcDerivatives from "./topics/calculusII/derivatives.js";
+
 
 const curriculum = [
   bigo,
@@ -112,6 +115,8 @@ const curriculum = [
   discreteVocabulary,
 
   springVocabulary,
+
+  calcDerivatives,
 ];
 
 export default curriculum;
