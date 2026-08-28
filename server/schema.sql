@@ -107,7 +107,21 @@ CREATE TABLE IF NOT EXISTS users (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   email         TEXT NOT NULL UNIQUE COLLATE NOCASE,
   password_hash TEXT NOT NULL,      -- bcrypt. Never a plaintext or reversible value.
-  created_at    INTEGER NOT NULL    -- epoch ms
+  created_at    INTEGER NOT NULL,   -- epoch ms
+  -- May this account EDIT SHARED CONTENT (cards and flashcards)?
+  --
+  -- Not a general role system, and deliberately not one: there are exactly two
+  -- kinds of request in this app — "change my own rows", which every account may
+  -- do, and "change the rows everyone reads", which is this flag.
+  --
+  -- It exists because the two Edit Mode routes in routes/topics.js checked only
+  -- that you were logged in, never WHO you were. Since signup is open, anyone
+  -- who could create an account could rewrite or delete the curriculum for every
+  -- user of the install (docs/PRODUCTION_READINESS.md:57).
+  --
+  -- Bootstrapped in db.js: if no admin exists, the lowest-numbered account
+  -- becomes one, so a self-hosted install's owner stays able to edit.
+  is_admin      INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS sessions (

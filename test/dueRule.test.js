@@ -10,7 +10,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
-import { isolatedTestDb } from "./helpers/testDb.js";
+import cookieParser from "cookie-parser";
+import { isolatedTestDb, signIn } from "./helpers/testDb.js";
 
 // Must run BEFORE server/db.js is imported — it reads the path at import time
 // and opens exactly one connection.
@@ -18,6 +19,7 @@ isolatedTestDb(import.meta.url);
 
 const { default: db } = await import("../server/db.js");
 const { default: drillRouter } = await import("../server/routes/drill.js");
+const { attachUser } = await import("../server/userScope.js");
 const { dueBoundary } = await import("../server/fsrs.js");
 
 const MINUTE = 60000;
@@ -42,6 +44,11 @@ db.exec(`
   INSERT INTO topics (id, course_id, title, position) VALUES ('t1', '${COURSE}', 'Topic One', 0);
 `);
 
+// A real account, because the anonymous user_id = 0 bucket no longer exists —
+// these fixtures have to belong to somebody, and every request below has to
+// say who it is. Created before the fixtures, which now reference USER.
+const { userId: USER, cookie: COOKIE } = signIn(db);
+
 const addItem = db.prepare(`
   INSERT INTO items (id, topic_id, position, format, origin, prompt, verified_by_human, retired)
   VALUES (?, 't1', ?, 'recall', 'authored', 'q?', 1, 0)
@@ -49,13 +56,15 @@ const addItem = db.prepare(`
 const addState = db.prepare(`
   INSERT INTO item_review_state
     (user_id, item_id, state, difficulty, stability, due_on, reps, lapses, leech, last_reviewed_at)
-  VALUES (0, ?, ?, 5, 10, ?, 1, 0, ?, ?)
+  VALUES (?, ?, ?, 5, 10, ?, 1, 0, ?, ?)
 `);
 
 /** One item plus, optionally, the scheduling state that makes it due or not. */
 function item(id, position, state, dueOffsetMs, { leech = false } = {}) {
   addItem.run(id, position);
-  if (state != null) addState.run(id, state, Date.now() + dueOffsetMs, leech ? 1 : 0, Date.now() - DAY);
+  if (state != null) {
+    addState.run(USER, id, state, Date.now() + dueOffsetMs, leech ? 1 : 0, Date.now() - DAY);
+  }
 }
 
 // The fixture is built entirely out of the cases the two halves of the rule
@@ -71,9 +80,11 @@ item("leech", 8, STATE.REVIEW, -5 * DAY, { leech: true }); // excluded outright 
 item("fresh-a", 9, null); //                                 new
 item("fresh-b", 10, null); //                                new
 
+// Mirrors server/index.js's middleware order.
 const app = express();
 app.use(express.json());
-app.use("/api/drill", drillRouter);
+app.use(cookieParser());
+app.use("/api/drill", attachUser, drillRouter);
 const server = app.listen(0);
 const base = `http://127.0.0.1:${server.address().port}/api/drill`;
 
@@ -83,7 +94,7 @@ test.after(() => {
 });
 
 const get = async (p) => {
-  const res = await fetch(`${base}${p}`);
+  const res = await fetch(`${base}${p}`, { headers: { Cookie: COOKIE } });
   assert.equal(res.status, 200, `GET ${p}`);
   return res.json();
 };
@@ -91,7 +102,7 @@ const get = async (p) => {
 const put = async (p, body) => {
   const res = await fetch(`${base}${p}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Cookie: COOKIE },
     body: JSON.stringify(body),
   });
   assert.equal(res.status, 200, `PUT ${p}`);
@@ -193,7 +204,7 @@ test("grading an item removes it from the due queue and the counts together", as
 
   const res = await fetch(`${base}/attempts`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Cookie: COOKIE },
     body: JSON.stringify({ itemId: "rev-overdue", mode: "closed", grade: 2, seconds: 5 }),
   });
   assert.equal(res.status, 201);

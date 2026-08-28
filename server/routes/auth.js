@@ -6,9 +6,11 @@
 // not a raw 500.
 import { Router } from "express";
 import db from "../db.js";
+import { rateLimit } from "../rateLimit.js";
 import {
   hashPassword,
   verifyPassword,
+  verifyPasswordDummy,
   createSession,
   clearSessionCookie,
   deleteSessionForRequest,
@@ -21,6 +23,13 @@ const router = Router();
 const MAX_EMAIL = 254; // practical RFC 5321 cap
 const MIN_PASSWORD = 8;
 const MAX_PASSWORD = 200; // bcrypt itself ignores bytes past 72; this just stops a huge body
+
+const getIsAdmin = db.prepare("SELECT is_admin FROM users WHERE id = ?");
+
+/** Whether an account may edit shared content. See users.is_admin in schema.sql. */
+function isAdmin(userId) {
+  return Boolean(getIsAdmin.get(userId)?.is_admin);
+}
 
 /** A rejected payload. The handlers convert this — and only this — into a 400. */
 class BadRequest extends Error {}
@@ -67,13 +76,73 @@ function loginCreds(body) {
   return { email: requireEmail(body), password: requirePassword(body) };
 }
 
+// ── Rate limits ─────────────────────────────────────────────────────────────
+//
+// bcrypt at cost 12 already makes each guess cost ~200ms, which bounds the rate
+// but never stops it: left alone, a script gets ~5 guesses a second forever.
+// These add a ceiling.
+//
+// Login keys on BOTH the client address and the target email, because the two
+// attacks are shaped differently and one bucket cannot catch both:
+//   * one IP guessing many accounts  -> caught by the IP key
+//   * many IPs guessing ONE account  -> caught by the email key
+// A successful login clears its own buckets (req.clearRateLimit), so mistyping
+// a password a few times and then getting it right does not leave you locked
+// out for the rest of the window.
+//
+// Signup keys on IP only — there is no target account yet, by definition.
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const SIGNUP_WINDOW_MS = 60 * 60 * 1000;
+
+/** Lower-cased so casing does not create a fresh bucket; users.email is NOCASE. */
+function emailKey(req) {
+  const email = req.body?.email;
+  return typeof email === "string" ? `email:${email.trim().toLowerCase()}` : "email:<none>";
+}
+
+const loginLimiter = rateLimit({
+  windowMs: LOGIN_WINDOW_MS,
+  max: 10,
+  keys: (req) => [`ip:${req.ip}`, emailKey(req)],
+  message: "too many login attempts — wait a few minutes and try again",
+});
+
+// Deliberately looser and per-IP: this one exists to stop a script filling the
+// users table, not to protect an individual account.
+const signupLimiter = rateLimit({
+  windowMs: SIGNUP_WINDOW_MS,
+  max: 5,
+  keys: (req) => [`ip:${req.ip}`],
+  message: "too many accounts created from this address — try again later",
+});
+
 const insertUser = db.prepare(
-  "INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)"
+  "INSERT INTO users (email, password_hash, created_at, is_admin) VALUES (?, ?, ?, ?)"
 );
+const countUsers = db.prepare("SELECT COUNT(*) AS n FROM users");
+
+/**
+ * Create the account, making it an admin if it is the FIRST one on the install.
+ *
+ * db.js has a bootstrap that promotes the lowest-numbered account when no admin
+ * exists, but that runs at boot — on a brand-new install there are no users yet,
+ * so it promotes nobody, and the person who then signs up cannot edit content
+ * until the server is restarted. The two together cover both cases: db.js
+ * handles a database that predates the flag, this handles a database that is
+ * still empty.
+ *
+ * One transaction so the count and the insert cannot interleave and mint two
+ * "first" admins.
+ */
+const createUser = db.transaction((email, passwordHash) => {
+  const isFirst = countUsers.get().n === 0;
+  const info = insertUser.run(email, passwordHash, Date.now(), isFirst ? 1 : 0);
+  return { id: Number(info.lastInsertRowid), email, isAdmin: isFirst };
+});
 const getUserByEmail = db.prepare("SELECT * FROM users WHERE email = ?");
 
 // POST /api/auth/signup — body { email, password }.
-router.post("/signup", async (req, res) => {
+router.post("/signup", signupLimiter, async (req, res) => {
   let email, password;
   try {
     ({ email, password } = signupCreds(req.body));
@@ -86,8 +155,7 @@ router.post("/signup", async (req, res) => {
 
   let user;
   try {
-    const info = insertUser.run(email, passwordHash, Date.now());
-    user = { id: info.lastInsertRowid, email };
+    user = createUser(email, passwordHash);
   } catch (err) {
     // users.email is UNIQUE COLLATE NOCASE (schema.sql) — the everyday
     // "you already have an account" path, not a server fault. Caught here so
@@ -99,11 +167,11 @@ router.post("/signup", async (req, res) => {
   }
 
   createSession(res, user);
-  res.status(201).json({ id: user.id, email: user.email });
+  res.status(201).json({ id: user.id, email: user.email, isAdmin: user.isAdmin });
 });
 
 // POST /api/auth/login — body { email, password }.
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   let email, password;
   try {
     ({ email, password } = loginCreds(req.body));
@@ -118,13 +186,23 @@ router.post("/login", async (req, res) => {
   const invalid = () => res.status(401).json({ error: "invalid email or password" });
 
   const row = getUserByEmail.get(email);
-  if (!row) return invalid();
+  if (!row) {
+    // Deliberately does the work anyway. Returning here directly is ~30x faster
+    // than the branch below, which makes the response TIME reveal whether the
+    // address is registered even though the response BODY is identical. See
+    // verifyPasswordDummy in server/auth.js.
+    await verifyPasswordDummy(password);
+    return invalid();
+  }
 
   const ok = await verifyPassword(password, row.password_hash);
   if (!ok) return invalid();
 
+  // Proven identity — do not keep counting this address or account as suspect.
+  req.clearRateLimit?.();
+
   createSession(res, { id: row.id, email: row.email });
-  res.json({ id: row.id, email: row.email });
+  res.json({ id: row.id, email: row.email, isAdmin: Boolean(row.is_admin) });
 });
 
 // POST /api/auth/logout — delete the session row and clear the cookie.
@@ -138,7 +216,7 @@ router.post("/logout", (req, res) => {
 
 // GET /api/auth/me — who the current session belongs to.
 router.get("/me", requireAuth, (req, res) => {
-  res.json({ id: req.user.id, email: req.user.email });
+  res.json({ id: req.user.id, email: req.user.email, isAdmin: isAdmin(req.user.id) });
 });
 
 export default router;

@@ -8,7 +8,7 @@
 // indistinguishable to the views.
 import { Router } from "express";
 import db from "../db.js";
-import { requireAuth } from "../auth.js";
+import { requireAdmin } from "../userScope.js";
 
 const router = Router();
 
@@ -331,17 +331,23 @@ function replaceChildren(req, res, key, toRow, replace) {
 }
 
 // PUT /api/topics/:id/cards — replace the topic's Learn-mode cards.
-// requireAuth only — the GET routes above stay open, and quiz-taking in
-// progress.js stays anonymous-friendly. Editing content is the one thing that
-// needs an account.
-router.put("/:id/cards", requireAuth, (req, res) =>
+//
+// requireADMIN, not merely requireAuth. Cards are shared content: every account
+// on the install reads these rows. This route used to check only that you were
+// logged in, and since signup is open, that meant anyone who could create an
+// account could delete the curriculum for everyone — confirmed by sending
+// {"cards": []} from a throwaway account and emptying a topic.
+//
+// The GET routes above stay open, and per-user writes elsewhere stay on
+// requireUser. This gate is specifically about changing what OTHERS read.
+router.put("/:id/cards", requireAdmin, (req, res) =>
   replaceChildren(req, res, "cards", cardRow, replaceCards)
 );
 
 // PUT /api/topics/:id/flashcards — replace the topic's deck. An empty array is
 // a legal payload: it is how the editor deletes a deck, and buildTopic turns
 // zero rows back into an absent `flashcards` key.
-router.put("/:id/flashcards", requireAuth, (req, res) =>
+router.put("/:id/flashcards", requireAdmin, (req, res) =>
   replaceChildren(req, res, "flashcards", flashcardRow, replaceFlashcards)
 );
 

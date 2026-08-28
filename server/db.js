@@ -146,4 +146,53 @@ db.exec(
   "CREATE INDEX IF NOT EXISTS idx_item_attempts_session ON item_attempts(user_id, session_id, ts)"
 );
 
+// `users.is_admin` — the content-editing gate. Same guarded-ALTER story as
+// everything above; DEFAULT 0 means every existing account starts unprivileged.
+ensureColumn("users", "is_admin", "is_admin INTEGER NOT NULL DEFAULT 0");
+
+// Bootstrap: an install with accounts but NO admin can never edit content
+// again, because the only way to become an admin is to already be one. The
+// lowest-numbered account is the person who set the install up, so it gets the
+// flag. Guarded on "no admin exists", making it a one-time promotion rather
+// than something that re-runs and re-promotes a demoted account on next boot.
+{
+  const admins = db.prepare("SELECT COUNT(*) AS n FROM users WHERE is_admin = 1").get().n;
+  if (admins === 0) {
+    const first = db.prepare("SELECT id, email FROM users ORDER BY id LIMIT 1").get();
+    if (first) {
+      db.prepare("UPDATE users SET is_admin = 1 WHERE id = ?").run(first.id);
+      console.log(`[db] promoted ${first.email} to admin (no admin account existed)`);
+    }
+  }
+}
+
+// ── Ownership lockdown ──────────────────────────────────────────────────────
+// Everything above is additive: a new column, an index, an idempotent backfill.
+// This last step is structural — it rewrites six tables so user_id is NOT NULL
+// and foreign-keyed to users(id), which SQLite cannot express as an ALTER.
+//
+// It runs last because it depends on every ensureColumn() above having already
+// landed: the rebuild re-declares each table from its LIVE shape, so a column
+// added after this point would be copied faithfully, but one added before it and
+// missing here would be silently dropped.
+//
+// Throws if unowned history exists, which stops the server from starting. That
+// is deliberate — see lockUserOwnership's comment.
+import { lockUserOwnership } from "./migrations.js";
+
+// SKILLTAPE_SKIP_LOCK is the escape hatch scripts/claimAnonymousData.mjs needs,
+// and it exists to break a genuine deadlock rather than as a convenience:
+// lockUserOwnership throws when unowned history exists, and its message tells
+// the operator to run that script — but the script imports THIS module, so it
+// would hit the same throw before it could claim anything. The one tool that
+// can fix the condition has to be able to open the database while it holds.
+const migration =
+  process.env.SKILLTAPE_SKIP_LOCK === "1" ? { rebuilt: [], dropped: {} } : lockUserOwnership(db);
+if (migration.rebuilt.length > 0) {
+  console.log(`[db] locked user ownership on: ${migration.rebuilt.join(", ")}`);
+  for (const [table, n] of Object.entries(migration.dropped)) {
+    console.log(`[db] dropped ${n} unowned preference row(s) from ${table}`);
+  }
+}
+
 export default db;

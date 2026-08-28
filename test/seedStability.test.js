@@ -49,13 +49,31 @@ function open(dbPath) {
   return db;
 }
 
+/**
+ * An account for the attempts below to belong to.
+ *
+ * These used to be inserted with `user_id = NULL`, back when an attempt could
+ * be anonymous. attempts.user_id is now NOT NULL REFERENCES users(id), so a
+ * NULL — or any id without a users row — is refused by the database itself.
+ * That is the point of the constraint, and it applies to fixtures too.
+ */
+function ensureUser(db) {
+  const existing = db.prepare("SELECT id FROM users LIMIT 1").get();
+  if (existing) return existing.id;
+  return Number(
+    db
+      .prepare("INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)")
+      .run("seedstability@example.com", "not-a-real-hash", Date.now()).lastInsertRowid
+  );
+}
+
 /** Record one answered question, as POST /api/attempts would. */
 function recordAttempt(db, { topicId, stableId, revision, correct = 1 }) {
   db.prepare(
     `INSERT INTO attempts (user_id, run_id, topic_id, question_id, question_stable_id,
                            question_revision, position, correct, created_at)
-     VALUES (NULL, 'run-1', ?, NULL, ?, ?, 0, ?, ?)`
-  ).run(topicId, stableId, revision, correct, Date.now());
+     VALUES (?, 'run-1', ?, NULL, ?, ?, 0, ?, ?)`
+  ).run(ensureUser(db), topicId, stableId, revision, correct, Date.now());
 }
 
 test("every authored question reaches the database with its stable id", (t) => {

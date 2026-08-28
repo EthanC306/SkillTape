@@ -5,7 +5,7 @@
 
 import { Router } from "express";
 import db from "../db.js";
-import { getSessionUser } from "../auth.js";
+import { requireUser } from "../userScope.js";
 import {
   scheduleReview,
   previewRatings,
@@ -34,7 +34,6 @@ import {
 } from "../ollama.js";
 
 const router = Router();
-const ANON_USER_ID = 0;
 
 const MAX_ITEMS = 200;
 const MAX_STRING = 2000;
@@ -763,13 +762,25 @@ function toQueueItem(r, now, settings) {
 }
 
 router.get("/queue", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+  const userId = req.userId;
   const course = req.query.course;
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), MAX_ITEMS);
   const ahead = req.query.ahead === "1" ? 1 : 0;
 
   if (!course) return res.status(400).json({ error: "course query param required" });
+
+  // LOGGED OUT — return an empty queue explicitly rather than threading a null
+  // userId through the queries below, which is what every other read here does.
+  //
+  // This route cannot use that trick, and the reason is worth stating because
+  // it looks like it should. `selectNewItems` finds NEW material with
+  // `NOT EXISTS (SELECT 1 FROM item_review_state rs WHERE rs.user_id = @userId
+  // AND rs.item_id = items.id)`. Under a null userId that subquery matches
+  // nothing, so NOT EXISTS is vacuously TRUE for EVERY item and a logged-out
+  // queue would come back FULL — the exact opposite of empty. `selectDueItems`
+  // inner-joins review state and would correctly return nothing, so only half
+  // the response would be empty, which is worse than either extreme.
+  if (userId == null) return res.json([]);
 
   const settings = settingsFor(userId);
   const now = new Date();
@@ -833,11 +844,33 @@ const countByTopic = db.prepare(`
   GROUP BY items.topic_id
 `);
 
+// The zeroed /counts payload, field-for-field identical to the populated one
+// below. It has to be: src/api/client.js throws on a non-2xx, so the logged-out
+// answer must be a 200, and the components read these keys directly — a missing
+// `byTopic` or `nextDueOn` would throw in the client just as loudly as an error
+// response would. Kept adjacent to the route that shapes the populated version
+// so the two are edited together.
+const EMPTY_COUNTS = {
+  due: 0,
+  learning: 0,
+  new: 0,
+  newAvailable: 0,
+  newBudget: 0,
+  later: 0,
+  nextDueOn: null,
+  reviewable: 0,
+  byTopic: {},
+};
+
 router.get("/counts", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+  const userId = req.userId;
   const course = req.query.course;
   if (!course) return res.status(400).json({ error: "course query param required" });
+
+  // Same NOT EXISTS problem as /queue — `countNewAvailable` would count every
+  // item in the course as new material for a user who does not exist. See the
+  // comment there.
+  if (userId == null) return res.json(EMPTY_COUNTS);
 
   const settings = settingsFor(userId);
   const now = new Date();
@@ -944,8 +977,7 @@ router.get("/exam", (req, res) => {
 
 
 router.get("/stats", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+  const userId = req.userId;
   const course = req.query.course;
   if (!course) return res.status(400).json({ error: "course query param required" });
 
@@ -971,8 +1003,7 @@ router.get("/stats", (req, res) => {
 });
 
 router.get("/report", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+  const userId = req.userId;
   const course = req.query.course;
   if (!course) return res.status(400).json({ error: "course query param required" });
 
@@ -1111,8 +1142,7 @@ router.get("/report", (req, res) => {
 
 /** The four FSRS inputs, plus the read-only facts the settings panel displays alongside them. */
 router.get("/settings", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+  const userId = req.userId;
   res.json({ ...settingsFor(userId), paramsVersion: PARAMS_VERSION });
 });
 
@@ -1153,14 +1183,12 @@ const recomputeAllDue = db.transaction((userId, settings) => {
 // How many cards a retention change would move. Lets the UI name the number
 // in its confirmation before anything is written.
 router.get("/settings/impact", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+  const userId = req.userId;
   res.json({ scheduledCards: countScheduledReviewCards.get(userId).n });
 });
 
-router.put("/settings", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+router.put("/settings", requireUser, (req, res) => {
+  const userId = req.userId;
   const previous = settingsFor(userId);
   const next = normalizeSettings({ ...previous, ...(req.body ?? {}) });
 
@@ -1239,9 +1267,8 @@ router.post("/simulate", (req, res) => {
 // true after you decide to start it over.
 const deleteReviewState = db.prepare("DELETE FROM item_review_state WHERE user_id = ? AND item_id = ?");
 
-router.post("/items/:itemId/reset", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+router.post("/items/:itemId/reset", requireUser, (req, res) => {
+  const userId = req.userId;
   const itemId = req.params.itemId;
   if (!getItemForScheduling.get(itemId)) {
     return res.status(400).json({ error: `itemId "${itemId}" does not exist` });
@@ -1249,9 +1276,8 @@ router.post("/items/:itemId/reset", (req, res) => {
   res.json({ ok: true, cleared: deleteReviewState.run(userId, itemId).changes });
 });
 
-router.post("/leeches/:itemId/reset", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+router.post("/leeches/:itemId/reset", requireUser, (req, res) => {
+  const userId = req.userId;
   const itemId = req.params.itemId;
 
   const item = getItemForScheduling.get(itemId);
@@ -1278,14 +1304,12 @@ const insertSuspensions = db.transaction((userId, itemIds, ts) => {
 });
 
 router.get("/suspensions", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+  const userId = req.userId;
   res.json({ itemIds: listSuspensions.all(userId).map((r) => r.item_id) });
 });
 
-router.post("/suspensions", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+router.post("/suspensions", requireUser, (req, res) => {
+  const userId = req.userId;
   const body = req.body ?? {};
 
   let itemIds;
@@ -1308,24 +1332,21 @@ router.post("/suspensions", (req, res) => {
 });
 
 
-router.delete("/suspensions/:itemId", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+router.delete("/suspensions/:itemId", requireUser, (req, res) => {
+  const userId = req.userId;
   deleteSuspension.run(userId, req.params.itemId);
   res.json({ ok: true });
 });
 
 
-router.delete("/suspensions", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+router.delete("/suspensions", requireUser, (req, res) => {
+  const userId = req.userId;
   res.json({ cleared: deleteAllSuspensions.run(userId).changes });
 });
 
 
-router.post("/attempts", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+router.post("/attempts", requireUser, (req, res) => {
+  const userId = req.userId;
   const body = req.body ?? {};
 
   let itemId, mode, surface, sessionId, answerChoice, seconds, tabBlurs, note, abandoned, grade;
@@ -1430,8 +1451,7 @@ router.post("/attempts", (req, res) => {
 
 
 router.get("/export", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+  const userId = req.userId;
 
   const rows = db
     .prepare(
@@ -1464,9 +1484,8 @@ router.get("/export", (req, res) => {
 });
 
 
-router.post("/import", (req, res) => {
-  const user = getSessionUser(req);
-  const userId = user?.id ?? ANON_USER_ID;
+router.post("/import", requireUser, (req, res) => {
+  const userId = req.userId;
 
   let rows;
   try {

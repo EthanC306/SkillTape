@@ -19,6 +19,29 @@ export function verifyPassword(plain, hash) {
   return bcrypt.compare(plain, hash);
 }
 
+// A real bcrypt hash, of a value nobody knows, at the SAME cost factor as a
+// live one. Its only job is to be compared against.
+//
+// Without it, POST /api/auth/login returns in ~6ms for an address with no
+// account and ~200ms for one that exists, because an unknown email returns
+// before bcrypt ever runs. That 30x gap is a user-enumeration oracle, and it
+// completely defeats the deliberately generic "invalid email or password" the
+// route returns — an attacker reads the answer off the clock instead of the
+// response body. Measured on this codebase: 0.03s vs 0.97s over five attempts.
+//
+// Generated at import rather than hardcoded so no fixed hash ships in source.
+const DUMMY_HASH = bcrypt.hashSync(crypto.randomBytes(32).toString("hex"), BCRYPT_COST);
+
+/**
+ * Burn the same time a real password check costs, then fail.
+ *
+ * Call on the "no such user" branch of a login so both branches take the same
+ * wall-clock time. The result is always false; it is awaited purely for effect.
+ */
+export function verifyPasswordDummy(plain) {
+  return bcrypt.compare(plain, DUMMY_HASH);
+}
+
 // 30 days: this is a self-hosted single-user app, not a bank — optimize for
 // not having to re-login constantly, not for minimizing the exposure window.
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;

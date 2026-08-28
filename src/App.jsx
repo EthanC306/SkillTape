@@ -3,7 +3,6 @@ import { PALETTE, SANS, RADII, MONO } from "./data/theme";
 import shuffle from "./utils/shuffle";
 import useProgress from "./hooks/useProgress";
 import useTopics from "./hooks/useTopics";
-import useAuth from "./hooks/useAuth";
 import useSchedulerCounts from "./hooks/useSchedulerCounts";
 import useSchedulerFlags from "./hooks/useSchedulerFlags";
 import { putCards, putFlashcards } from "./api/client";
@@ -72,7 +71,6 @@ function Status({ text, tone, onRetry }) {
 export default function App({ course }) {
   const { progress, recordRun } = useProgress();
   const { topics: allTopics, loading, error, reload } = useTopics();
-  const auth = useAuth();
   // What's due in this course, for Home's strip and per-topic figures
   // (plans/fsrs_ui.md Phase 4), plus the two visual scheduler toggles.
   const { counts, refresh: refreshCounts } = useSchedulerCounts(course);
@@ -261,7 +259,6 @@ export default function App({ course }) {
               setReporting(false);
               setLab(false);
             }}
-            auth={auth}
           />
           {loading ? (
             <Status text="loading curriculum…" />

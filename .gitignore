@@ -28,6 +28,10 @@ public/figures/private/
 
 # --- Drill data / local progress ---
 db/*.db
+# Pre-migration snapshots written by hand before a schema rebuild. Nested, so
+# the `db/*.db` glob above does NOT cover them — and they hold real password
+# hashes and drill history, so they must never be committable.
+db/backups/
 db/*.db-journal
 db/*.db-wal
 db/*.db-shm

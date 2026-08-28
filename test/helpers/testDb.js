@@ -32,3 +32,34 @@ export function isolatedTestDb(moduleUrl) {
   process.on("exit", () => fs.rmSync(dir, { recursive: true, force: true }));
   return dbPath;
 }
+
+/**
+ * Create a real account plus a live session row, and return the Cookie header
+ * value that authenticates as it.
+ *
+ * Deliberately goes through the actual `users`/`sessions` tables and the real
+ * cookie name rather than stubbing `req.userId`: the thing most worth testing
+ * after the anonymous bucket was removed is that a request with no valid
+ * session genuinely cannot write, and a stub would route around exactly that.
+ *
+ * @param {import("better-sqlite3").Database} db the already-open test database
+ * @param {string} [email] defaults to a unique address per call
+ * @param {{ admin?: boolean }} [opts] admin grants the content-editing flag
+ * @returns {{ userId: number, cookie: string }}
+ */
+export function signIn(
+  db,
+  email = `u${Date.now()}${Math.random().toString(36).slice(2, 8)}@example.com`,
+  { admin = false } = {}
+) {
+  const now = Date.now();
+  const { lastInsertRowid: userId } = db
+    .prepare("INSERT INTO users (email, password_hash, created_at, is_admin) VALUES (?, ?, ?, ?)")
+    .run(email, "not-a-real-hash", now, admin ? 1 : 0);
+  const token = `test-session-${userId}-${Math.random().toString(36).slice(2)}`;
+  db.prepare(
+    "INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)"
+  ).run(token, userId, now, now + 3600_000);
+  // Must match COOKIE_NAME in server/auth.js.
+  return { userId: Number(userId), cookie: `skilltape_session=${token}` };
+}

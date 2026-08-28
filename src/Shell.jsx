@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import App from "./App";
 import UpdateBanner from "./components/UpdateBanner";
+import AuthBar from "./components/AuthBar";
+import useAuth from "./hooks/useAuth";
 import useUpdater from "./hooks/useUpdater";
 import { COURSES } from "./data/courses";
 import { PALETTE, MONO, HEADING, RADII, fadeDivider } from "./data/theme";
@@ -58,6 +60,11 @@ export default function Shell() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const { appVersion } = useUpdater();
+  // Lives here rather than in App: every per-user read is scoped to the session
+  // server-side, so who is signed in decides what the ENTIRE app shows — not
+  // just the course currently open. The home screen is the one view reachable
+  // without picking a course, which makes it the only honest place for it.
+  const auth = useAuth();
 
   // Close the menu when you click somewhere else, or press Escape.
   useEffect(() => {
@@ -197,6 +204,32 @@ export default function Shell() {
                 Pick a class below to read through topic notes, drill yourself
                 with fill-in-the-blank recall, or run a multiple-choice quiz.
               </div>
+            </div>
+
+            {/* Signed out this is the way in, so it sits above the class
+                picker in the reading order rather than tucked in a menu. */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 8,
+                textTransform: "none",
+                letterSpacing: "normal",
+              }}
+            >
+              <AuthBar
+                user={auth.user}
+                onLogin={auth.login}
+                onSignup={auth.signup}
+                onLogout={auth.logout}
+              />
+              {!auth.user && (
+                <div style={{ fontFamily: MONO, fontSize: 12, color: PALETTE.muted, textTransform: "none", letterSpacing: "normal" }}>
+                  Sign in to record your progress — quizzes and drills are saved
+                  to your account.
+                </div>
+              )}
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

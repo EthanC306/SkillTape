@@ -12,6 +12,132 @@ Files:    <files changed>
 Summary:
   - <what changed and why>
 --------------------------------------------------------------------------------
+Accounts actually separate now: per-user data, and a security pass on login
+--------------------------------------------------------------------------------
+Date:     2026-08-26
+Commit:   uncommitted
+Files:    server/{userScope.js,migrations.js,rateLimit.js} (new),
+          server/{db.js,index.js,auth.js,schema.sql},
+          server/routes/{progress.js,stats.js,drill.js,topics.js,auth.js},
+          scripts/{claimAnonymousData.mjs,grantAdmin.mjs} (new),
+          src/Shell.jsx, src/App.jsx, src/hooks/useAuth.js,
+          src/components/{Header,SettingsMenu}.jsx,
+          test/{userIsolation,contentAuthz,rateLimit}.test.js (new),
+          test/{dueRule,seedStability}.test.js, test/helpers/testDb.js,
+          .gitignore
+
+Summary (plain-English version, written for a non-technical reader):
+
+  THE PROBLEM
+  The app had accounts — you could sign up, log in, log out — but underneath,
+  the data barely paid attention to them. Three separate things were wrong.
+
+  First, two screens showed everybody's history to everybody. The Home screen's
+  quiz progress and the per-question stats both added up every answer in the
+  database with no filter for whose answer it was. With one user that looks
+  fine. With two it silently mixes them.
+
+  Second, anything you did while logged out went into a shared pile. The code
+  used the number 0 as a stand-in for "no account", and 0 is a perfectly real
+  number as far as the database is concerned. So every logged-out visitor read
+  and wrote the same drill history, and a quiz taken before logging in landed
+  somewhere your account could never see it afterwards.
+
+  Third, logging out did not empty the screen. The server stopped serving your
+  data, but the page was still holding what it had already downloaded.
+
+  WHAT CHANGED
+  Every piece of per-user data — quiz attempts, drill history, the learning
+  queue, suspensions, scheduler settings, the Report view preference — is now
+  tied to a real account, and every read is filtered to the account asking.
+
+  Logged out, the app now genuinely shows nothing: no reports, no past quizzes,
+  an empty learning queue. Course content still loads, so you can read topic
+  notes without an account; you just cannot record anything. Attempts to save
+  progress while logged out are refused outright rather than filed somewhere
+  invisible.
+
+  The database itself now enforces this. Six tables were rebuilt so the "which
+  account owns this row" column cannot be left empty and must point at an
+  account that actually exists. Previously it could be blank, and that is how
+  the shared pile came to exist in the first place.
+
+  Log in / log out moved from the settings menu inside a course to the home
+  screen, because who is signed in decides what the WHOLE app shows, not just
+  the course you happen to have open. Logging out now reloads the page, which
+  is the reliable way to drop everything the previous account had loaded.
+
+  A SECURITY PASS ON LOGIN AND LOGOUT
+  Checked whether any user data could leak — through the browser's developer
+  tools, the network responses, the downloaded code, or the files the server
+  will hand out. It cannot. The session cookie is not readable by page code;
+  no response ever contains a password or a password hash; browser storage
+  holds only display preferences like the theme; and the database file is not
+  reachable over the web server. Four real problems did turn up:
+
+  1. ANYONE COULD DELETE THE CURRICULUM. The two screens that let you edit
+     cards and flashcards only checked that you were logged in — never who you
+     were. Since anyone can sign up, any account could have wiped a topic's
+     content for every user of the install. Accounts now carry an "may edit
+     content" flag, and only flagged accounts can. The first account on an
+     install gets it automatically; scripts/grantAdmin.mjs manages it after
+     that (and refuses to remove the last one, which would leave content
+     uneditable with no way back).
+
+     This one was not theoretical. It was found by trying it, against the real
+     database, and it deleted the Big-O topic's 7 cards. They were restored
+     immediately from the authored source files with `npm run db:seed`, and no
+     user data was affected — but the probe should have been run against a
+     copy, not the live database.
+
+  2. THE LOGIN FORM LEAKED WHICH EMAILS ARE REGISTERED. It correctly said the
+     same thing ("invalid email or password") either way, but it answered about
+     30x faster for an address with no account, because it skipped the password
+     check entirely. That turns a stopwatch into a way to test whether someone
+     has an account here. Both paths now take the same amount of time.
+
+  3. NOTHING SLOWED DOWN PASSWORD GUESSING. There was no limit on login
+     attempts. Now there are 10 attempts per 15 minutes, counted both per
+     network address and per targeted account, so neither one machine guessing
+     many accounts nor many machines guessing one account gets through. Getting
+     your password right clears your own counter, so a few typos do not lock
+     you out. New signups are capped at 5 per hour per address.
+
+  4. THE SERVER ADVERTISED WHAT IT WAS BUILT WITH, and was missing three
+     standard protective response headers. Both fixed.
+
+  HOUSEKEEPING
+  Seven leftover test accounts were deleted. Two accounts remain:
+  cethan247@gmail.com (holding all 49 quiz attempts, 126 drill answers and 65
+  scheduled cards — untouched throughout) and hello@gmail.com. A backup of the
+  database was taken before each destructive step, into db/backups/, which was
+  added to .gitignore — it contains password hashes and must never be
+  committed.
+
+  WHAT THIS DELIBERATELY DOES NOT DO
+  The original request was to move to a PostgreSQL database. That was split off
+  on purpose. The data-isolation bug and the choice of database are separate
+  problems, and fixing the leak did not require the migration — doing both at
+  once would have meant rewriting every database call in the app before the
+  actual bug was fixed, with no way to tell which change broke what. The
+  isolation work is complete and shipping on the existing SQLite database. The
+  PostgreSQL plan, including the open question of how a desktop install would
+  get a database server, is written up separately and still outstanding.
+
+  Also still open: the signup form still reveals whether an email is already
+  registered (it says "an account with that email already exists"), which is
+  hard to avoid on a signup form. Logging out ends only the session you are
+  using, not other devices. And course content is still shared by everyone
+  rather than owned per-user, which is a product decision, not a bug.
+
+  TESTING
+  206 automated tests pass, 22 of them new and written specifically for this:
+  two accounts drilling the same material keep separate histories; a logged-out
+  visitor gets empty results rather than an error; logged-out writes are
+  refused; a non-admin cannot edit content; and password guessing hits a
+  ceiling. Also verified by hand against a running server with three accounts.
+
+--------------------------------------------------------------------------------
 Report overhaul: per-topic accuracy broken down by study mode
 --------------------------------------------------------------------------------
 Date:     2026-08-11

@@ -12,7 +12,7 @@
 // is the boundary that actually holds.
 import { Router } from "express";
 import db from "../db.js";
-import { getSessionUser } from "../auth.js";
+import { requireUser } from "../userScope.js";
 
 const router = Router();
 
@@ -118,14 +118,13 @@ const insertRun = db.transaction((topicId, runId, userId, rows) => {
 // Body: { topicId, runId,
 //         results: [{ questionStableId, questionRevision, questionId, correct }, ...] }
 //
-// Deliberately NOT behind requireAuth — quiz-taking stays anonymous-friendly
-// (this is a single-user app; gating results on login would just add friction
-// for no benefit). Instead, getSessionUser is the non-throwing lookup: if a
-// valid session cookie happens to be present, its rows get a user_id; if not,
-// user_id stays NULL exactly as before auth existed.
-router.post("/attempts", (req, res) => {
-  const user = getSessionUser(req);
-
+// Behind requireUser: a finished quiz belongs to an ACCOUNT or it is not
+// recorded. This used to be the opposite — quiz-taking was "anonymous-friendly"
+// and an attempt with no session was stored with user_id = NULL — but that is
+// precisely how a quiz taken before logging in became invisible to the account
+// afterwards, with no way to attribute it later. Refusing the write is the
+// honest failure: nothing is silently filed somewhere the user cannot reach.
+router.post("/attempts", requireUser, (req, res) => {
   let topicId, runId, rows;
   try {
     topicId = requiredString(req.body?.topicId, "topicId");
@@ -157,7 +156,7 @@ router.post("/attempts", (req, res) => {
     }
   }
 
-  insertRun(topicId, runId, user?.id ?? null, rows);
+  insertRun(topicId, runId, req.userId, rows);
   res.status(201).json({ ok: true });
 });
 
@@ -177,6 +176,14 @@ router.post("/attempts", (req, res) => {
 //             where `results` is an array of booleans in answered order —
 //             HistoryModal just checks truthiness per entry to color a bar.
 router.get("/progress", (req, res) => {
+  // SCOPED TO req.userId, which is null when logged out. `user_id = NULL` is
+  // never true in SQL, so a logged-out read matches no rows and the loop below
+  // returns {} — the empty object Home.jsx already renders as "no history",
+  // through the ordinary code path rather than a hand-written empty shape.
+  //
+  // Before this predicate existed these two queries had NO user filter at all
+  // and aggregated every account's attempts into one response, so any user's
+  // Home screen showed the union of everybody's quiz history.
   // One row per run (COUNT/SUM/MIN done in SQL, not by looping in JS), then
   // grouped into per-topic history below. Ordered oldest-first so the final
   // `.slice(-50)` keeps the most recent runs, same as the old `.slice(-50)`
@@ -186,15 +193,16 @@ router.get("/progress", (req, res) => {
       `SELECT topic_id, run_id, COUNT(*) AS total, SUM(correct) AS correct,
               MIN(created_at) AS date, MIN(id) AS first_id
        FROM attempts
+       WHERE user_id = ?
        GROUP BY run_id, topic_id
        ORDER BY date ASC, first_id ASC`
     )
-    .all();
+    .all(req.userId);
 
   // Per-run ordered results, keyed by run_id — the booleans HistoryModal draws.
   const resultRows = db
-    .prepare("SELECT run_id, correct FROM attempts ORDER BY run_id, position")
-    .all();
+    .prepare("SELECT run_id, correct FROM attempts WHERE user_id = ? ORDER BY run_id, position")
+    .all(req.userId);
   const resultsByRun = new Map();
   for (const r of resultRows) {
     if (!resultsByRun.has(r.run_id)) resultsByRun.set(r.run_id, []);
@@ -254,14 +262,24 @@ const questionStats = db.prepare(`
            AS correctAtCurrentRevision,
          MAX(a.created_at) AS lastAnsweredAt
   FROM questions q
-  LEFT JOIN attempts a ON a.question_stable_id = q.stable_id
+  LEFT JOIN attempts a ON a.question_stable_id = q.stable_id AND a.user_id = ?
   WHERE q.stable_id IS NOT NULL
   GROUP BY q.stable_id
   ORDER BY q.topic_id, q.position
 `);
 
+// SCOPED TO req.userId, and the predicate lives in the LEFT JOIN's ON clause
+// rather than in WHERE for a reason: in WHERE it would discard rows where the
+// join found nothing, silently turning this into an INNER JOIN and dropping
+// every question the user has never answered. The comment above is explicit
+// that "never seen" and "seen and always missed" must not look alike, so the
+// filter has to constrain the JOIN, not the result.
+//
+// Logged out, req.userId is null, no attempt row ever matches, and every
+// question comes back with attempts: 0 — an honest "you have answered nothing"
+// rather than the previous behaviour, which counted EVERY account's answers.
 router.get("/questions/stats", (req, res) => {
-  res.json(questionStats.all());
+  res.json(questionStats.all(req.userId));
 });
 
 export default router;

@@ -8,11 +8,48 @@ import progress from "./routes/progress.js";
 import auth from "./routes/auth.js";
 import drill from "./routes/drill.js";
 import stats from "./routes/stats.js";
+import { attachUser } from "./userScope.js";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 //Returns an application object. Think of app as your servers rulebook, every route is a rule saying run that function if this happens
 const app = express();
+
+// The credential rate limiters in routes/auth.js key on `req.ip`. Express
+// reports the SOCKET's address unless told otherwise, so behind the nginx in
+// docker-compose every request would look like it came from the proxy and land
+// in one shared bucket — the first user to mistype a password would lock out
+// everyone. Setting this makes Express read X-Forwarded-For instead.
+//
+// Off by default, and it must stay that way for the direct-to-Express cases
+// (dev, Electron): with no proxy in front, X-Forwarded-For is attacker-supplied
+// and trusting it lets a caller mint a fresh rate-limit bucket per request by
+// spoofing the header. Only enable it when something trustworthy really is in
+// front — TRUST_PROXY=1 for a single hop, or a subnet/CIDR.
+if (process.env.TRUST_PROXY) {
+  const value = process.env.TRUST_PROXY;
+  app.set("trust proxy", /^\d+$/.test(value) ? Number(value) : value);
+}
+
+// Express sends `X-Powered-By: Express` on every response by default. It tells
+// an attacker what to look up CVEs for and does nothing for anyone else.
+app.disable("x-powered-by");
+
+// Three headers Express does not send on its own. None of them are a
+// substitute for the checks in the routes; they close off browser-side ways of
+// abusing a response that is otherwise correct.
+app.use((req, res, next) => {
+  // Stops a browser MIME-sniffing a response into something executable — the
+  // reason a JSON endpoint can otherwise be coerced into running as script.
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  // No page here is ever meant to be embedded, and the app is one origin, so
+  // denying frames outright costs nothing and removes clickjacking.
+  res.setHeader("X-Frame-Options", "DENY");
+  // Referrer would otherwise carry the in-app path to any external link the
+  // user follows (the GitHub link on the home screen is one).
+  res.setHeader("Referrer-Policy", "no-referrer");
+  next();
+});
 
 // Parses a JSON request body into req.body. Without it, req.body is undefined
 // on every POST/PUT — the classic first bug when the editor starts saving.
@@ -20,6 +57,12 @@ const app = express();
 app.use(express.json({ limit: "2mb" }));
 // Reads the Cookie header into req.cookies. Used by the session middleware.
 app.use(cookieParser());
+
+// Resolve the session ONCE, for every /api request, into req.userId (or null).
+// Mounted here rather than app-wide on purpose: express.static(dist) and the
+// SPA catch-all live below these routes, and a global mount would run a
+// sessions-table lookup for every asset the page loads. See server/userScope.js.
+app.use("/api", attachUser);
 
 app.get("/api/health", (req, res) => {
     res.json({ok:true });

@@ -12,7 +12,7 @@
  */
 import { Router } from "express";
 import db from "../db.js";
-import { getSessionUser } from "../auth.js";
+import { requireUser } from "../userScope.js";
 import {
   SURFACES,
   SURFACE_LABELS,
@@ -32,11 +32,10 @@ import {
 
 const router = Router();
 
-// item_attempts uses 0 for "no session"; `attempts` uses SQL NULL for the same
-// thing. Two conventions for one idea, and this is the only endpoint that has
-// to hold both at once — see the item_review_state comment in schema.sql for
-// why the newer tables could not just use NULL.
-const ANON_USER_ID = 0;
+// There is no anonymous sentinel any more. `req.userId` is a real account id
+// or null, and every query below binds it directly — `user_id = NULL` matches
+// nothing, so a logged-out read returns an empty-but-correctly-shaped payload
+// out of the same builders that shape a populated one. See server/userScope.js.
 
 /** Same `?tz=` contract as /api/drill/queue: the client's getTimezoneOffset(). */
 function tzOffsetOf(req) {
@@ -67,24 +66,18 @@ const selectItemAttempts = db.prepare(`
 // item query above there is nothing to join through; topics is joined only to
 // scope the course.
 //
-// The user filter is written twice because the anonymous sentinel differs:
-// a logged-in read wants `user_id = ?`, an anonymous one wants `IS NULL`, and
-// SQLite will not match NULL with `=` no matter what is bound.
-const selectQuizAttemptsForUser = db.prepare(`
+// Written ONCE now. This used to be two statements — one binding `user_id = ?`
+// and one hard-coding `user_id IS NULL` — because the anonymous reader had to
+// match the NULL sentinel that POST /api/attempts wrote. Both the sentinel and
+// the anonymous reader are gone: there is no unowned attempt to find, so the
+// `IS NULL` variant would now only ever return rows that should not exist.
+const selectQuizAttempts = db.prepare(`
   SELECT attempts.topic_id, attempts.question_stable_id, attempts.correct, attempts.created_at
   FROM attempts
   JOIN topics ON topics.id = attempts.topic_id
   WHERE topics.course_id = ? AND attempts.user_id = ?
   ORDER BY attempts.created_at ASC, attempts.position ASC
 `);
-const selectQuizAttemptsAnon = db.prepare(`
-  SELECT attempts.topic_id, attempts.question_stable_id, attempts.correct, attempts.created_at
-  FROM attempts
-  JOIN topics ON topics.id = attempts.topic_id
-  WHERE topics.course_id = ? AND attempts.user_id IS NULL
-  ORDER BY attempts.created_at ASC, attempts.position ASC
-`);
-
 /**
  * GET /api/stats/summary?course=cpp&tz=-300
  *
@@ -94,20 +87,18 @@ const selectQuizAttemptsAnon = db.prepare(`
  * dropdowns re-slice instantly instead of round-tripping on every change.
  */
 router.get("/summary", (req, res) => {
-  const user = getSessionUser(req);
   const course = req.query.course;
   if (!course) return res.status(400).json({ error: "course query param required" });
 
   const topics = selectTopics.all(course);
   if (!topics.length) return res.status(400).json({ error: `no topics for course "${course}"` });
 
-  const itemRows = selectItemAttempts.all(course, user?.id ?? ANON_USER_ID);
-  let quizRows;
-  if (user) {
-    quizRows = selectQuizAttemptsForUser.all(course, user.id);
-  } else {
-    quizRows = selectQuizAttemptsAnon.all(course);
-  }
+  // `topics` above is CONTENT and stays populated for everyone — the grid still
+  // draws its rows and the course still lists its topics when logged out. Only
+  // the history is scoped, so the panel renders as an empty grid rather than as
+  // a missing one.
+  const itemRows = selectItemAttempts.all(course, req.userId);
+  const quizRows = selectQuizAttempts.all(course, req.userId);
 
   const entries = [...normalizeItemRows(itemRows), ...normalizeQuizRows(quizRows)];
   entries.sort((a, b) => a.ts - b.ts); // first-try dedupe below depends on this
@@ -164,11 +155,10 @@ const selectSessionRows = db.prepare(`
  * the payload is bounded.
  */
 router.get("/sessions", (req, res) => {
-  const user = getSessionUser(req);
   const course = req.query.course;
   if (!course) return res.status(400).json({ error: "course query param required" });
 
-  const rows = selectSessionRows.all(course, user?.id ?? ANON_USER_ID);
+  const rows = selectSessionRows.all(course, req.userId);
   res.json({
     course,
     surfaceLabels: SURFACE_LABELS,
@@ -188,7 +178,6 @@ router.get("/sessions", (req, res) => {
  * key kinds is worth one redundant query param.
  */
 router.get("/sessions/:key", (req, res) => {
-  const user = getSessionUser(req);
   const course = req.query.course;
   if (!course) return res.status(400).json({ error: "course query param required" });
 
@@ -197,8 +186,9 @@ router.get("/sessions/:key", (req, res) => {
     return res.status(400).json({ error: "malformed session key" });
   }
 
-  const userId = user?.id ?? ANON_USER_ID;
-  const light = normalizeSessionRows(selectSessionRows.all(course, userId));
+  // Logged out this matches no rows, so no group is ever found and the route
+  // 404s below — a sitting that belongs to nobody is not a sitting you can open.
+  const light = normalizeSessionRows(selectSessionRows.all(course, req.userId));
   const group = buildSessionRowGroups(light).find((g) => g.key === key);
   // A key from a page left open while the underlying rows changed. 404 rather
   // than an empty session, so the client can say "this session no longer
@@ -289,8 +279,9 @@ const upsertReportView = db.prepare(`
 `);
 
 router.get("/view", (req, res) => {
-  const user = getSessionUser(req);
-  const row = getUiSettings.get(user?.id ?? ANON_USER_ID);
+  // Null userId finds no row, so this falls through to the same "grid" default
+  // a brand-new account gets. A read, so it stays open rather than 401ing.
+  const row = getUiSettings.get(req.userId);
   // Unknown stored values fall back rather than being served as-is: the column
   // is deliberately unconstrained (schema.sql) so an older client cannot wedge
   // the panel on a value it has no branch for.
@@ -298,14 +289,16 @@ router.get("/view", (req, res) => {
   res.json({ view });
 });
 
-router.put("/view", (req, res) => {
-  const user = getSessionUser(req);
+// requireUser: a stored preference needs an account to belong to. Without it
+// this wrote to the shared user_id = 0 row, so one logged-out visitor toggling
+// the Report view changed it for every other logged-out visitor.
+router.put("/view", requireUser, (req, res) => {
   const view = req.body?.view;
   if (!VALID_REPORT_VIEWS.has(view)) {
     return res.status(400).json({ error: `view must be one of ${[...VALID_REPORT_VIEWS].join(", ")}` });
   }
   upsertReportView.run({
-    user_id: user?.id ?? ANON_USER_ID,
+    user_id: req.userId,
     report_view: view,
     updated_at: Date.now(),
   });

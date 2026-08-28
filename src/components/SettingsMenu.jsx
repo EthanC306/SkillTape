@@ -5,22 +5,26 @@ import useOllamaSettings from "../hooks/useOllamaSettings";
 import useSchedulerSettings from "../hooks/useSchedulerSettings";
 import useSchedulerFlags from "../hooks/useSchedulerFlags";
 import { getOllamaStatus } from "../api/client";
-import AuthBar from "./AuthBar";
 
 /**
  * SettingsMenu — the gear button at the end of Header's top bar (same spot
  * in both c++ and cs3000, since Header renders it for either course).
  *
- * Opens a panel with four sections: a theme-preset swatch row (see
- * ACCENT_PRESETS/useTheme), the account control that used to sit inline in
- * Header, the scheduler parameters (plans/fsrs_ui.md Phase 6), and the local
- * Ollama host/model Practice mode's grading uses (docs/OLLAMA_GRADING.md).
+ * Opens a panel with three sections: a theme-preset swatch row (see
+ * ACCENT_PRESETS/useTheme), the scheduler parameters (plans/fsrs_ui.md Phase
+ * 6), and the local Ollama host/model Practice mode's grading uses
+ * (docs/OLLAMA_GRADING.md).
+ *
+ * The account control is deliberately NOT here any more. Signing in and out is
+ * not a per-course setting — it decides whose data the whole app shows — so it
+ * lives on the home screen (src/Shell.jsx), which is the one place you can
+ * reach without having opened a course.
  *
  * Renders as a normal flex item in Header's row (not `position: fixed`) so
  * it never overlaps Header's own right-aligned text — it just sits after it
  * with a gap, however long that text gets.
  */
-export default function SettingsMenu({ auth }) {
+export default function SettingsMenu() {
   const [open, setOpen] = useState(false);
   const { themeId, setThemeId, presets, scheme, setScheme, schemes } = useTheme();
   const { host, model, codeModel, setHost, setModel, setCodeModel } = useOllamaSettings();
@@ -163,30 +167,6 @@ export default function SettingsMenu({ auth }) {
                   />
                 ))}
               </div>
-            </div>
-
-            <div style={{ height: 1, background: PALETTE.line }} />
-
-            <div>
-              <div
-                style={{
-                  fontFamily: HEADING,
-                  fontSize: 11,
-                  fontWeight: 500,
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                  color: PALETTE.muted,
-                  marginBottom: 10,
-                }}
-              >
-                Account
-              </div>
-              <AuthBar
-                user={auth.user}
-                onLogin={auth.login}
-                onSignup={auth.signup}
-                onLogout={auth.logout}
-              />
             </div>
 
             <div style={{ height: 1, background: PALETTE.line }} />

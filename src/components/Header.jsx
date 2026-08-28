@@ -8,10 +8,11 @@ import SettingsMenu from "./SettingsMenu";
  * inside SettingsMenu's gear panel, fixed to the top of the page, rather
  * than inline here.
  *
- * auth is the { user, login, signup, logout } object from useAuth, threaded
- * straight through from App — Header itself has no auth logic of its own.
+ * Header no longer carries anything account-related: signing in and out moved
+ * to the home screen (src/Shell.jsx), because it decides whose data the WHOLE
+ * app shows rather than anything about the course being read.
  */
-export default function Header({ topic, onHome, auth }) {
+export default function Header({ topic, onHome }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
       <span
@@ -29,7 +30,7 @@ export default function Header({ topic, onHome, auth }) {
       <span style={{ marginLeft: "auto", fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>
         question what you know
       </span>
-      {auth && <SettingsMenu auth={auth} />}
+      <SettingsMenu />
     </div>
   );
 }
