@@ -105,3 +105,52 @@ export function requireAuth(req, res, next) {
   req.user = user;
   next();
 }
+
+/**
+ * Is this process reachable by anyone other than the person sitting at it?
+ *
+ * The bind address already answers that, and server/index.js is where it gets
+ * decided: the default is 127.0.0.1 ("keeps this off the LAN"), and the one
+ * deployment that opens the app up — docker-compose.yml, which puts nginx in
+ * front of it — sets HOST=0.0.0.0 explicitly. So loopback here means desktop
+ * (Electron) or `npm run dev:server`; 0.0.0.0 means it is being served to other
+ * machines, where "who is writing" is a real question rather than a formality.
+ *
+ * SKILLTAPE_SINGLE_USER overrides it either way — "0"/"false"/"no" forces
+ * accounts back on, anything else forces them off — for setups neither case
+ * describes (a reverse proxy on the same host, say).
+ */
+const LOOPBACK = new Set(["127.0.0.1", "::1", "localhost"]);
+const singleUserOverride = process.env.SKILLTAPE_SINGLE_USER;
+export const SINGLE_USER = singleUserOverride
+  ? !["0", "false", "no"].includes(singleUserOverride.toLowerCase())
+  : LOOPBACK.has(process.env.HOST || "127.0.0.1");
+
+/**
+ * Gate a CONTENT WRITE — the Edit Mode saves in routes/topics.js — on being the
+ * owner of this install.
+ *
+ * Deliberately more permissive than requireAuth, because content editing was
+ * the only thing in the entire API that demanded an account: quiz attempts,
+ * drill scheduling, FSRS state, suspensions and every stats read are all
+ * anonymous-friendly already (see the note in routes/progress.js). On a
+ * loopback single-user install that inconsistency had a sharp edge — with no
+ * account ever created, `users` is empty, so no session can exist, so every
+ * save 401s "not authenticated" and the editor's Save button cannot be made to
+ * work at all, only to report failure. Allowing the write here is therefore no
+ * new trust: it grants the same caller exactly what it can already do to every
+ * other table in this database.
+ *
+ * When the server is exposed, this is precisely requireAuth again.
+ */
+export function requireContentOwner(req, res, next) {
+  const user = getSessionUser(req);
+  if (user) {
+    req.user = user;
+    return next();
+  }
+  // req.user stays undefined — no content write reads it, and inventing a
+  // synthetic user here would put a fake id on rows that never carry one.
+  if (SINGLE_USER) return next();
+  return res.status(401).json({ error: "not authenticated" });
+}

@@ -49,7 +49,18 @@ const upsertTopic = db.prepare(`
 // `questions` and `items` are the exceptions and must NOT be cleared this way
 // — see upsertQuestion and deleteMissingItems below.
 const clearCards = db.prepare("DELETE FROM cards WHERE topic_id = ?");
-const clearFlashcards = db.prepare("DELETE FROM flashcards WHERE topic_id = ?");
+// Flashcards are the exception to the paragraph above: something DOES hang off
+// them now, namely the deck the user typed in Edit Mode. `origin = 'authored'`
+// narrows the wipe to the rows this file put there in the first place, so a
+// reseed replaces the curriculum's cards and leaves the user's alone.
+//
+// This is not hypothetical. calcII-derivatives ships `flashcards: []` and a
+// Learn card that says "Hit Edit above, then switch to the Flashcards tab to
+// add terms" — its entire deck is user-authored by design, and the old
+// unqualified DELETE took all of it on every `npm run db:seed`.
+const clearAuthoredFlashcards = db.prepare(
+  "DELETE FROM flashcards WHERE topic_id = ? AND origin = 'authored'"
+);
 
 const insertCard = db.prepare(`
   INSERT INTO cards (topic_id, position, heading, body, code, art, accept,
@@ -160,9 +171,43 @@ const insertChoice = db.prepare(
   "INSERT INTO choices (question_id, position, text) VALUES (?, ?, ?)"
 );
 
+// The authored stable id is derived, not random, so that re-seeding the same
+// module reproduces the same ids rather than minting a fresh set every run —
+// the identity has to be a property of the authored deck, not of when it was
+// last imported. Topic modules don't declare flashcard ids today, so position
+// is all there is to key on; if a deck is reordered in the module, the ids
+// follow the slots. That is acceptable precisely because nothing references a
+// flashcard id yet, and it is why the marker is spelled `-a` — a user-authored
+// card gets an opaque `fc-<uuid>` from routes/topics.js and can never collide.
+const authoredFlashcardId = (topicId, i) => `${topicId}-fc-a${i}`;
+
 const insertFlashcard = db.prepare(
-  "INSERT INTO flashcards (topic_id, position, front, back) VALUES (?, ?, ?, ?)"
+  `INSERT INTO flashcards (topic_id, position, front, back, stable_id, origin)
+   VALUES (?, ?, ?, ?, ?, 'authored')`
 );
+
+// User cards keep their identity and their content; only their slot moves, so
+// that the authored deck occupies 0..n-1 and the user's sit after it rather
+// than interleaving on duplicate positions (the read is ORDER BY position, and
+// ties resolve arbitrarily).
+//
+// Read-then-write one row at a time, rather than one clever UPDATE with a
+// correlated subquery over the table being updated: SQLite applies an UPDATE
+// row by row, so such a subquery can see rows this same statement has already
+// rewritten. The loop has no such ambiguity.
+const userFlashcardsInOrder = db.prepare(
+  "SELECT stable_id FROM flashcards WHERE topic_id = ? AND origin = 'user' ORDER BY position, id"
+);
+const setFlashcardPosition = db.prepare(
+  "UPDATE flashcards SET position = ? WHERE stable_id = ?"
+);
+
+/** Park the topic's user-authored cards immediately after its authored ones. */
+function appendUserFlashcards(topicId, afterPosition) {
+  userFlashcardsInOrder.all(topicId).forEach((row, i) => {
+    setFlashcardPosition.run(afterPosition + i, row.stable_id);
+  });
+}
 
 // items (ROADMAP.md A3/A4): itemSchema.js's polymorphic bank. The topic module
 // stays the source of truth and this is still a one-way bridge into SQLite —
@@ -292,7 +337,11 @@ const seed = db.transaction(() => {
     // has since been removed. Questions and items are pruned by their own
     // per-topic sweeps. See pruneMissing above for why topics and courses are
     // pruned rather than wiped.
-    db.exec("DELETE FROM cards; DELETE FROM flashcards;");
+    // Flashcards are qualified by origin for the same reason the per-topic
+    // clear is: --reset drops stale CURRICULUM content, and a card the user
+    // typed is not that. A user card whose topic is genuinely gone still goes,
+    // via the ON DELETE CASCADE on the topics prune below.
+    db.exec("DELETE FROM cards; DELETE FROM flashcards WHERE origin = 'authored';");
     pruneMissing("topics", curriculum.map((t) => t.id));
     pruneMissing("courses", COURSES.map((c) => c.id));
   }
@@ -320,7 +369,7 @@ const seed = db.transaction(() => {
     );
 
     clearCards.run(topic.id);
-    clearFlashcards.run(topic.id);
+    clearAuthoredFlashcards.run(topic.id);
     // NOT clearQuestions / clearItems — both are upserted below and pruned
     // here instead, so that quiz history, per-user review state and drill
     // attempts survive a reseed.
@@ -367,10 +416,12 @@ const seed = db.transaction(() => {
       if (bumped) revised.push(`${q.id} → r${revision}`);
     });
 
-    (topic.flashcards ?? []).forEach((f, i) => {
-      insertFlashcard.run(topic.id, i, f.front, f.back);
+    const authoredDeck = topic.flashcards ?? [];
+    authoredDeck.forEach((f, i) => {
+      insertFlashcard.run(topic.id, i, f.front, f.back, authoredFlashcardId(topic.id, i));
       flashcards++;
     });
+    appendUserFlashcards(topic.id, authoredDeck.length);
 
     (topic.items ?? []).forEach((it, i) => {
       upsertItem.run({

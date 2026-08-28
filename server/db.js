@@ -42,11 +42,15 @@ db.exec(fs.readFileSync(path.join(HERE, "schema.sql"), "utf8"));
 // on `topics` after some installs already had the table, so it needs this
 // one guarded ALTER TABLE to reach a DB created before A5. A fresh DB gets
 // the column straight from schema.sql above, so this is a no-op there.
+// Returns true only on the boot that actually adds the column, which is what a
+// one-time backfill has to key off. A column added with NOT NULL DEFAULT fills
+// existing rows with that default immediately, so "which rows predate this
+// column" is unanswerable from the data afterwards — it has to be answered now.
 function ensureColumn(table, column, ddl) {
   const cols = db.prepare(`PRAGMA table_info(${table})`).all();
-  if (!cols.some((c) => c.name === column)) {
-    db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
-  }
+  if (cols.some((c) => c.name === column)) return false;
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  return true;
 }
 ensureColumn("topics", "exam_weight", "exam_weight REAL NOT NULL DEFAULT 1.0");
 
@@ -145,5 +149,39 @@ ensureColumn("item_attempts", "answer_choice", "answer_choice INTEGER");
 db.exec(
   "CREATE INDEX IF NOT EXISTS idx_item_attempts_session ON item_attempts(user_id, session_id, ts)"
 );
+
+// `flashcards.stable_id` / `.origin` — a flashcard's permanent identity, and
+// who owns the row. Both matter because a deck is saved by DELETE-then-INSERT
+// (routes/topics.js), which hands every surviving card a brand new
+// AUTOINCREMENT `id` on every single save. That is the exact bug
+// docs/STABLE_QUESTION_IDS.md describes for questions, one table over.
+//
+// Same two SQLite restrictions as the questions migration: ALTER TABLE cannot
+// add a UNIQUE column, so stable_id arrives plain and the constraint follows as
+// a separate unique index (schema.sql declares it the same way, so a fresh
+// database converges on the identical structure).
+ensureColumn("flashcards", "stable_id", "stable_id TEXT");
+const originAdded = ensureColumn("flashcards", "origin", "origin TEXT NOT NULL DEFAULT 'user'");
+
+// stable_id backfill — a construction, not a guess: `id` is the primary key, so
+// `<topic>-fc-<id>` is unique without needing to coordinate with anything. The
+// values are as arbitrary as the rows they name; the point is only that from
+// here on they stop moving. The IS NULL guard makes re-runs no-ops (this file
+// executes on every boot) and also catches any row that somehow arrives without
+// one later.
+db.exec(
+  "UPDATE flashcards SET stable_id = topic_id || '-fc-' || id WHERE stable_id IS NULL"
+);
+
+// origin backfill — a recovery, and it gets exactly one chance. Every flashcard
+// that exists at the moment this column is added got there through seed.js,
+// because Edit Mode had no working save before stable ids landed; so 'authored'
+// is a fact about those rows rather than an assumption. It is keyed off
+// `originAdded` because the ALTER above already stamped them all 'user' (the
+// right default for rows the editor writes later, wrong for these), which
+// leaves nothing in the data to distinguish them a boot from now.
+if (originAdded) db.exec("UPDATE flashcards SET origin = 'authored'");
+
+db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_flashcards_stable ON flashcards(stable_id)");
 
 export default db;

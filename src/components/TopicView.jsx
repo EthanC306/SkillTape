@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { PALETTE, MONO, HEADING, RADII } from "../data/theme";
 import LearnView from "./LearnView";
 import QuizView from "./QuizView";
@@ -20,6 +20,52 @@ import FlashcardsView from "./FlashcardsView";
  *                       on, ready to pick topics for a Master Set quiz.
  */
 export default function TopicView({ topic, mode, setMode, onFinish, best, onPrev, onNext, prevTopic, nextTopic, onSelectMode, editMode, onToggleEdit, onSaveContent, saveState }) {
+  // The open editor (Learn's or Flashcards') publishes its draft state here so
+  // Done can commit it — see handleToggleEdit. Only one editor is mounted at a
+  // time, since `mode` picks exactly one view below.
+  const editorRef = useRef(null);
+  const registerEditor = useCallback((handle) => {
+    editorRef.current = handle;
+  }, []);
+
+  // True while Done is waiting on the save it kicked off.
+  const [finishing, setFinishing] = useState(false);
+  // Set when Done refused to leave because the draft is invalid. The editor
+  // already flags *which* card is broken; this just explains why the click on
+  // Done appeared to do nothing.
+  const [blockedNote, setBlockedNote] = useState(false);
+
+  /**
+   * Edit/Done. Turning edit mode ON is just a toggle; turning it OFF saves
+   * first — "Done" reads as "done editing", so silently dropping an uncommitted
+   * draft is the one thing it must not do.
+   *
+   * Two ways it declines to leave, both keeping the draft on screen:
+   *   - the editor is blocking (unclosed `**`, a blank flashcard side); it is
+   *     already showing why, and exiting would discard the fix in progress.
+   *   - the write failed; the error is on screen next to the Save button.
+   */
+  async function handleToggleEdit() {
+    setBlockedNote(false);
+    if (editMode) {
+      const editor = editorRef.current;
+      if (editor?.dirty) {
+        if (editor.blocked) {
+          setBlockedNote(true);
+          return;
+        }
+        setFinishing(true);
+        try {
+          const ok = await editor.save();
+          if (!ok) return;
+        } finally {
+          setFinishing(false);
+        }
+      }
+    }
+    onToggleEdit();
+  }
+
   const navBtn = {
     fontFamily: HEADING,
     fontSize: 12,
@@ -68,17 +114,25 @@ export default function TopicView({ topic, mode, setMode, onFinish, best, onPrev
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           {/* Turns Learn and Flashcards into editors for this topic's content. */}
           <button
-            onClick={onToggleEdit}
-            title="Edit this topic's cards"
+            onClick={handleToggleEdit}
+            disabled={finishing}
+            title={editMode ? "Save changes and leave edit mode" : "Edit this topic's cards"}
             style={{
               ...navBtn,
               border: `1px solid ${editMode ? PALETTE.accent : PALETTE.line}`,
               background: editMode ? PALETTE.accentSoft : "transparent",
               color: editMode ? PALETTE.accent : PALETTE.text,
+              cursor: finishing ? "default" : "pointer",
+              opacity: finishing ? 0.5 : 1,
             }}
           >
-            {editMode ? "Done" : "Edit"}
+            {finishing ? "Saving…" : editMode ? "Done" : "Edit"}
           </button>
+          {blockedNote && (
+            <span style={{ alignSelf: "center", fontFamily: MONO, fontSize: 11, color: PALETTE.bad }}>
+              fix the flagged card first
+            </span>
+          )}
           {/* Jumps back to the topic list in selection mode (for Master Set). */}
           <button onClick={onSelectMode} title="Select topics for a combined quiz" style={navBtn}>
             Select
@@ -98,13 +152,25 @@ export default function TopicView({ topic, mode, setMode, onFinish, best, onPrev
         </div>
       </div>
       {mode === "learn" ? (
-        <LearnView topic={topic} editMode={editMode} onSave={onSaveContent} saveState={saveState} />
+        <LearnView
+          topic={topic}
+          editMode={editMode}
+          onSave={onSaveContent}
+          saveState={saveState}
+          registerEditor={registerEditor}
+        />
       ) : mode === "quiz" ? (
         // Quiz stays read-only: editing questions means editing four choices and
         // a correct-answer index, which is a different (and riskier) editor.
         <QuizView topic={topic} onFinish={onFinish} best={best} />
       ) : (
-        <FlashcardsView topic={topic} editMode={editMode} onSave={onSaveContent} saveState={saveState} />
+        <FlashcardsView
+          topic={topic}
+          editMode={editMode}
+          onSave={onSaveContent}
+          saveState={saveState}
+          registerEditor={registerEditor}
+        />
       )}
     </div>
   );
