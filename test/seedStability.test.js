@@ -212,6 +212,26 @@ test("--reset keeps history instead of cascading it away", (t) => {
   );
 });
 
+test("--reset preserves an account-owned course and all of its authored content", (t) => {
+  const dbPath = tempDbPath(t);
+  seed(dbPath);
+  const db = open(dbPath);
+  const userId = ensureUser(db);
+  db.prepare("INSERT INTO courses (id, title, position, owner_id) VALUES ('user-course', 'My Course', 0, ?)").run(userId);
+  db.prepare("INSERT INTO topics (id, course_id, title, position) VALUES ('user-topic', 'user-course', 'My Topic', 0)").run();
+  db.prepare("INSERT INTO cards (topic_id, position, heading, body) VALUES ('user-topic', 0, 'My Note', 'Durable body')").run();
+  db.prepare("INSERT INTO flashcards (topic_id, position, front, back, stable_id, origin) VALUES ('user-topic', 0, 'Front', 'Back', 'user-card', 'user')").run();
+  db.close();
+
+  seed(dbPath, ["--reset"]);
+
+  const after = open(dbPath);
+  assert.equal(after.prepare("SELECT owner_id FROM courses WHERE id = 'user-course'").get().owner_id, userId);
+  assert.equal(after.prepare("SELECT title FROM topics WHERE id = 'user-topic'").get().title, "My Topic");
+  assert.equal(after.prepare("SELECT body FROM cards WHERE topic_id = 'user-topic'").get().body, "Durable body");
+  assert.equal(after.prepare("SELECT back FROM flashcards WHERE topic_id = 'user-topic'").get().back, "Back");
+});
+
 test("questions with no stable id are swept, not left as duplicates", (t) => {
   const dbPath = tempDbPath(t);
   seed(dbPath);

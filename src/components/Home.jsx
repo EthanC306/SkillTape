@@ -59,11 +59,17 @@ export default function Home({
   onLab,
   showDueStrip = true,
   onAddDeck,
+  onRenameDeck,
 }) {
   const [addingDeck, setAddingDeck] = useState(false);
   const [deckTitle, setDeckTitle] = useState("");
   const [deckSubtitle, setDeckSubtitle] = useState("");
   const [deckState, setDeckState] = useState(null);
+  const [hoveredTopic, setHoveredTopic] = useState(null);
+  const [editingTopic, setEditingTopic] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editSubtitle, setEditSubtitle] = useState("");
+  const [editState, setEditState] = useState(null);
 
   function closeDeckDialog() {
     if (deckState === "saving") return;
@@ -74,14 +80,39 @@ export default function Home({
   }
 
   async function submitDeck(event) {
-    event.preventDefault();
+    event?.preventDefault();
     if (!deckTitle.trim() || deckState === "saving") return;
     setDeckState("saving");
     try {
-      await onAddDeck({ title: deckTitle.trim(), subtitle: deckSubtitle.trim() });
-      closeDeckDialog();
+      const created = await onAddDeck({ title: deckTitle.trim(), subtitle: deckSubtitle.trim() });
+      if (!created?.id) throw new Error("The topic was not confirmed by the database.");
+      setAddingDeck(false);
+      setDeckTitle("");
+      setDeckSubtitle("");
+      setDeckState(null);
     } catch (error) {
       setDeckState(error.message);
+    }
+  }
+
+  function openTopicEditor(event, topic) {
+    event.stopPropagation();
+    setEditingTopic(topic);
+    setEditTitle(topic.title);
+    setEditSubtitle(topic.subtitle ?? "");
+    setEditState(null);
+  }
+
+  async function submitTopicEdit(event) {
+    event.preventDefault();
+    if (!editTitle.trim() || editState === "saving") return;
+    setEditState("saving");
+    try {
+      await onRenameDeck(editingTopic.id, { title: editTitle.trim(), subtitle: editSubtitle.trim() });
+      setEditingTopic(null);
+      setEditState(null);
+    } catch (error) {
+      setEditState(error.message);
     }
   }
   const ctrlBtn = (active) => ({
@@ -180,6 +211,8 @@ export default function Home({
               // In select mode a click toggles the topic in/out of the set;
               // otherwise it opens the topic as usual.
               onClick={() => (selectMode ? onToggleSelect(t.id) : onOpen(t.id))}
+              onMouseEnter={() => setHoveredTopic(t.id)}
+              onMouseLeave={() => setHoveredTopic((current) => current === t.id ? null : current)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
@@ -197,6 +230,18 @@ export default function Home({
                 color: PALETTE.text,
               }}
             >
+              {hoveredTopic === t.id && !selectMode && (
+                <button
+                  type="button"
+                  aria-label={`Edit ${t.title}`}
+                  title="Edit topic name"
+                  onClick={(event) => openTopicEditor(event, t)}
+                  onKeyDown={(event) => event.stopPropagation()}
+                  style={{ position: "absolute", top: 9, right: 10, zIndex: 2, width: 30, height: 30, display: "grid", placeItems: "center", padding: 0, border: `1px solid ${PALETTE.line}`, borderRadius: RADII.sm, background: PALETTE.panel2, color: PALETTE.accent, cursor: "pointer", fontSize: 15 }}
+                >
+                  ✎
+                </button>
+              )}
               {/* Checkmark badge marking a selected card. */}
               {selected && (
                 <span
@@ -378,6 +423,7 @@ export default function Home({
               TITLE
               <input
                 autoFocus
+                required
                 value={deckTitle}
                 onChange={(event) => setDeckTitle(event.target.value)}
                 maxLength={200}
@@ -398,9 +444,32 @@ export default function Home({
             {deckState && deckState !== "saving" && <div role="alert" style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.bad }}>{deckState}</div>}
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <button type="button" onClick={closeDeckDialog} disabled={deckState === "saving"} style={ctrlBtn(false)}>Cancel</button>
-              <button type="submit" disabled={!deckTitle.trim() || deckState === "saving"} style={{ ...ctrlBtn(Boolean(deckTitle.trim())), opacity: deckTitle.trim() && deckState !== "saving" ? 1 : 0.5 }}>
+              <button type="button" onClick={submitDeck} disabled={!deckTitle.trim() || deckState === "saving"} style={{ ...ctrlBtn(Boolean(deckTitle.trim())), opacity: deckTitle.trim() && deckState !== "saving" ? 1 : 0.5 }}>
                 {deckState === "saving" ? "Adding…" : "Add +"}
               </button>
+            </div>
+          </form>
+        </div>
+      )}
+      {editingTopic && (
+        <div onMouseDown={(event) => { if (event.target === event.currentTarget && editState !== "saving") setEditingTopic(null); }} style={{ position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 20, background: "rgba(8, 9, 16, 0.72)" }}>
+          <form role="dialog" aria-modal="true" aria-labelledby="edit-topic-title" onSubmit={submitTopicEdit} style={{ width: "min(440px, 100%)", boxSizing: "border-box", display: "grid", gap: 16, padding: "24px 26px", border: `1px solid ${PALETTE.line}`, borderRadius: RADII.lg, background: PALETTE.panel, color: PALETTE.text }}>
+            <div>
+              <div id="edit-topic-title" style={{ fontFamily: HEADING, fontSize: 20, fontWeight: 600, marginBottom: 5 }}>Edit topic</div>
+              <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>Update the name shown on this topic card.</div>
+            </div>
+            <label style={{ display: "grid", gap: 6, fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>
+              TITLE
+              <input autoFocus required value={editTitle} onChange={(event) => setEditTitle(event.target.value)} maxLength={200} style={{ boxSizing: "border-box", width: "100%", padding: "10px 12px", border: `1px solid ${PALETTE.line}`, borderRadius: RADII.md, background: PALETTE.bg, color: PALETTE.text, fontFamily: HEADING, fontSize: 15 }} />
+            </label>
+            <label style={{ display: "grid", gap: 6, fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>
+              SUBTITLE
+              <input value={editSubtitle} onChange={(event) => setEditSubtitle(event.target.value)} maxLength={200} style={{ boxSizing: "border-box", width: "100%", padding: "10px 12px", border: `1px solid ${PALETTE.line}`, borderRadius: RADII.md, background: PALETTE.bg, color: PALETTE.text, fontFamily: MONO, fontSize: 13 }} />
+            </label>
+            {editState && editState !== "saving" && <div role="alert" style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.bad }}>{editState}</div>}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button type="button" disabled={editState === "saving"} onClick={() => setEditingTopic(null)} style={ctrlBtn(false)}>Cancel</button>
+              <button type="submit" disabled={!editTitle.trim() || editState === "saving"} style={{ ...ctrlBtn(Boolean(editTitle.trim())), opacity: editTitle.trim() && editState !== "saving" ? 1 : 0.5 }}>{editState === "saving" ? "Saving…" : "Save"}</button>
             </div>
           </form>
         </div>

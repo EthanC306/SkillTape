@@ -9,7 +9,7 @@
 import crypto from "node:crypto";
 import { Router } from "express";
 import db from "../db.js";
-import { requireAdmin } from "../userScope.js";
+import { requireUser } from "../userScope.js";
 
 const router = Router();
 
@@ -29,8 +29,10 @@ function figureOf(row) {
 }
 
 const listTopics = db.prepare(`
-  SELECT id, course_id, title, subtitle, show_chart, exam_weight
-  FROM topics ORDER BY position
+  SELECT topics.id, topics.course_id, topics.title, topics.subtitle, topics.show_chart, topics.exam_weight
+  FROM topics JOIN courses ON courses.id = topics.course_id
+  WHERE courses.owner_id IS NULL OR courses.owner_id = @userId
+  ORDER BY courses.position, topics.position
 `);
 
 const getTopic = db.prepare(`
@@ -38,7 +40,8 @@ const getTopic = db.prepare(`
   FROM topics WHERE id = ?
 `);
 
-const getCourse = db.prepare("SELECT id FROM courses WHERE id = ?");
+const getCourse = db.prepare("SELECT id, owner_id FROM courses WHERE id = ?");
+const isAdmin = db.prepare("SELECT is_admin FROM users WHERE id = ?");
 const getNextTopicPosition = db.prepare(
   "SELECT COALESCE(MAX(position), -1) + 1 AS position FROM topics WHERE course_id = ?"
 );
@@ -46,6 +49,9 @@ const insertTopic = db.prepare(`
   INSERT INTO topics (id, course_id, title, subtitle, show_chart, position, exam_weight)
   VALUES (@id, @course_id, @title, @subtitle, 0, @position, 1.0)
 `);
+const updateTopicMetadata = db.prepare(
+  "UPDATE topics SET title = @title, subtitle = @subtitle WHERE id = @id"
+);
 
 const getCards = db.prepare(`
   SELECT heading, body, code, art, accept, figure_src, figure_alt, figure_caption
@@ -164,13 +170,19 @@ export function buildTopic(row) {
 // well under a megabyte of JSON and was previously shipped in the JS bundle
 // anyway, so one request is both simpler and no worse than what it replaces.
 router.get("/", (req, res) => {
-  res.json(listTopics.all().map(buildTopic));
+  if (req.userId == null) return res.json([]);
+  res.json(listTopics.all({ userId: req.userId }).map(buildTopic));
 });
 
 // GET /api/topics/:id — one topic.
 router.get("/:id", (req, res) => {
+  if (req.userId == null) return res.status(404).json({ error: "topic not found" });
   const row = getTopic.get(req.params.id);
   if (!row) return res.status(404).json({ error: "topic not found" });
+  const course = getCourse.get(row.course_id);
+  if (course.owner_id != null && course.owner_id !== req.userId) {
+    return res.status(404).json({ error: "topic not found" });
+  }
   res.json(buildTopic(row));
 });
 
@@ -249,7 +261,7 @@ const createTopic = db.transaction(({ courseId, title, subtitle }) => {
 // POST /api/topics — create an empty flashcard-capable topic in one course.
 // Content is shared across accounts, so creation has the same admin boundary
 // as editing an existing topic's cards or flashcards.
-router.post("/", requireAdmin, (req, res) => {
+router.post("/", requireUser, (req, res) => {
   let courseId;
   let title;
   let subtitle;
@@ -257,7 +269,11 @@ router.post("/", requireAdmin, (req, res) => {
     courseId = shortString(req.body?.course, "course", { required: true, max: 100 });
     title = shortString(req.body?.title, "title", { required: true });
     subtitle = shortString(req.body?.subtitle ?? "", "subtitle");
-    if (!getCourse.get(courseId)) fail("course does not exist");
+    const course = getCourse.get(courseId);
+    if (!course || (course.owner_id != null && course.owner_id !== req.userId)) fail("course does not exist");
+    if (course.owner_id == null && !isAdmin.get(req.userId)?.is_admin) {
+      return res.status(403).json({ error: "this account may not edit course content" });
+    }
   } catch (err) {
     if (err instanceof BadRequest) return res.status(400).json({ error: err.message });
     throw err;
@@ -265,6 +281,28 @@ router.post("/", requireAdmin, (req, res) => {
 
   const row = createTopic({ courseId, title, subtitle });
   res.status(201).json(buildTopic(row));
+});
+
+function requireTopicEditor(req, res, next) {
+  const topic = getTopic.get(req.params.id);
+  if (!topic) return res.status(404).json({ error: "topic not found" });
+  const course = getCourse.get(topic.course_id);
+  if (course.owner_id === req.userId || isAdmin.get(req.userId)?.is_admin) return next();
+  return res.status(403).json({ error: "this account may not edit course content" });
+}
+
+router.patch("/:id", requireUser, requireTopicEditor, (req, res) => {
+  let title;
+  let subtitle;
+  try {
+    title = shortString(req.body?.title, "title", { required: true });
+    subtitle = shortString(req.body?.subtitle ?? "", "subtitle");
+  } catch (err) {
+    if (err instanceof BadRequest) return res.status(400).json({ error: err.message });
+    throw err;
+  }
+  updateTopicMetadata.run({ id: req.params.id, title, subtitle: subtitle || null });
+  res.json(buildTopic(getTopic.get(req.params.id)));
 });
 
 /** Arrays are objects and null is an object; neither is a usable record. */
@@ -486,7 +524,7 @@ function replaceChildren(req, res, key, toRow, replace, checkAll) {
 //
 // The GET routes above stay open, and per-user writes elsewhere stay on
 // requireUser. This gate is specifically about changing what OTHERS read.
-router.put("/:id/cards", requireAdmin, (req, res) =>
+router.put("/:id/cards", requireUser, requireTopicEditor, (req, res) =>
   replaceChildren(req, res, "cards", cardRow, replaceCards)
 );
 
@@ -496,7 +534,7 @@ router.put("/:id/cards", requireAdmin, (req, res) =>
 //
 // Each card carries its own `id` in and back out again. Send a card's id to
 // edit or reorder it; omit it to add a new one and be told what it is called.
-router.put("/:id/flashcards", requireAdmin, (req, res) =>
+router.put("/:id/flashcards", requireUser, requireTopicEditor, (req, res) =>
   replaceChildren(req, res, "flashcards", flashcardRow, replaceFlashcards, checkFlashcardIds)
 );
 

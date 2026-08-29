@@ -4,7 +4,7 @@ import UpdateBanner from "./components/UpdateBanner";
 import AuthBar from "./components/AuthBar";
 import useAuth from "./hooks/useAuth";
 import useUpdater from "./hooks/useUpdater";
-import { COURSES } from "./data/courses";
+import { getCourses, postCourse } from "./api/client";
 import { PALETTE, MONO, HEADING, RADII, fadeDivider } from "./data/theme";
 
 // Shared look for the buttons in the bottom bar. `active` highlights the
@@ -54,10 +54,20 @@ function menuItemStyle(active) {
   return style;
 }
 
+const PREEXISTING_CATEGORIES = [
+  { label: "Computer Science", ids: new Set(["spring", "cpp", "discrete"]) },
+  { label: "Mathematics", ids: new Set(["calcII"]) },
+];
+
 export default function Shell() {
   // `course` is a course id from COURSES, or null while on the home screen.
   const [course, setCourse] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [courseDialog, setCourseDialog] = useState(false);
+  const [courseTitle, setCourseTitle] = useState("");
+  const [courseSubtitle, setCourseSubtitle] = useState("");
+  const [courseSave, setCourseSave] = useState(null);
   const menuRef = useRef(null);
   const { appVersion } = useUpdater();
   // Lives here rather than in App: every per-user read is scoped to the session
@@ -65,6 +75,36 @@ export default function Shell() {
   // just the course currently open. The home screen is the one view reachable
   // without picking a course, which makes it the only honest place for it.
   const auth = useAuth();
+
+  useEffect(() => {
+    let cancelled = false;
+    getCourses()
+      .then((rows) => {
+        if (cancelled) return;
+        setCourses(rows);
+        setCourse((current) => current && !rows.some((entry) => entry.id === current) ? null : current);
+      })
+      .catch(() => { /* Built-in fallback remains available if the API is offline. */ });
+    return () => { cancelled = true; };
+  }, [auth.user?.id]);
+
+  async function addCourse(event) {
+    event.preventDefault();
+    if (!courseTitle.trim() || courseSave === "saving") return;
+    setCourseSave("saving");
+    try {
+      const created = await postCourse(courseTitle.trim(), courseSubtitle.trim());
+      const rows = await getCourses();
+      setCourses(rows);
+      setCourseDialog(false);
+      setCourseTitle("");
+      setCourseSubtitle("");
+      setCourseSave(null);
+      openCourse(created.id);
+    } catch (error) {
+      setCourseSave(error.message);
+    }
+  }
 
   // Close the menu when you click somewhere else, or press Escape.
   useEffect(() => {
@@ -104,7 +144,15 @@ export default function Shell() {
   }
 
   // The course object for the label on the menu button.
-  const selectedCourse = COURSES.find((entry) => entry.id === course);
+  const selectedCourse = courses.find((entry) => entry.id === course);
+  const ownedCourses = courses.filter((entry) => entry.ownerId != null);
+  const preexistingCourses = courses.filter((entry) => entry.ownerId == null);
+  const categorizedPreexisting = PREEXISTING_CATEGORIES.map((category) => ({
+    label: category.label,
+    courses: preexistingCourses.filter((entry) => category.ids.has(entry.id)),
+  }));
+  const categorizedIds = new Set(PREEXISTING_CATEGORIES.flatMap((category) => [...category.ids]));
+  const uncategorizedPreexisting = preexistingCourses.filter((entry) => !categorizedIds.has(entry.id));
 
   let menuLabel = "Choose a class";
   if (selectedCourse) {
@@ -327,7 +375,22 @@ export default function Shell() {
                 zIndex: 50,
               }}
             >
-              {COURSES.map((entry) => (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 6px 7px 10px", borderBottom: `1px solid ${PALETTE.line}`, marginBottom: 4 }}>
+                <span style={{ fontFamily: MONO, fontSize: 10, color: PALETTE.muted, textTransform: "uppercase", letterSpacing: 1 }}>{auth.user ? "Your courses" : "Sign in to view courses"}</span>
+                <button
+                  type="button"
+                  aria-label="Create a new course"
+                  title="Create a new course"
+                  onClick={() => { setMenuOpen(false); setCourseDialog(true); }}
+                  style={{ width: 30, height: 30, display: "grid", placeItems: "center", padding: 0, border: `1px solid ${PALETTE.line}`, borderRadius: RADII.sm, background: "transparent", color: PALETTE.accent, cursor: "pointer", fontSize: 16 }}
+                >
+                  ✎
+                </button>
+              </div>
+              {auth.user && ownedCourses.length === 0 && (
+                <div style={{ padding: "8px 12px 10px", fontFamily: MONO, fontSize: 10, color: PALETTE.muted }}>No personal courses yet.</div>
+              )}
+              {ownedCourses.map((entry) => (
                 <button
                   key={entry.id}
                   type="button"
@@ -350,10 +413,58 @@ export default function Shell() {
                   </div>
                 </button>
               ))}
+              {auth.user && (
+                <div style={{ padding: "10px 10px 6px", marginTop: ownedCourses.length ? 5 : 0, borderTop: `1px solid ${PALETTE.line}`, fontFamily: MONO, fontSize: 10, color: PALETTE.muted, textTransform: "uppercase", letterSpacing: 1 }}>
+                  Preexisting courses
+                </div>
+              )}
+              {[...categorizedPreexisting, { label: "Other", courses: uncategorizedPreexisting }].map((group) => group.courses.length > 0 && (
+                <div key={group.label} role="group" aria-label={group.label}>
+                  <div style={{ padding: "8px 12px 4px", fontFamily: HEADING, fontSize: 11, fontWeight: 600, color: PALETTE.accent }}>
+                    {group.label}
+                  </div>
+                  {group.courses.map((entry) => (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      role="option"
+                      aria-selected={course === entry.id}
+                      onClick={() => openCourse(entry.id)}
+                      style={menuItemStyle(course === entry.id)}
+                    >
+                      <div style={{ fontFamily: HEADING, fontSize: 13 }}>{entry.title}</div>
+                      <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>{entry.subtitle}</div>
+                    </button>
+                  ))}
+                </div>
+              ))}
             </div>
           )}
         </div>
       </nav>
+      {courseDialog && (
+        <div onMouseDown={(event) => { if (event.target === event.currentTarget && courseSave !== "saving") setCourseDialog(false); }} style={{ position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 20, background: "rgba(8, 9, 16, 0.72)" }}>
+          <form role="dialog" aria-modal="true" aria-labelledby="create-course-title" onSubmit={addCourse} style={{ width: "min(440px, 100%)", boxSizing: "border-box", display: "grid", gap: 16, padding: "24px 26px", border: `1px solid ${PALETTE.line}`, borderRadius: RADII.lg, background: PALETTE.panel }}>
+            <div>
+              <div id="create-course-title" style={{ fontFamily: HEADING, fontSize: 20, fontWeight: 600, marginBottom: 5 }}>New course</div>
+              <div style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>{auth.user ? "This course and everything you add inside it belong to your account." : "Sign in from Home before creating a course so it can be saved to your account."}</div>
+            </div>
+            <label style={{ display: "grid", gap: 6, fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>
+              TITLE
+              <input autoFocus value={courseTitle} onChange={(event) => setCourseTitle(event.target.value)} maxLength={200} placeholder="Physics II" style={{ boxSizing: "border-box", width: "100%", padding: "10px 12px", border: `1px solid ${PALETTE.line}`, borderRadius: RADII.md, background: PALETTE.bg, color: PALETTE.text, fontFamily: HEADING, fontSize: 15 }} />
+            </label>
+            <label style={{ display: "grid", gap: 6, fontFamily: MONO, fontSize: 11, color: PALETTE.muted }}>
+              SUBTITLE
+              <input value={courseSubtitle} onChange={(event) => setCourseSubtitle(event.target.value)} maxLength={200} placeholder="Electricity and magnetism" style={{ boxSizing: "border-box", width: "100%", padding: "10px 12px", border: `1px solid ${PALETTE.line}`, borderRadius: RADII.md, background: PALETTE.bg, color: PALETTE.text, fontFamily: MONO, fontSize: 13 }} />
+            </label>
+            {courseSave && courseSave !== "saving" && <div role="alert" style={{ fontFamily: MONO, fontSize: 11, color: PALETTE.bad }}>{courseSave}</div>}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button type="button" disabled={courseSave === "saving"} onClick={() => setCourseDialog(false)} style={barButtonStyle(false)}>Cancel</button>
+              <button type="submit" disabled={!auth.user || !courseTitle.trim() || courseSave === "saving"} style={{ ...barButtonStyle(Boolean(auth.user && courseTitle.trim())), opacity: auth.user && courseTitle.trim() && courseSave !== "saving" ? 1 : 0.5 }}>{courseSave === "saving" ? "Creating…" : "Create +"}</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

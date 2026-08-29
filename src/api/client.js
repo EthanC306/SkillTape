@@ -52,6 +52,14 @@ export async function api(path, { method = "GET", body, keepalive = false } = {}
 
 // ── Topics ─────────────────────────────────────────────────────────────────
 
+export function getCourses() {
+  return api("/api/courses");
+}
+
+export function postCourse(title, subtitle) {
+  return api("/api/courses", { method: "POST", body: { title, subtitle } });
+}
+
 // Module-level cache, deliberately outside React. Shell.jsx renders
 // <App key="c++" …>, so switching course tabs REMOUNTS App and re-runs its
 // effects — without this, every tab switch would refetch the whole bank.
@@ -72,6 +80,13 @@ export function postTopic(course, title, subtitle) {
   return api("/api/topics", {
     method: "POST",
     body: { course, title, subtitle },
+  });
+}
+
+export function patchTopic(topicId, title, subtitle) {
+  return api(`/api/topics/${encodeURIComponent(topicId)}`, {
+    method: "PATCH",
+    body: { title, subtitle },
   });
 }
 

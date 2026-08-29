@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS courses (
   id        TEXT PRIMARY KEY,   -- "cpp", "discrete" — matches COURSES in courses.js
   title     TEXT NOT NULL,
   subtitle  TEXT,
-  position  INTEGER NOT NULL DEFAULT 0
+  position  INTEGER NOT NULL DEFAULT 0,
+  owner_id  INTEGER REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS topics (

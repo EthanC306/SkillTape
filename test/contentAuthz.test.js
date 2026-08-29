@@ -15,6 +15,7 @@ isolatedTestDb(import.meta.url);
 
 const { default: db } = await import("../server/db.js");
 const { default: topicsRouter } = await import("../server/routes/topics.js");
+const { default: coursesRouter } = await import("../server/routes/courses.js");
 const { attachUser } = await import("../server/userScope.js");
 
 db.exec(`
@@ -26,11 +27,13 @@ db.exec(`
 
 const ADMIN = signIn(db, "admin@example.com", { admin: true });
 const PLAIN = signIn(db, "plain@example.com");
+const OTHER = signIn(db, "other@example.com");
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/topics", attachUser, topicsRouter);
+app.use("/api/courses", attachUser, coursesRouter);
 const server = app.listen(0);
 const base = `http://127.0.0.1:${server.address().port}/api/topics`;
 
@@ -57,9 +60,31 @@ function postTopic(who, body) {
   });
 }
 
+function postCourse(who, body) {
+  return fetch(base.replace("/topics", "/courses"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(who ? { Cookie: who.cookie } : {}) },
+    body: JSON.stringify(body),
+  });
+}
+
 test("a logged-out request cannot edit content", async () => {
   assert.equal((await putCards(null, [])).status, 401);
   assert.equal(cardCount(), 2, "and nothing was deleted");
+});
+
+test("signed-out users receive no course or topic content", async () => {
+  const topics = await fetch(base).then((res) => res.json());
+  const courses = await fetch(base.replace("/topics", "/courses")).then((res) => res.json());
+  assert.deepEqual(topics, []);
+  assert.deepEqual(courses, []);
+});
+
+test("every signed-in account receives the preexisting course library", async () => {
+  const courses = await fetch(base.replace("/topics", "/courses"), {
+    headers: { Cookie: OTHER.cookie },
+  }).then((res) => res.json());
+  assert.equal(courses.some((course) => course.id === "authz" && course.ownerId == null), true);
 });
 
 test("an ordinary account cannot wipe a topic — the exact shipped IDOR", async () => {
@@ -103,6 +128,52 @@ test("a non-admin cannot create a shared deck", async () => {
   const res = await postTopic(PLAIN, { course: "authz", title: "Forbidden", subtitle: "" });
   assert.equal(res.status, 403);
   assert.equal(db.prepare("SELECT 1 FROM topics WHERE title = 'Forbidden'").get(), undefined);
+});
+
+test("account-owned courses, topics, and cards persist and stay private", async () => {
+  const courseRes = await postCourse(PLAIN, { title: "My Physics", subtitle: "Private notes" });
+  assert.equal(courseRes.status, 201);
+  const ownedCourse = await courseRes.json();
+
+  const topicRes = await postTopic(PLAIN, { course: ownedCourse.id, title: "Waves", subtitle: "Chapter one" });
+  assert.equal(topicRes.status, 201);
+  const ownedTopic = await topicRes.json();
+
+  const cardRes = await fetch(`${base}/${ownedTopic.id}/cards`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Cookie: PLAIN.cookie },
+    body: JSON.stringify({ cards: [{ heading: "Frequency", body: "Cycles per second" }] }),
+  });
+  assert.equal(cardRes.status, 200);
+  assert.equal(db.prepare("SELECT heading FROM cards WHERE topic_id = ?").get(ownedTopic.id).heading, "Frequency");
+
+  const renameRes = await fetch(`${base}/${ownedTopic.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Cookie: PLAIN.cookie },
+    body: JSON.stringify({ title: "Wave Motion", subtitle: "Renamed safely" }),
+  });
+  assert.equal(renameRes.status, 200);
+  assert.deepEqual(
+    db.prepare("SELECT title, subtitle FROM topics WHERE id = ?").get(ownedTopic.id),
+    { title: "Wave Motion", subtitle: "Renamed safely" }
+  );
+
+  const otherTopics = await fetch(base, { headers: { Cookie: OTHER.cookie } }).then((res) => res.json());
+  assert.equal(otherTopics.some((topic) => topic.id === ownedTopic.id), false);
+  const otherWrite = await fetch(`${base}/${ownedTopic.id}/cards`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Cookie: OTHER.cookie },
+    body: JSON.stringify({ cards: [] }),
+  });
+  assert.equal(otherWrite.status, 403);
+  const otherRename = await fetch(`${base}/${ownedTopic.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Cookie: OTHER.cookie },
+    body: JSON.stringify({ title: "Stolen", subtitle: "" }),
+  });
+  assert.equal(otherRename.status, 403);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM cards WHERE topic_id = ?").get(ownedTopic.id).n, 1);
+  assert.equal(db.prepare("SELECT title FROM topics WHERE id = ?").get(ownedTopic.id).title, "Wave Motion");
 });
 
 test("revoking the flag takes effect immediately, not when the cookie expires", async () => {

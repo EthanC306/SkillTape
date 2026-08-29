@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import topics from "./routes/topics.js";
+import courses from "./routes/courses.js";
 import progress from "./routes/progress.js";
 import auth from "./routes/auth.js";
 import drill from "./routes/drill.js";
@@ -69,6 +70,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/topics", topics);
+app.use("/api/courses", courses);
 // progress.js defines both /attempts and /progress itself (two unrelated
 // collection names sharing one file, per docs/RESUME-EDIT-MODE.md), so it is
 // mounted at the bare /api prefix rather than one fixed sub-path.

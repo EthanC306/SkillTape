@@ -341,9 +341,21 @@ const seed = db.transaction(() => {
     // clear is: --reset drops stale CURRICULUM content, and a card the user
     // typed is not that. A user card whose topic is genuinely gone still goes,
     // via the ON DELETE CASCADE on the topics prune below.
-    db.exec("DELETE FROM cards; DELETE FROM flashcards WHERE origin = 'authored';");
-    pruneMissing("topics", curriculum.map((t) => t.id));
-    pruneMissing("courses", COURSES.map((c) => c.id));
+    // Only shared curriculum is seed-owned. Account-owned courses and every
+    // child below them are durable user data and must survive --reset.
+    db.exec(`
+      DELETE FROM cards WHERE topic_id IN (
+        SELECT topics.id FROM topics JOIN courses ON courses.id = topics.course_id
+        WHERE courses.owner_id IS NULL
+      );
+      DELETE FROM flashcards WHERE origin = 'authored';
+    `);
+    const topicIds = curriculum.map((t) => t.id);
+    const topicMarks = topicIds.map(() => "?").join(", ");
+    db.prepare(`DELETE FROM topics WHERE course_id IN (SELECT id FROM courses WHERE owner_id IS NULL) AND id NOT IN (${topicMarks})`).run(...topicIds);
+    const courseIds = COURSES.map((c) => c.id);
+    const courseMarks = courseIds.map(() => "?").join(", ");
+    db.prepare(`DELETE FROM courses WHERE owner_id IS NULL AND id NOT IN (${courseMarks})`).run(...courseIds);
   }
 
   COURSES.forEach((c, i) => upsertCourse.run(c.id, c.title, c.subtitle ?? null, i));

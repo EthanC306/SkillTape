@@ -52,6 +52,8 @@ function ensureColumn(table, column, ddl) {
   db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
   return true;
 }
+ensureColumn("courses", "owner_id", "owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE");
+db.exec("CREATE INDEX IF NOT EXISTS idx_courses_owner ON courses(owner_id, position)");
 ensureColumn("topics", "exam_weight", "exam_weight REAL NOT NULL DEFAULT 1.0");
 
 // `cards.art` — the monospace diagram block. Same guarded-ALTER story as

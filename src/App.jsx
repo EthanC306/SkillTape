@@ -5,7 +5,7 @@ import useProgress from "./hooks/useProgress";
 import useTopics from "./hooks/useTopics";
 import useSchedulerCounts from "./hooks/useSchedulerCounts";
 import useSchedulerFlags from "./hooks/useSchedulerFlags";
-import { postTopic, putCards, putFlashcards } from "./api/client";
+import { patchTopic, postTopic, putCards, putFlashcards } from "./api/client";
 import Header from "./components/Header";
 import Home from "./components/Home";
 import TopicView from "./components/TopicView";
@@ -176,8 +176,18 @@ export default function App({ course }) {
   }
 
   async function addDeck({ title, subtitle }) {
-    await postTopic(course, title, subtitle);
+    const created = await postTopic(course, title, subtitle);
+    if (!created?.id || created.course !== course) {
+      throw new Error("The server did not confirm the new topic. Nothing was closed or discarded.");
+    }
     await reload();
+    return created;
+  }
+
+  async function renameDeck(topicId, { title, subtitle }) {
+    const updated = await patchTopic(topicId, title, subtitle);
+    await reload();
+    return updated;
   }
 
   function goPrev() {
@@ -301,6 +311,7 @@ export default function App({ course }) {
               onLab={() => setLab(true)}
               showDueStrip={dueStrip}
               onAddDeck={addDeck}
+              onRenameDeck={renameDeck}
             />
           ) : (
             <TopicView
