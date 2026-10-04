@@ -16,6 +16,8 @@ import {
   deleteSessionForRequest,
   requireAuth,
 } from "../auth.js";
+import { createVerificationToken, consumeVerificationToken } from "../emailVerification.js";
+import { sendVerificationEmail } from "../mailer.js";
 
 const router = Router();
 
@@ -31,6 +33,24 @@ function isAdmin(userId) {
   return Boolean(getIsAdmin.get(userId)?.is_admin);
 }
 
+const getEmailVerified = db.prepare("SELECT email_verified FROM users WHERE id = ?");
+
+function isEmailVerified(userId) {
+  return Boolean(getEmailVerified.get(userId)?.email_verified);
+}
+
+// Returns false instead of throwing so a mail outage never fails a signup.
+async function sendVerification(user) {
+  const token = createVerificationToken(user.id);
+  try {
+    await sendVerificationEmail(user.email, token);
+    return true;
+  } catch (err) {
+    console.error(`[mail] verification email to ${user.email} failed:`, err.message);
+    return false;
+  }
+}
+
 /** A rejected payload. The handlers convert this — and only this — into a 400. */
 class BadRequest extends Error {}
 
@@ -41,8 +61,7 @@ function fail(message) {
 // Minimal shape check (something@something.something) — not a full RFC 5322
 // validator, which is a rabbit hole with no payoff for a single-user app's
 // signup form. The real check that an email is "valid" is: can this person
-// receive mail there — this app has no email verification, so it isn't
-// answerable here regardless.
+// receive mail there — which POST /verify-email answers, not this regex.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function requireEmail(body) {
@@ -167,7 +186,13 @@ router.post("/signup", signupLimiter, async (req, res) => {
   }
 
   createSession(res, user);
-  res.status(201).json({ id: user.id, email: user.email, isAdmin: user.isAdmin });
+  await sendVerification(user);
+  res.status(201).json({
+    id: user.id,
+    email: user.email,
+    isAdmin: user.isAdmin,
+    emailVerified: false,
+  });
 });
 
 // POST /api/auth/login — body { email, password }.
@@ -202,7 +227,12 @@ router.post("/login", loginLimiter, async (req, res) => {
   req.clearRateLimit?.();
 
   createSession(res, { id: row.id, email: row.email });
-  res.json({ id: row.id, email: row.email, isAdmin: Boolean(row.is_admin) });
+  res.json({
+    id: row.id,
+    email: row.email,
+    isAdmin: Boolean(row.is_admin),
+    emailVerified: Boolean(row.email_verified),
+  });
 });
 
 // POST /api/auth/logout — delete the session row and clear the cookie.
@@ -216,7 +246,45 @@ router.post("/logout", (req, res) => {
 
 // GET /api/auth/me — who the current session belongs to.
 router.get("/me", requireAuth, (req, res) => {
-  res.json({ id: req.user.id, email: req.user.email, isAdmin: isAdmin(req.user.id) });
+  res.json({
+    id: req.user.id,
+    email: req.user.email,
+    isAdmin: isAdmin(req.user.id),
+    emailVerified: isEmailVerified(req.user.id),
+  });
+});
+
+// No session required: the token itself is the proof, and it's too long to guess.
+router.post("/verify-email", (req, res) => {
+  const token = req.body?.token;
+  if (typeof token !== "string" || !/^[0-9a-f]{64}$/.test(token)) {
+    return res.status(400).json({ error: "this verification link is malformed" });
+  }
+
+  const userId = consumeVerificationToken(token);
+  if (!userId) {
+    return res.status(400).json({
+      error: "this verification link is invalid or has expired (if you already verified, just log in)",
+    });
+  }
+
+  res.json({ verified: true });
+});
+
+const resendLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  keys: (req) => [`resend:${req.user.id}`],
+  message: "too many verification emails, wait a while and try again",
+});
+
+// requireAuth must run before resendLimiter so keys() can read req.user.
+router.post("/resend-verification", requireAuth, resendLimiter, async (req, res) => {
+  if (isEmailVerified(req.user.id)) return res.json({ alreadyVerified: true });
+
+  const sent = await sendVerification(req.user);
+  if (!sent) return res.status(502).json({ error: "couldn't send the email, try again later" });
+  res.json({ sent: true });
 });
 
 export default router;

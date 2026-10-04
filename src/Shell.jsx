@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import App from "./App";
 import UpdateBanner from "./components/UpdateBanner";
 import AuthBar from "./components/AuthBar";
+import VerifyNotice from "./components/VerifyNotice";
+import AssistantWidget from "./components/AssistantWidget";
 import useAuth from "./hooks/useAuth";
 import useUpdater from "./hooks/useUpdater";
 import { getCourses, postCourse } from "./api/client";
@@ -136,6 +138,12 @@ export default function Shell() {
   function openCourse(id) {
     setCourse(id);
     setMenuOpen(false);
+  }
+
+  // The assistant created a course server-side; pull the list again so it
+  // shows up in the class picker straight away.
+  function refreshCourses() {
+    getCourses().then(setCourses).catch(() => { /* picker keeps its old list */ });
   }
 
   function goHome() {
@@ -278,6 +286,7 @@ export default function Shell() {
                   to your account.
                 </div>
               )}
+              {auth.user && auth.user.emailVerified === false && <VerifyNotice />}
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -442,6 +451,9 @@ export default function Shell() {
           )}
         </div>
       </nav>
+      {auth.user && (
+        <AssistantWidget key={auth.user.id} onCourseCreated={refreshCourses} onOpenCourse={openCourse} />
+      )}
       {courseDialog && (
         <div onMouseDown={(event) => { if (event.target === event.currentTarget && courseSave !== "saving") setCourseDialog(false); }} style={{ position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 20, background: "rgba(8, 9, 16, 0.72)" }}>
           <form role="dialog" aria-modal="true" aria-labelledby="create-course-title" onSubmit={addCourse} style={{ width: "min(440px, 100%)", boxSizing: "border-box", display: "grid", gap: 16, padding: "24px 26px", border: `1px solid ${PALETTE.line}`, borderRadius: RADII.lg, background: PALETTE.panel }}>

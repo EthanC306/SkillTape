@@ -141,7 +141,8 @@ CREATE TABLE IF NOT EXISTS users (
   --
   -- Bootstrapped in db.js: if no admin exists, the lowest-numbered account
   -- becomes one, so a self-hosted install's owner stays able to edit.
-  is_admin      INTEGER NOT NULL DEFAULT 0
+  is_admin      INTEGER NOT NULL DEFAULT 0,
+  email_verified INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -151,6 +152,14 @@ CREATE TABLE IF NOT EXISTS sessions (
   expires_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+
+CREATE TABLE IF NOT EXISTS email_verification_tokens (
+  token_hash TEXT PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_email_verification_user ON email_verification_tokens(user_id);
 
 -- ── Attempts ─────────────────────────────────────────────────────────────
 

@@ -36,17 +36,20 @@ router.get("/", (req, res) => {
   res.json(listCourses.all({ userId: req.userId }));
 });
 
-router.post("/", requireUser, (req, res) => {
-  let title;
-  let subtitle;
-  try {
-    title = clean(req.body?.title, "title", true);
-    subtitle = clean(req.body?.subtitle ?? "", "subtitle");
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
+/**
+ * Create a course owned by `userId`. The single write path for courses: the
+ * POST route below and the assistant (routes/assistant.js) both go through
+ * it, so an AI-created course is validated and named exactly like one made
+ * from the "New course" dialog.
+ *
+ * @throws {Error} on a missing/blank/oversized title or subtitle — the
+ *   message is safe to show the user as-is.
+ */
+export function createCourse(userId, { title, subtitle = "" }) {
+  title = clean(title, "title", true);
+  subtitle = clean(subtitle ?? "", "subtitle");
 
-  const base = `user-${req.userId}-${slug(title)}`;
+  const base = `user-${userId}-${slug(title)}`;
   let id = base;
   let suffix = 2;
   while (getCourse.get(id)) id = `${base}-${suffix++}`;
@@ -54,10 +57,20 @@ router.post("/", requireUser, (req, res) => {
     id,
     title,
     subtitle: subtitle || null,
-    position: nextPosition.get(req.userId).position,
-    ownerId: req.userId,
+    position: nextPosition.get(userId).position,
+    ownerId: userId,
   });
-  res.status(201).json({ id, title, subtitle: subtitle || null, ownerId: req.userId });
+  return { id, title, subtitle: subtitle || null, ownerId: userId };
+}
+
+router.post("/", requireUser, (req, res) => {
+  let course;
+  try {
+    course = createCourse(req.userId, { title: req.body?.title, subtitle: req.body?.subtitle });
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
+  res.status(201).json(course);
 });
 
 export default router;

@@ -1,6 +1,6 @@
 // Thin client for a locally-run Ollama server (docs/OLLAMA_GRADING.md). Pure
-// functions, no DB or Express access — server/routes/drill.js is the only
-// caller. Ollama runs on the same machine as this process (see
+// functions, no DB or Express access — server/routes/drill.js (grading) and
+// server/routes/assistant.js (the chat assistant) are the callers. Ollama runs on the same machine as this process (see
 // electron/main.cjs: server/index.js is a plain forked Node child, so an
 // outbound fetch to 127.0.0.1:11434 is no different from any other
 // server-side call already in this codebase); the browser never talks to it
@@ -168,7 +168,7 @@ export class OllamaBadResponseError extends Error {
 // that failure entirely.
 const DEFAULT_NUM_CTX = 8192;
 
-async function postChat({ host, model, system, user, temperature, timeoutMs, format, numCtx }) {
+async function postChat({ host, model, system, history = [], user, temperature, timeoutMs, format, numCtx }) {
   host = resolveHost(host);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -200,6 +200,10 @@ async function postChat({ host, model, system, user, temperature, timeoutMs, for
         options: { temperature, num_ctx: numCtx },
         messages: [
           { role: "system", content: system },
+          // Earlier turns of a conversation, oldest first. Grading never sends
+          // any; the assistant sends its recent chat so "call it X instead"
+          // has something to refer back to.
+          ...history,
           { role: "user", content: user },
         ],
       }),
@@ -251,6 +255,7 @@ export async function chatJSON({
   host = DEFAULT_HOST,
   model = DEFAULT_MODEL,
   system,
+  history = [],
   user,
   temperature = 0.15,
   timeoutMs = 30000,
@@ -258,7 +263,7 @@ export async function chatJSON({
   numCtx = DEFAULT_NUM_CTX,
 } = {}) {
   try {
-    return await postChat({ host, model, system, user, temperature, timeoutMs, format, numCtx });
+    return await postChat({ host, model, system, history, user, temperature, timeoutMs, format, numCtx });
   } catch (err) {
     if (!(err instanceof OllamaBadResponseError)) throw err;
     const stricter = `${system}\n\nIMPORTANT: reply with ONLY the JSON object. No prose, no markdown fences, no explanation.`;
@@ -266,7 +271,7 @@ export async function chatJSON({
     // or a model whose sampler chokes on the grammar) fails exactly like a
     // model that rambled, and falling back to plain JSON mode keeps grading
     // working on those installs instead of reporting every item ungraded.
-    return await postChat({ host, model, system: stricter, user, temperature, timeoutMs, format: "json", numCtx });
+    return await postChat({ host, model, system: stricter, history, user, temperature, timeoutMs, format: "json", numCtx });
   }
 }
 

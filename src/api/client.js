@@ -50,6 +50,17 @@ export async function api(path, { method = "GET", body, keepalive = false } = {}
   return data;
 }
 
+// ── Assistant ──────────────────────────────────────────────────────────────
+
+/**
+ * One assistant turn. history is the prior [{ role, content }] turns, oldest
+ * first. Resolves { reply, action, modelUsed } — `action` is what the server
+ * actually did (e.g. { type: "create_course", ok: true, course }), or null.
+ */
+export function postAssistantChat({ message, history, host, model }) {
+  return api("/api/assistant/chat", { method: "POST", body: { message, history, host, model } });
+}
+
 // ── Topics ─────────────────────────────────────────────────────────────────
 
 export function getCourses() {
@@ -139,6 +150,14 @@ export function logout() {
 /** The logged-in user, or throws if there isn't one (useAuth treats 401 as "no user"). */
 export function getMe() {
   return api("/api/auth/me");
+}
+
+export function verifyEmail(token) {
+  return api("/api/auth/verify-email", { method: "POST", body: { token } });
+}
+
+export function resendVerification() {
+  return api("/api/auth/resend-verification", { method: "POST" });
 }
 
 // ── Drill mode (ROADMAP.md A4) ──────────────────────────────────────────────

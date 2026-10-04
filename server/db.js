@@ -190,6 +190,13 @@ db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_flashcards_stable ON flashcards(s
 // everything above; DEFAULT 0 means every existing account starts unprivileged.
 ensureColumn("users", "is_admin", "is_admin INTEGER NOT NULL DEFAULT 0");
 
+const verifiedAdded = ensureColumn(
+  "users",
+  "email_verified",
+  "email_verified INTEGER NOT NULL DEFAULT 0"
+);
+if (verifiedAdded) db.exec("UPDATE users SET email_verified = 1");
+
 // Bootstrap: an install with accounts but NO admin can never edit content
 // again, because the only way to become an admin is to already be one. The
 // lowest-numbered account is the person who set the install up, so it gets the
